@@ -1,13 +1,4 @@
-from pyparsing import (
-    Group,
-    Keyword,
-    OneOrMore,
-    Opt,
-    Suppress,
-    Word,
-    alphanums,
-    delimited_list,
-)
+from pyparsing import Group, OneOrMore, Opt, Word, alphanums
 
 EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -21,7 +12,7 @@ EXAMPLES = [
     # "afi ipv4.unicast from AS6682 at 109.68.121.1 action pref=65435; med=0; community.append(8226:1102); accept ANY AND {0.0.0.0/0^0-24}",
 ]
 
-field = Word(alphanums + "^-+=:./")
+field = Word(alphanums + "-+=.")
 semicolon = Word(";").suppress()
 protocol = "protocol" + field("protocol-1")
 into_protocol = "into" + field("protocol-2")
@@ -33,23 +24,17 @@ peering = Group(
     + field("mp-peering")
     + Opt(actions)
 )
-address_filter = Suppress("{") + Group(delimited_list(field)) + Suppress("}")
-filter_set = "fltr" + field
-filter_operator = Keyword("AND") | Keyword("OR")
-# TODO: preserve delimiters.
-filter = delimited_list(
-    Group(Opt(Keyword("NOT")) + (address_filter | filter_set | field)),
-    delim=filter_operator,
-)
 lex = (
     Opt(protocol)
     + Opt(into_protocol)
     + Opt(afi)
     + Group(OneOrMore(peering)).set_results_name("from")
     + "accept"
-    + Group(filter).set_results_name("mp-filter")
+    + Word(alphanums + " ^-+={}:./").set_results_name("mp-filter")
     + Opt(semicolon)
 )
+
+# TODO: parse <mp-filter>.
 
 for example in EXAMPLES:
     print(f"\n{example} ->")

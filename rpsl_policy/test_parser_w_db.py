@@ -1,9 +1,10 @@
 from io import TextIOWrapper
+from random import choices
 
 from parse import lex
 
 
-def test_parse_line(line: str, verbose: bool = False):
+def test_parse_mp_import(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
     if verbose:
@@ -12,22 +13,44 @@ def test_parse_line(line: str, verbose: bool = False):
             print(results[0][1].as_dict())  # type: ignore
     elif not lex.matches(value):
         # Match failed.
-        test_parse_line(line, True)
+        test_parse_mp_import(line, True)
+
+
+def test_parse_statement(statement: str, verbose: bool = False):
+    if ":" not in statement or not statement.startswith("mp-import"):
+        return 0
+    test_parse_mp_import(statement, verbose)
+    return 1
 
 
 def read_db_test_parser(db: TextIOWrapper):
-    line: str
+    continuation_chars = (" ", "+", "\t")
+    last_line: str = ""
+    line: str = ""
     n_mp_import = 0
     while n_mp_import < 10000:
+        # Read 1 line.
         try:
-            # TODO: Deal with continuation lines.
             line = db.readline()
-            if ":" in line and line.startswith("mp-import"):
-                verbose = n_mp_import % 10 == 0
-                test_parse_line(line, verbose)
-                n_mp_import += 1
         except UnicodeDecodeError as err:
             print(err)
+            continue
+
+        if not line:
+            continue
+
+        # Handle continuation lines.
+        if line.startswith(continuation_chars):
+            last_line += " " + line[1:].strip()
+            continue
+
+        # Test complete statement.
+        if last_line:
+            # 2% chance verbose.
+            verbose = choices((True, False), (1, 49))
+            n_mp_import += test_parse_statement(last_line, verbose)
+
+        last_line = line.strip()
 
 
 def main():

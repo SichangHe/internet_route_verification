@@ -45,7 +45,13 @@ lex = (
 # TODO: parse <mp-filter>.
 # TODO: parse <mp-peering>.
 
-for example in EXAMPLES:
-    success, results = lex.run_tests(example, full_dump=False)
-    if success:
-        print(results[0][1].as_dict())  # type: ignore
+
+def main():
+    for example in EXAMPLES:
+        success, results = lex.run_tests(example, full_dump=False)
+        if success:
+            print(results[0][1].as_dict())  # type: ignore
+
+
+if __name__ == "__main__":
+    main()

@@ -28,13 +28,7 @@ def read_db_test_parser(db: TextIOWrapper):
     last_line: str = ""
     line: str = ""
     n_mp_import = 0
-    while n_mp_import < 100000:
-        # Read 1 line.
-        line = db.readline()
-
-        if not line:
-            continue
-
+    while line := db.readline():
         # Remove comments.
         line = line.split("#", maxsplit=1)[0]
 
@@ -50,6 +44,7 @@ def read_db_test_parser(db: TextIOWrapper):
             n_mp_import += test_parse_statement(last_line, verbose)
 
         last_line = line.strip()
+    print(f"Read {n_mp_import} mp-imports.")
 
 
 def main():

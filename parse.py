@@ -16,7 +16,6 @@ EXAMPLES = [
     "afi ipv6.unicast from AS21127 action pref=100; accept AS-ZSTTK6-SET;",
     "afi ipv6.unicast from AS21127 action pref=100; med=0; accept AS-ZSTTK6-SET;",
     "afi ipv6 from AS1213 accept { ::/0 }",
-    "afi ipv6.unicast from AS1299 action pref=200; accept ANY AND NOT {0.0.0.0/0};",
     "afi ipv6.unicast from AS1299 action pref = 200; accept ANY AND NOT {0.0.0.0/0};",
     "afi ipv4.unicast from AS6682 at 109.68.121.1 action pref=65435; med=0; community.append(8226:1102); accept ANY AND {0.0.0.0/0^0-24}",
 ]
@@ -26,7 +25,8 @@ semicolon = Word(";").suppress()
 protocol = "protocol" + field("protocol-1")
 into_protocol = "into" + field("protocol-2")
 afi = "afi" + field("afi-list")
-actions = "action" + Group(OneOrMore(field + semicolon)).set_results_name("actions")
+action = field + Opt("=" + field) + semicolon
+actions = "action" + Group(OneOrMore(action)).set_results_name("actions")
 mp_peering = Group(
     ZeroOrMore(field + ~(Keyword("action") | Keyword("from") | Keyword("accept")))
     + field

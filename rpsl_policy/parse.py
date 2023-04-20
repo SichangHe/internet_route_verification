@@ -42,7 +42,6 @@ mp_peering = Group(
 peering = Group(
     CaselessKeyword("from") + mp_peering.set_results_name("mp-peering") + Opt(actions)
 )
-comment = "#" + field_w_space("comment")
 import_factor = (
     Group(OneOrMore(peering)).set_results_name("from")
     + CaselessKeyword("accept")
@@ -71,8 +70,6 @@ lex = (
     Opt(protocol)
     + Opt(into_protocol)
     + afi_import_expression
-    # TODO: Move comment handling up.
-    + Opt(comment)
 )
 
 # TODO: parse <mp-filter>.

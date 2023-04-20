@@ -35,6 +35,9 @@ def read_db_test_parser(db: TextIOWrapper):
         if not line:
             continue
 
+        # Remove comments.
+        line = line.split("#", maxsplit=1)[0]
+
         # Handle continuation lines.
         if line.startswith(continuation_chars):
             last_line += " " + line[1:].strip()

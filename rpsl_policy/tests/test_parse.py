@@ -1,9 +1,9 @@
+from pyparsing import ParseResults
+
 from ..parse import lex
 
 
 def test_parse():
-    from pprint import pprint
-
     EXAMPLES = [
         "afi ipv6.unicast from AS9002 accept ANY",
         "afi ipv6.unicast from AS9002 from AS2356 accept ANY",
@@ -20,7 +20,282 @@ def test_parse():
         "afi ipv4.unicast from AS3344:PRNG-LONAP action pref=64535; community.append(3344:60000, 3344:60020, 3344:8330); accept ANY AND NOT AS3344:fltr-filterlist",
     ]
 
-    for example in EXAMPLES:
+    PARSED_DICTS = [
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"mp-peering": ["AS9002"]}],
+            "mp-filter": "ANY",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"mp-peering": ["AS9002"]}, {"mp-peering": ["AS2356"]}],
+            "mp-filter": "ANY",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"actions": ["pref=100"], "mp-peering": ["AS6939"]}],
+            "mp-filter": "ANY",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"actions": ["pref=100"], "mp-peering": ["AS21127"]}],
+            "mp-filter": "AS-ZSTTK6-SET",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"actions": ["pref=100", "med=0"], "mp-peering": ["AS21127"]}],
+            "mp-filter": "AS-ZSTTK6-SET",
+        },
+        {
+            "afi-list": ["ipv6"],
+            "from": [{"mp-peering": ["AS1213"]}],
+            "mp-filter": "{ ::/0 }",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"actions": ["pref = 200"], "mp-peering": ["AS1299"]}],
+            "mp-filter": "ANY AND NOT {0.0.0.0/0}",
+        },
+        {
+            "afi-list": ["ipv4.unicast"],
+            "from": [
+                {
+                    "actions": ["pref=65435", "med=0", "community.append(8226:1102)"],
+                    "mp-peering": ["AS6682", "at", "109.68.121.1"],
+                }
+            ],
+            "mp-filter": "ANY AND {0.0.0.0/0^0-24}",
+        },
+        {
+            "afi-list": ["ipv4.unicast"],
+            "import-factors": [
+                {
+                    "from": [
+                        {"mp-peering": ["AS174", "192.38.7.14", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS174",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS1835", "192.38.7.1", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-UNIC",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS2603", "192.38.7.50", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-NORDUNET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS2686", "192.38.7.8", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-IGNEMEA",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS2874", "192.38.7.10", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-GLOBALIPNET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS6834", "192.38.7.4", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-KMD",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS8434", "192.38.7.92", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-TELENOR",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS9120", "192.38.7.46", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-COHAESIO",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS9167", "192.38.7.49", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-WEBPARTNER",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS12552", "192.38.7.68", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-IPO",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS13030", "192.38.7.52", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-INIT7",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS15516", "192.38.7.64", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-DK-ARROWHEAD",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS15598", "192.38.7.84", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-IPX",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS16095", "192.38.7.66", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-JAYNET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS16095", "192.38.7.67", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-JAYNET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS16150", "192.38.7.43", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS16150:AS-CUSTOMERS",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS16245", "192.38.7.93", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-NGDC",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS20618", "192.38.7.99", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-INFOCONNECT",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS20618", "192.38.7.100", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-INFOCONNECT",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS25384", "192.38.7.97", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-DMDATADK",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS25384", "192.38.7.98", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-DMDATADK",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS28717", "192.38.7.82", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-ZENSYSTEMS",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS29100", "192.38.7.77", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS29100",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS29266", "192.38.7.41", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-DANMARKSRADIO",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS31027", "192.38.7.58", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-NIANET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS31661", "192.38.7.12", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-COMX",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS33916", "192.38.7.87", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS33916",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS33926", "192.38.7.72", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-EUROTRANSIT",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS34823", "192.38.7.95", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS34823",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS41025", "192.38.7.28", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-BUTLERNET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS42525", "192.38.7.26", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-GCNET",
+                },
+                {
+                    "from": [
+                        {"mp-peering": ["AS43457", "192.38.7.73", "at", "192.38.7.75"]}
+                    ],
+                    "mp-filter": "AS-VGDC",
+                },
+            ],
+        },
+        {
+            "afi-list": ["ipv4.unicast", "ipv6.unicast"],
+            "from": [{"actions": ["pref=10"], "mp-peering": ["AS2895"]}],
+            "mp-filter": "ANY",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"mp-peering": ["AS8365"]}],
+            "mp-filter": "AS-MANDA",
+        },
+        {
+            "afi-list": ["ipv6.unicast"],
+            "from": [{"actions": ["pref= 10"], "mp-peering": ["AS8928"]}],
+            "mp-filter": "ANY",
+        },
+        {
+            "afi-list": ["ipv4.unicast"],
+            "from": [
+                {
+                    "actions": [
+                        "pref=64535",
+                        "community.append(3344:60000, 3344:60020, 3344:8330)",
+                    ],
+                    "mp-peering": ["AS3344:PRNG-LONAP"],
+                }
+            ],
+            "mp-filter": "ANY AND NOT AS3344:fltr-filterlist",
+        },
+    ]
+
+    for example, expected in zip(EXAMPLES, PARSED_DICTS):
         success, results = lex.run_tests(example, full_dump=False)
-        if success:
-            pprint(results[0][1].as_dict())  # type: ignore
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected

@@ -1,9 +1,12 @@
 from io import TextIOWrapper
 from random import choices
 
-from parse import lex
+from pytest import mark
+
+from ..parse import lex
 
 
+@mark.skip
 def test_parse_mp_import(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
@@ -16,6 +19,7 @@ def test_parse_mp_import(line: str, verbose: bool = False):
         test_parse_mp_import(line, True)
 
 
+@mark.skip
 def test_parse_statement(statement: str, verbose: bool = False):
     if ":" not in statement or not statement.startswith("mp-import"):
         return 0

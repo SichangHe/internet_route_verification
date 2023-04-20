@@ -52,7 +52,7 @@ def read_db_test_parser(db: TextIOWrapper):
 
 
 def main():
-    with open("../data/ripe.db", "r", encoding="latin-1") as db:
+    with open("data/ripe.db", "r", encoding="latin-1") as db:
         read_db_test_parser(db)
 
 

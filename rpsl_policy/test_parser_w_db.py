@@ -28,13 +28,9 @@ def read_db_test_parser(db: TextIOWrapper):
     last_line: str = ""
     line: str = ""
     n_mp_import = 0
-    while n_mp_import < 10000:
+    while n_mp_import < 100000:
         # Read 1 line.
-        try:
-            line = db.readline()
-        except UnicodeDecodeError as err:
-            print(err)
-            continue
+        line = db.readline()
 
         if not line:
             continue
@@ -54,7 +50,7 @@ def read_db_test_parser(db: TextIOWrapper):
 
 
 def main():
-    with open("../data/ripe.db", "r") as db:
+    with open("../data/ripe.db", "r", encoding="latin-1") as db:
         read_db_test_parser(db)
 
 

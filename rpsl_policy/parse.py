@@ -1,13 +1,4 @@
-from pyparsing import (
-    Group,
-    Keyword,
-    OneOrMore,
-    Opt,
-    Word,
-    ZeroOrMore,
-    alphanums,
-    printables,
-)
+from pyparsing import Group, Keyword, OneOrMore, Opt, Word, ZeroOrMore, printables
 
 EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -20,7 +11,9 @@ EXAMPLES = [
     "afi ipv4.unicast from AS6682 at 109.68.121.1 action pref=65435; med=0; community.append(8226:1102); accept ANY AND {0.0.0.0/0^0-24}",
 ]
 
-field = Word(printables, exclude_chars=";")
+exclude_chars = "#;"
+field = Word(printables, exclude_chars=exclude_chars)
+field_w_space = Word(printables + " ", exclude_chars=exclude_chars)
 semicolon = Word(";").suppress()
 protocol = "protocol" + field("protocol-1")
 into_protocol = "into" + field("protocol-2")
@@ -32,14 +25,16 @@ mp_peering = Group(
     + field
 )
 peering = Group("from" + mp_peering.set_results_name("mp-peering") + Opt(actions))
+comment = "#" + field_w_space("comment")
 lex = (
     Opt(protocol)
     + Opt(into_protocol)
     + Opt(afi)
     + Group(OneOrMore(peering)).set_results_name("from")
     + "accept"
-    + Word(alphanums + " ^-+={}:./").set_results_name("mp-filter")
+    + field_w_space("mp-filter")
     + Opt(semicolon)
+    + Opt(comment)
 )
 
 # TODO: parse <mp-filter>.

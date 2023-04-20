@@ -46,8 +46,8 @@ def read_db_test_parser(db: TextIOWrapper):
 
         # Test complete statement.
         if last_line:
-            # 2% chance verbose.
-            verbose = choices((True, False), (1, 49))
+            # 1% chance verbose.
+            verbose = choices((True, False), (1, 99))[0]
             n_mp_import += test_parse_statement(last_line, verbose)
 
         last_line = line.strip()

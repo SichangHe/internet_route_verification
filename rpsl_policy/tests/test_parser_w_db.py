@@ -3,7 +3,7 @@ from random import choices
 
 from pytest import mark
 
-from ..parse import lex
+from ..lex import mp_import
 
 
 @mark.skip
@@ -11,10 +11,10 @@ def test_parse_mp_import(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
     if verbose:
-        success, results = lex.run_tests(value, full_dump=False)
+        success, results = mp_import.run_tests(value, full_dump=False)
         if success:
             print(results[0][1].as_dict())  # type: ignore
-    elif not lex.matches(value):
+    elif not mp_import.matches(value):
         # Match failed.
         test_parse_mp_import(line, True)
 

@@ -60,7 +60,7 @@ import_expression <<= (
     | import_term
 )
 
-lex = Opt(protocol) + Opt(into_protocol) + afi_import_expression
+mp_import = Opt(protocol) + Opt(into_protocol) + afi_import_expression
 
 # TODO: parse <mp-filter>.
 # TODO: parse <mp-peering>.

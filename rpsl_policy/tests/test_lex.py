@@ -284,7 +284,7 @@ PARSED_DICTS = [
 ]
 
 
-def test_parse():
+def test_lex():
     for example, expected in zip(EXAMPLES, PARSED_DICTS):
         success, results = mp_import.run_tests(example, full_dump=False)
         assert success

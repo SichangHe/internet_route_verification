@@ -8,8 +8,9 @@ Run at `./`:
 pytest
 ```
 
-To test against `ripe.db` using `rpsl_policy/tests/test_parser_w_db.py`:
+To test against `ripe.db` using `rpsl_policy/tests/parse_w_db.py`,
+put the database file at `data/ripe.db`:
 
 ```shell
-python3 -m rpsl_policy.tests.test_parser_w_db
+python3 -m rpsl_policy.tests.parse_w_db
 ```

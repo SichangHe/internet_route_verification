@@ -321,8 +321,7 @@ PARSED_MP_PEERING_EXAMPLES = [
         "mp-router-expression-2": ["AS3326---DEE---mx01-fra1"],
     },
     {
-        "as-expression": ["AS9186:AS-CUSTOMERS", "and"],
-        "mp-router-expression-1": ["AS204094"],
+        "as-expression": ["AS9186:AS-CUSTOMERS", "and", "AS204094"],
     },
     {"as-expression": ["AS-ANY", "except", "AS5398:AS-AMS-IX-FILTER"]},
 ]

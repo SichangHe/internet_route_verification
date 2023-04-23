@@ -99,9 +99,11 @@ Input should be in one line, without comments.
 
 # TODO: parse <mp-filter>.
 field_not_at = ~at_kw + field
+"""Field that is not `at`"""
 fields_not_at_by_and_or_except = Group(
-    field_not_at + ZeroOrMore(and_kw | or_kw | except_kw + field_not_at)
+        field_not_at + ZeroOrMore((and_kw | or_kw | except_kw) + field_not_at)
 )
+"""List of fields that are not `at`, chained by `and`, `or`, or `except`"""
 as_expression = fields_not_at_by_and_or_except
 """<as-expression> is an expression over AS numbers and AS sets
 using operators AND, OR, and EXCEPT"""

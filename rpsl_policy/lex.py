@@ -1,6 +1,6 @@
 """
 Parse mp-import statement following
-https://www.rfc-editor.org/rfc/rfc4012#section-2.5
+<https://www.rfc-editor.org/rfc/rfc4012#section-2.5>
 """
 from pyparsing import (
     CaselessKeyword,
@@ -38,18 +38,18 @@ afi = CaselessKeyword("afi") + delimited_list(
     field_wo_comma, delim=","
 ).set_results_name("afi-list")
 """afi <afi-list>"""
-action = field_w_space + semicolon
+action_raw = field_w_space + semicolon
 """<action-N>;"""
-actions = action_kw + Group(
-    OneOrMore(~(from_kw | accept_kw) + action)
+action_raws = action_kw + Group(
+    OneOrMore(~(from_kw | accept_kw) + action_raw)
 ).set_results_name("actions")
 """action <action-1>; ... <action-N>;"""
 mp_peering_raw = Group(OneOrMore(~(action_kw | from_kw | accept_kw) + field))
 """<mp-peering-M>"""
-peering = Group(from_kw + mp_peering_raw.set_results_name("mp-peering") + Opt(actions))
+mp_peering_raws = Group(from_kw + mp_peering_raw.set_results_name("mp-peering") + Opt(action_raws))
 """from <mp-peering-M> [action <action-1>; ... <action-N>;]"""
 import_factor = (
-    Group(OneOrMore(peering)).set_results_name("from")
+    Group(OneOrMore(mp_peering_raws)).set_results_name("from")
     + accept_kw
     + field_w_space("mp-filter")
 )
@@ -94,14 +94,16 @@ mp_import = Opt(protocol) + Opt(into_protocol) + afi_import_expression
 """mp-import: [protocol <protocol-1>] [into <protocol-2>]
 <afi-import-expression>
 
-Input should be in one line, without comments.
-<mp-filter> and <mp-peering> in the parse results are not further parsed."""
+<https://www.rfc-editor.org/rfc/rfc4012#section-2.5>
 
-# TODO: parse <mp-filter>.
+Input should be in one line, without comments.
+<action>, <mp-filter>, <mp-peering> in parse results not further parsed.
+"""
+
 field_not_at = ~at_kw + field
 """Field that is not `at`"""
 fields_not_at_by_and_or_except = Group(
-        field_not_at + ZeroOrMore((and_kw | or_kw | except_kw) + field_not_at)
+    field_not_at + ZeroOrMore((and_kw | or_kw | except_kw) + field_not_at)
 )
 """List of fields that are not `at`, chained by `and`, `or`, or `except`"""
 as_expression = fields_not_at_by_and_or_except
@@ -118,4 +120,8 @@ mp_peering = (
     + Opt(at_kw + mp_router_expression("mp-router-expression-2"))
 ) | field("peering-set-name")
 """<mp-peering> ::= <as-expression> [<mp-router-expression-1>]
-[at <mp-router-expression-2>] | <peering-set-name>"""
+[at <mp-router-expression-2>] | <peering-set-name>
+
+<https://www.rfc-editor.org/rfc/rfc4012#section-2.5.1>"""
+# TODO: parse <mp-filter>: https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2
+# TODO: Parse <action>: https://www.rfc-editor.org/rfc/rfc2622#page-43

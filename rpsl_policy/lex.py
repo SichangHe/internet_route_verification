@@ -41,10 +41,10 @@ afi = CaselessKeyword("afi") + delimited_list(
 action = field_w_space + semicolon
 """<action-N>;"""
 actions = action_kw + Group(
-    ZeroOrMore(action + ~(from_kw | accept_kw)) + action
+    OneOrMore(~(from_kw | accept_kw) + action)
 ).set_results_name("actions")
 """action <action-1>; ... <action-N>;"""
-mp_peering_raw = Group(ZeroOrMore(field + ~(action_kw | from_kw | accept_kw)) + field)
+mp_peering_raw = Group(OneOrMore(~(action_kw | from_kw | accept_kw) + field))
 """<mp-peering-M>"""
 peering = Group(from_kw + mp_peering_raw.set_results_name("mp-peering") + Opt(actions))
 """from <mp-peering-M> [action <action-1>; ... <action-N>;]"""

@@ -1,8 +1,8 @@
 from pyparsing import ParseResults
 
-from ..lex import mp_import
+from ..lex import mp_import, mp_peering
 
-EXAMPLES = [
+MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
     "afi ipv6.unicast from AS9002 from AS2356 accept ANY",
     "afi ipv6.unicast from AS6939 action pref=100; accept ANY",
@@ -18,7 +18,7 @@ EXAMPLES = [
     "afi ipv4.unicast from AS3344:PRNG-LONAP action pref=64535; community.append(3344:60000, 3344:60020, 3344:8330); accept ANY AND NOT AS3344:fltr-filterlist",
 ]
 
-PARSED_DICTS = [
+PARSED_MP_IMPORT_EXAMPLES = [
     {
         "afi-list": ["ipv6.unicast"],
         "from": [{"mp-peering": ["AS9002"]}],
@@ -284,9 +284,53 @@ PARSED_DICTS = [
 ]
 
 
-def test_lex():
-    for example, expected in zip(EXAMPLES, PARSED_DICTS):
+def test_mp_import():
+    for example, expected in zip(MP_IMPORT_EXAMPLES, PARSED_MP_IMPORT_EXAMPLES):
         success, results = mp_import.run_tests(example, full_dump=False)
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected
+
+
+MP_PEERING_EXAMPLES = [
+    "AS51468",
+    "AS9150:AS-PEERS-AMSIX",
+    "AS8717 2001:67c:20d0:fffe:ffff:ffff:ffff:fffe at 2001:67c:20d0:fffe:ffff:ffff:ffff:fffd",
+    "AS35053 2001:7f8:8:20:0:88ed:0:1 at 2001:7f8:8:20:0:2349:0:fe",
+    "AS10310 at AS3326---DEE---mx01-fra1",
+    "AS9186:AS-CUSTOMERS AND AS204094",
+    "AS-ANY EXCEPT AS5398:AS-AMS-IX-FILTER",
+]
+
+PARSED_MP_PEERING_EXAMPLES = [
+    {"as-expression": ["AS51468"]},
+    {"as-expression": ["AS9150:AS-PEERS-AMSIX"]},
+    {
+        "as-expression": ["AS8717"],
+        "mp-router-expression-1": ["2001:67c:20d0:fffe:ffff:ffff:ffff:fffe"],
+        "mp-router-expression-2": ["2001:67c:20d0:fffe:ffff:ffff:ffff:fffd"],
+    },
+    {
+        "as-expression": ["AS35053"],
+        "mp-router-expression-1": ["2001:7f8:8:20:0:88ed:0:1"],
+        "mp-router-expression-2": ["2001:7f8:8:20:0:2349:0:fe"],
+    },
+    {
+        "as-expression": ["AS10310"],
+        "mp-router-expression-2": ["AS3326---DEE---mx01-fra1"],
+    },
+    {
+        "as-expression": ["AS9186:AS-CUSTOMERS", "and"],
+        "mp-router-expression-1": ["AS204094"],
+    },
+    {"as-expression": ["AS-ANY", "except", "AS5398:AS-AMS-IX-FILTER"]},
+]
+
+
+def test_mp_peering():
+    for example, expected in zip(MP_PEERING_EXAMPLES, PARSED_MP_PEERING_EXAMPLES):
+        success, results = mp_peering.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
         assert isinstance(result, ParseResults)

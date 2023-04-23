@@ -29,6 +29,7 @@ accept_kw = CaselessKeyword("accept")
 and_kw = CaselessKeyword("and")
 or_kw = CaselessKeyword("or")
 except_kw = CaselessKeyword("except")
+at_kw = CaselessKeyword("at")
 protocol = CaselessKeyword("protocol") + field("protocol-1")
 """protocol <protocol-1>"""
 into_protocol = CaselessKeyword("into") + field("protocol-2")
@@ -97,19 +98,22 @@ Input should be in one line, without comments.
 <mp-filter> and <mp-peering> in the parse results are not further parsed."""
 
 # TODO: parse <mp-filter>.
-fields_by_and_or_except = Group(field + ZeroOrMore(and_kw | or_kw | except_kw + field))
-as_expression = fields_by_and_or_except
+field_not_at = ~at_kw + field
+fields_not_at_by_and_or_except = Group(
+    field_not_at + ZeroOrMore(and_kw | or_kw | except_kw + field_not_at)
+)
+as_expression = fields_not_at_by_and_or_except
 """<as-expression> is an expression over AS numbers and AS sets
 using operators AND, OR, and EXCEPT"""
 # TODO: Varify that inet-rtr names and rtr-set names match `field`.
-mp_router_expression = fields_by_and_or_except
+mp_router_expression = fields_not_at_by_and_or_except
 """<mp-router-expression> is an expression over router ipv4-addresses or
 ipv6-addresses, inet-rtr names, and rtr-set names using operators AND, OR, and
 EXCEPT"""
-mp_peering = Group(
+mp_peering = (
     as_expression("as-expression")
     + Opt(mp_router_expression("mp-router-expression-1"))
-    + Opt(CaselessKeyword("at") + mp_router_expression("mp-router-expression-2"))
+    + Opt(at_kw + mp_router_expression("mp-router-expression-2"))
 ) | field("peering-set-name")
 """<mp-peering> ::= <as-expression> [<mp-router-expression-1>]
 [at <mp-router-expression-2>] | <peering-set-name>"""

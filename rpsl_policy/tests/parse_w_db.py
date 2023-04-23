@@ -4,7 +4,7 @@ from random import choices
 from ..lex import mp_import
 
 
-def test_parse_mp_import(line: str, verbose: bool = False):
+def parse_mp_import(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
     if verbose:
@@ -13,13 +13,13 @@ def test_parse_mp_import(line: str, verbose: bool = False):
             print(results[0][1].as_dict())  # type: ignore
     elif not mp_import.matches(value):
         # Match failed.
-        test_parse_mp_import(line, True)
+        parse_mp_import(line, True)
 
 
-def test_parse_statement(statement: str, verbose: bool = False):
+def parse_statement(statement: str, verbose: bool = False):
     if ":" not in statement or not statement.startswith("mp-import"):
         return 0
-    test_parse_mp_import(statement, verbose)
+    parse_mp_import(statement, verbose)
     return 1
 
 
@@ -41,7 +41,7 @@ def read_db_test_parser(db: TextIOWrapper):
         if last_line:
             # 1% chance verbose.
             verbose = choices((True, False), (1, 99))[0]
-            n_mp_import += test_parse_statement(last_line, verbose)
+            n_mp_import += parse_statement(last_line, verbose)
 
         last_line = line.strip()
     print(f"Read {n_mp_import} mp-imports.")

@@ -1,6 +1,6 @@
 from pyparsing import ParseResults
 
-from ..lex import mp_import, mp_peering
+from ..lex import mp_export, mp_import, mp_peering
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -287,6 +287,57 @@ PARSED_MP_IMPORT_EXAMPLES = [
 def test_mp_import():
     for example, expected in zip(MP_IMPORT_EXAMPLES, PARSED_MP_IMPORT_EXAMPLES):
         success, results = mp_import.run_tests(example, full_dump=False)
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected
+
+
+MP_EXPORT_EXAMPLES = [
+    "afi ipv6.unicast to AS1880 announce AS1881",
+    "afi ipv6.unicast to AS3356 announce AS2597:AS-CUSTOMERS-v6",
+    "afi ipv4.unicast to AS6802 194.141.252.21 at 194.141.252.22 announce AS5421 AS112;",
+    "afi ipv4.unicast to AS6777 action community .= { 6777:6777 }; announce AS9150:AS-INTERCONNECT",
+    "afi ipv6.unicast to AS41965 at 2001:4D00:0:1:62:89:0:1 action med=0; announce AS8226 AS8226:AS-CUST",
+]
+
+PARSED_MP_EXPORT_EXAMPLES = [
+    {
+        "afi-list": ["ipv6.unicast"],
+        "mp-filter": "AS1881",
+        "to": [{"mp-peering": ["AS1880"]}],
+    },
+    {
+        "afi-list": ["ipv6.unicast"],
+        "mp-filter": "AS2597:AS-CUSTOMERS-v6",
+        "to": [{"mp-peering": ["AS3356"]}],
+    },
+    {
+        "afi-list": ["ipv4.unicast"],
+        "mp-filter": "AS5421 AS112",
+        "to": [{"mp-peering": ["AS6802", "194.141.252.21", "at", "194.141.252.22"]}],
+    },
+    {
+        "afi-list": ["ipv4.unicast"],
+        "mp-filter": "AS9150:AS-INTERCONNECT",
+        "to": [{"actions": ["community .= { 6777:6777 }"], "mp-peering": ["AS6777"]}],
+    },
+    {
+        "afi-list": ["ipv6.unicast"],
+        "mp-filter": "AS8226 AS8226:AS-CUST",
+        "to": [
+            {
+                "actions": ["med=0"],
+                "mp-peering": ["AS41965", "at", "2001:4D00:0:1:62:89:0:1"],
+            }
+        ],
+    },
+]
+
+
+def test_mp_export():
+    for example, expected in zip(MP_EXPORT_EXAMPLES, PARSED_MP_EXPORT_EXAMPLES):
+        success, results = mp_export.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
         assert isinstance(result, ParseResults)

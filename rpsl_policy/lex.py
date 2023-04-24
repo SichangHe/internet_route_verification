@@ -24,11 +24,14 @@ field_w_space = Word(printables + " ", exclude_chars=exclude_chars)
 semicolon = Word(";").suppress()
 """Semicolon, suppressed"""
 from_kw = CaselessKeyword("from")
+to_kw = CaselessKeyword("to")
 action_kw = CaselessKeyword("action")
 accept_kw = CaselessKeyword("accept")
+announce_kw = CaselessKeyword("announce")
 and_kw = CaselessKeyword("and")
 or_kw = CaselessKeyword("or")
 except_kw = CaselessKeyword("except")
+refine_kw = CaselessKeyword("refine")
 at_kw = CaselessKeyword("at")
 protocol = CaselessKeyword("protocol") + field("protocol-1")
 """protocol <protocol-1>"""
@@ -38,16 +41,30 @@ afi = CaselessKeyword("afi") + delimited_list(
     field_wo_comma, delim=","
 ).set_results_name("afi-list")
 """afi <afi-list>"""
+
+# -----------------------------------------------------------------------------
+# <mp-peering>, not further parsed.
+# -----------------------------------------------------------------------------
 action_raw = field_w_space + semicolon
 """<action-N>;"""
+follows_action = from_kw | to_kw | accept_kw | announce_kw
 action_raws = action_kw + Group(
-    OneOrMore(~(from_kw | accept_kw) + action_raw)
+    OneOrMore(~follows_action + action_raw)
 ).set_results_name("actions")
 """action <action-1>; ... <action-N>;"""
-mp_peering_raw = Group(OneOrMore(~(action_kw | from_kw | accept_kw) + field))
+mp_peering_raw = Group(OneOrMore(~(action_kw | follows_action) + field))
 """<mp-peering-M>"""
-mp_peering_raws = Group(from_kw + mp_peering_raw.set_results_name("mp-peering") + Opt(action_raws))
-"""from <mp-peering-M> [action <action-1>; ... <action-N>;]"""
+mp_peering_raws = Group(
+    (from_kw | to_kw) + mp_peering_raw.set_results_name("mp-peering") + Opt(action_raws)
+)
+"""from <mp-peering-M> [action <action-1>; ... <action-N>;]
+or
+to <mp-peering-M> [action <action-1>; ... <action-N>;]"""
+
+# -----------------------------------------------------------------------------
+# Structured <mp-import>
+# Remember to change below <mp-export> code if changing this.
+# -----------------------------------------------------------------------------
 import_factor = (
     Group(OneOrMore(mp_peering_raws)).set_results_name("from")
     + accept_kw
@@ -86,7 +103,7 @@ afi_import_expression = Opt(afi) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>"""
 import_expression <<= (
     Group(import_term + except_kw + afi_import_expression)
-    | Group(import_term + CaselessKeyword("refine") + afi_import_expression)
+    | Group(import_term + refine_kw + afi_import_expression)
     | import_term
 )
 
@@ -100,6 +117,65 @@ Input should be in one line, without comments.
 <action>, <mp-filter>, <mp-peering> in parse results not further parsed.
 """
 
+# -----------------------------------------------------------------------------
+# Structured <mp-export>
+# Remember to change above <mp-import> code if changing this.
+# -----------------------------------------------------------------------------
+export_factor = (
+    Group(OneOrMore(mp_peering_raws)).set_results_name("to")
+    + announce_kw
+    + field_w_space("mp-filter")
+)
+"""<export-factor> ::=
+to <mp-peering-1> [action <action-1>; ... <action-M>;]
+. . .
+to <mp-peering-N> [action <action-1>; ... <action-K>;]
+announce <mp-filter>
+
+Note: no trailing `;`, different from spec in RFC."""
+export_term = (
+    # Semicolon separated list.
+    "{"
+    + delimited_list(
+        Group(export_factor), delim=";", allow_trailing_delim=True
+    ).set_results_name("export-factors")
+    + "}"
+    # Semicolon optional if single.
+) | export_factor + Opt(semicolon)
+""" <export-term> :: = {
+<export-factor-1>;
+ . . .
+<export-factor-N>[;]
+} | export-factor[;]"""
+
+# `export_expression` and `afi_export_expression` are recursively defined.
+export_expression = Forward()
+"""<export-expression> ::=
+<export-term> EXCEPT <afi-export-expression> |
+<export-term> REFINE <afi-export-expression> |
+<export-term>
+"""
+afi_export_expression = Opt(afi) + export_expression
+"""<afi-export-expression> ::= [afi <afi-list>] <export-expression>"""
+export_expression <<= (
+    Group(export_term + except_kw + afi_export_expression)
+    | Group(export_term + refine_kw + afi_export_expression)
+    | export_term
+)
+
+mp_export = Opt(protocol) + Opt(into_protocol) + afi_export_expression
+"""mp-export: [protocol <protocol-1>] [into <protocol-2>]
+<afi-export-expression>
+
+<https://www.rfc-editor.org/rfc/rfc4012#section-2.5>
+
+Input should be in one line, without comments.
+<action>, <mp-filter>, <mp-peering> in parse results not further parsed.
+"""
+
+# -----------------------------------------------------------------------------
+# Further parse <mp-peering>
+# -----------------------------------------------------------------------------
 field_not_at = ~at_kw + field
 """Field that is not `at`"""
 fields_not_at_by_and_or_except = Group(

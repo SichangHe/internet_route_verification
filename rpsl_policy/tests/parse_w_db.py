@@ -2,6 +2,7 @@ from io import TextIOWrapper
 from random import choices
 
 from ..lex import mp_import
+from ..lines import io_wrapper_lines, lines_continued
 
 
 def parse_mp_import(line: str, verbose: bool = False):
@@ -24,26 +25,13 @@ def parse_statement(statement: str, verbose: bool = False):
 
 
 def read_db_test_parser(db: TextIOWrapper):
-    continuation_chars = (" ", "+", "\t")
-    last_line: str = ""
     line: str = ""
     n_mp_import = 0
-    while line := db.readline():
-        # Remove comments.
-        line = line.split("#", maxsplit=1)[0]
-
-        # Handle continuation lines.
-        if line.startswith(continuation_chars):
-            last_line += " " + line[1:].strip()
-            continue
-
-        # Test complete statement.
-        if last_line:
-            # 1% chance verbose.
-            verbose = choices((True, False), (1, 99))[0]
-            n_mp_import += parse_statement(last_line, verbose)
-
-        last_line = line.strip()
+    db_lines = io_wrapper_lines(db)
+    for line in lines_continued(db_lines):
+        # 1% chance verbose.
+        verbose = choices((True, False), (1, 99))[0]
+        n_mp_import += parse_statement(line, verbose)
     print(f"Read {n_mp_import} mp-imports.")
 
 

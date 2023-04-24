@@ -1,6 +1,13 @@
+from io import TextIOWrapper
 from typing import Generator, Iterable
 
 continuation_chars = (" ", "+", "\t")
+
+
+def io_wrapper_lines(reader: TextIOWrapper) -> Generator[str, None, None]:
+    """Lazily read `reader` line by line."""
+    while line := reader.readline():
+        yield line
 
 
 def lines_continued(raw_lines: Iterable[str]) -> Generator[str, None, None]:

@@ -30,6 +30,7 @@ accept_kw = CaselessKeyword("accept")
 announce_kw = CaselessKeyword("announce")
 and_kw = CaselessKeyword("and")
 or_kw = CaselessKeyword("or")
+not_kw = CaselessKeyword("not")
 except_kw = CaselessKeyword("except")
 refine_kw = CaselessKeyword("refine")
 at_kw = CaselessKeyword("at")
@@ -199,5 +200,26 @@ mp_peering = (
 [at <mp-router-expression-2>] | <peering-set-name>
 
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.1>"""
-# TODO: parse <mp-filter>: https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2
+
+# -----------------------------------------------------------------------------
+# Further parse <mp-filter>
+# -----------------------------------------------------------------------------
+address_prefix_set = (
+    "{"
+    + Group(delimited_list(field_wo_comma, delim=",")).set_results_name(
+        "address-prefix-set"
+    )
+    + "}"
+)
+"""An explicit list of address prefixes enclosed in braces '{' and '}'"""
+policy_filter = address_prefix_set | field
+"""A logical expression which when applied to a set of routes returns a subset
+of these routes
+<https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
+mp_filter = Group(
+    policy_filter + ZeroOrMore((and_kw | or_kw) + Opt(not_kw) + policy_filter)
+).set_results_name("mp-filter")
+"""Policy filter composite by using the operators AND, OR, and NOT
+<https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
+
 # TODO: Parse <action>: https://www.rfc-editor.org/rfc/rfc2622#page-43

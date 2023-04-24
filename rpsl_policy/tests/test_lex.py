@@ -1,6 +1,6 @@
 from pyparsing import ParseResults
 
-from ..lex import mp_export, mp_import, mp_peering
+from ..lex import mp_export, mp_filter, mp_import, mp_peering
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -381,6 +381,49 @@ PARSED_MP_PEERING_EXAMPLES = [
 def test_mp_peering():
     for example, expected in zip(MP_PEERING_EXAMPLES, PARSED_MP_PEERING_EXAMPLES):
         success, results = mp_peering.run_tests(example, full_dump=False)
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected
+
+
+MP_FILTER_EXAMPLES = [
+    "ANY",
+    "{ 0.0.0.0/0 }",
+    "{ 128.9.0.0/16, 128.8.0.0/16, 128.7.128.0/17, 5.0.0.0/8 }",
+    "{ 5.0.0.0/8^+, 128.9.0.0/16^-, 30.0.0.0/8^16, 30.0.0.0/8^24-32 }",
+    "{ 5.0.0.0/8^+, 128.9.0.0/16^-, 30.0.0.0/8^16, 30.0.0.0/8^24-32 }",
+]
+
+PARSED_MP_FILTER_EXAMPLES = [
+    {"mp-filter": ["ANY"]},
+    {"mp-filter": {"address-prefix-set": ["0.0.0.0/0"]}},
+    {
+        "mp-filter": {
+            "address-prefix-set": [
+                "128.9.0.0/16",
+                "128.8.0.0/16",
+                "128.7.128.0/17",
+                "5.0.0.0/8",
+            ]
+        }
+    },
+    {
+        "mp-filter": {
+            "address-prefix-set": [
+                "5.0.0.0/8^+",
+                "128.9.0.0/16^-",
+                "30.0.0.0/8^16",
+                "30.0.0.0/8^24-32",
+            ]
+        }
+    },
+]
+
+
+def test_mp_filter():
+    for example, expected in zip(MP_FILTER_EXAMPLES, PARSED_MP_FILTER_EXAMPLES):
+        success, results = mp_filter.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
         assert isinstance(result, ParseResults)

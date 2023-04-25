@@ -397,6 +397,7 @@ MP_FILTER_EXAMPLES = [
     "AS-SAT-TRAKT-V6 AS-SOX",
     "{2001:503:c27::/48, 2001:503:231d::/48}",
     "community(8501:1011, 8501:1013, 8501:1014, 8501:1015, 8501:1016)",
+    "(PeerAS OR PeerAS:AS-TO-AIX) AND <^PeerAS+PeerAS:AS-TO-AIX*$>",
 ]
 
 PARSED_MP_FILTER_EXAMPLES = [
@@ -435,6 +436,18 @@ PARSED_MP_FILTER_EXAMPLES = [
                 "8501:1015",
                 "8501:1016",
             ]
+        }
+    },
+    {
+        "mp-filter": {
+            "mp-filter": {
+                "nested": {"logic": "or", "path-attribute": ["PeerAS:AS-TO-AIX"]},
+                "path-attribute": ["PeerAS"],
+            },
+            "nested": {
+                "logic": "and",
+                "path-attribute": ["<^PeerAS+PeerAS:AS-TO-AIX*$>"],
+            },
         }
     },
 ]

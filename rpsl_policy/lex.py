@@ -227,11 +227,13 @@ policy_filter = address_prefix_set("address-prefix-set") | path_attribute
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
-policy_filter_or_not = Opt(not_kw("modifier")) + policy_filter
-mp_filter = Group(
-    policy_filter_or_not + ZeroOrMore((and_kw | or_kw)("logic") + policy_filter_or_not)
-).set_results_name("mp-filter")
+mp_filter = Forward()
 """Policy filter composite by using the operators AND, OR, and NOT
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
+policy_filter_or_not = Opt(not_kw("modifier")) + policy_filter
+mp_filter_item = policy_filter_or_not | (Suppress("(") + mp_filter + Suppress(")"))
+mp_filter <<= Group(
+    mp_filter_item + Opt(Group((and_kw | or_kw)("logic") + mp_filter_item)("nested"))
+).set_results_name("mp-filter")
 
 # TODO: Parse <action>: https://www.rfc-editor.org/rfc/rfc2622#page-43

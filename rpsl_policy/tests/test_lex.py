@@ -389,6 +389,8 @@ def test_mp_peering():
 
 MP_FILTER_EXAMPLES = [
     "ANY",
+    "NOT ANY",
+    "{ }",
     "{ 0.0.0.0/0 }",
     "{ 128.9.0.0/16, 128.8.0.0/16, 128.7.128.0/17, 5.0.0.0/8 }",
     "{ 5.0.0.0/8^+, 128.9.0.0/16^-, 30.0.0.0/8^16, 30.0.0.0/8^24-32 }",
@@ -399,6 +401,8 @@ MP_FILTER_EXAMPLES = [
 
 PARSED_MP_FILTER_EXAMPLES = [
     {"mp-filter": {"path-attribute": ["ANY"]}},
+    {"mp-filter": {"modifier": "not", "path-attribute": ["ANY"]}},
+    {"mp-filter": {"address-prefix-set": []}},
     {"mp-filter": {"address-prefix-set": ["0.0.0.0/0"]}},
     {
         "mp-filter": {

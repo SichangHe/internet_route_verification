@@ -8,6 +8,7 @@ from pyparsing import (
     Group,
     OneOrMore,
     Opt,
+    Suppress,
     Word,
     ZeroOrMore,
     delimited_list,
@@ -207,31 +208,28 @@ mp_peering = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
-community_field = (
-    community_kw
-    + "("
-    + Group(delimited_list(field_wo_brace, delim=",")).set_results_name("community")
-    + ")"
+community_field = Group(
+    Suppress(community_kw + "(")
+    + delimited_list(field_wo_brace, delim=",")
+    + Suppress(")")
 )
-path_attribute = community_field | Group(
+"""community(<field-1>, ..., <field-N>)"""
+path_attribute = community_field("community") | Group(
     OneOrMore(~(and_kw | or_kw | not_kw) + field_wo_brace)
 ).set_results_name("path-attribute")
 """Path attribute
 <https://www.rfc-editor.org/rfc/rfc4271.html#section-5>"""
-address_prefix_set = (
-    "{"
-    + Group(delimited_list(field_wo_brace, delim=",")).set_results_name(
-        "address-prefix-set"
-    )
-    + "}"
+address_prefix_set = Group(
+    Suppress("{") + Opt(delimited_list(field_wo_brace, delim=",")) + Suppress("}")
 )
 """An explicit list of address prefixes enclosed in braces '{' and '}'"""
-policy_filter = address_prefix_set | path_attribute
+policy_filter = address_prefix_set("address-prefix-set") | path_attribute
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
+policy_filter_or_not = Opt(not_kw("modifier")) + policy_filter
 mp_filter = Group(
-    policy_filter + ZeroOrMore((and_kw | or_kw) + Opt(not_kw) + policy_filter)
+    policy_filter_or_not + ZeroOrMore((and_kw | or_kw)("logic") + policy_filter_or_not)
 ).set_results_name("mp-filter")
 """Policy filter composite by using the operators AND, OR, and NOT
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""

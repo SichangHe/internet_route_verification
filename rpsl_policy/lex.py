@@ -234,12 +234,10 @@ community_dot_eq = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
-path_attribute = community_field("community") | Group(
-    OneOrMore(~(and_kw | or_kw | not_kw) + field_wo_brace)
-).set_results_name("path-attribute")
-"""Path attribute
-<https://www.rfc-editor.org/rfc/rfc4271.html#section-5>"""
-policy_filter = address_prefix_set("address-prefix-set") | path_attribute
+policy_filter = OneOrMore(
+    ~(and_kw | or_kw | not_kw)
+    + Group(field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set"))
+)
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
@@ -247,8 +245,11 @@ mp_filter = Forward()
 """Policy filter composite by using the operators AND, OR, and NOT
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
 mp_filter_item = Opt(not_kw("modifier")) + (
-    (Suppress("(") + mp_filter + Suppress(")")) | policy_filter
+    community_field("community")
+    | (Suppress("(") + mp_filter + Suppress(")"))
+    | policy_filter("policy-filter")
 )
+
 mp_filter <<= Group(
     mp_filter_item
     + Opt(

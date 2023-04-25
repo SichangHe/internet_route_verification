@@ -23,7 +23,7 @@ def parse_mp_import(line: str, verbose: bool = False):
     import_factors = get_import_factors(result)
     for import_factor in import_factors:
         mp_filter_raw = import_factor["mp-filter"]
-        parse_mp_filter(mp_filter_raw, verbose)  # and (" " in mp_filter_raw)
+        parse_mp_filter(mp_filter_raw, verbose and (" " in mp_filter_raw))
 
 
 def parse_statement(statement: str, verbose: bool = False):

@@ -11,11 +11,14 @@ from pyparsing import (
     Suppress,
     Word,
     ZeroOrMore,
+    alphanums,
     delimited_list,
     printables,
 )
 
 exclude_chars = "#;"
+simple_field = Word(alphanums)
+"""Any alphanumeric characters"""
 field = Word(printables, exclude_chars=exclude_chars)
 """Any printable characters except ` `, `#`, `;`"""
 field_wo_comma = Word(printables, exclude_chars=(exclude_chars + ","))
@@ -24,6 +27,8 @@ field_w_space = Word(printables + " ", exclude_chars=exclude_chars)
 """Any printable characters except `#`, `;`, `,`"""
 field_wo_brace = Word(printables, exclude_chars=(exclude_chars + ",(){}"))
 """A field without `,`, `(`, `)`, `{`, `}`"""
+field_wo_eq = Word(printables, exclude_chars=(exclude_chars + "="))
+"""A field without `=`"""
 semicolon = Word(";").suppress()
 """Semicolon, suppressed"""
 from_kw = CaselessKeyword("from")
@@ -206,8 +211,12 @@ mp_peering = (
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.1>"""
 
 # -----------------------------------------------------------------------------
-# Further parse <mp-filter>
+# Further parse community(), community.append(), etc.
 # -----------------------------------------------------------------------------
+address_prefix_set = Group(
+    Suppress("{") + Opt(delimited_list(field_wo_brace, delim=",")) + Suppress("}")
+)
+"""An explicit list of address prefixes enclosed in braces '{' and '}'"""
 community_field = Group(
     Suppress(community_kw)
     + Opt(Suppress(".") + field_wo_brace("method"))
@@ -218,15 +227,18 @@ community_field = Group(
 """community(<arg-1>, ..., <arg-N>)
 or
 community.method(<arg-1>, ..., <arg-N>)"""
+community_dot_eq = (
+    Suppress(community_kw) + Suppress(".=") + address_prefix_set("add_community")
+)
+
+# -----------------------------------------------------------------------------
+# Further parse <mp-filter>
+# -----------------------------------------------------------------------------
 path_attribute = community_field("community") | Group(
     OneOrMore(~(and_kw | or_kw | not_kw) + field_wo_brace)
 ).set_results_name("path-attribute")
 """Path attribute
 <https://www.rfc-editor.org/rfc/rfc4271.html#section-5>"""
-address_prefix_set = Group(
-    Suppress("{") + Opt(delimited_list(field_wo_brace, delim=",")) + Suppress("}")
-)
-"""An explicit list of address prefixes enclosed in braces '{' and '}'"""
 policy_filter = address_prefix_set("address-prefix-set") | path_attribute
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
@@ -244,4 +256,32 @@ mp_filter <<= Group(
     )
 ).set_results_name("mp-filter")
 
+# -----------------------------------------------------------------------------
+# Further parse <action>
+# -----------------------------------------------------------------------------
 # TODO: Parse <action>: https://www.rfc-editor.org/rfc/rfc2622#page-43
+assignment = Group(
+    field_wo_eq("assignee") + "=" + (field_wo_eq | address_prefix_set)("assigned")
+)
+"""<assignee>=<assigned>
+or
+<assignee>={ addr-1, ... }"""
+method_call = Group(
+    simple_field("rp-attribute")
+    + Suppress(".")
+    + field_wo_brace("method")
+    + Suppress("(")
+    + delimited_list(field_wo_brace, delim=",")("args")
+    + Suppress(")")
+)
+"""rp-attribute.method(<arg-1>, ..., <arg-N>)"""
+action = (
+    assignment("assignment")
+    | community_field("community")
+    | community_dot_eq
+    | method_call("method-call")
+)
+"""assignee = assigned, community(), community.method(), community .= <assigned>
+or rp-attribute.method()
+
+<https://www.rfc-editor.org/rfc/rfc2622#page-43>"""

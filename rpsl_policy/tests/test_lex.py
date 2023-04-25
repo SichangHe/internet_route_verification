@@ -1,6 +1,6 @@
 from pyparsing import ParseResults
 
-from ..lex import mp_export, mp_filter, mp_import, mp_peering
+from ..lex import action, mp_export, mp_filter, mp_import, mp_peering
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -487,6 +487,47 @@ PARSED_MP_FILTER_EXAMPLES = [
 def test_mp_filter():
     for example, expected in zip(MP_FILTER_EXAMPLES, PARSED_MP_FILTER_EXAMPLES):
         success, results = mp_filter.run_tests(example, full_dump=False)
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected
+
+
+ACTION_EXAMPLES = [
+    "pref=100",
+    "pref = 200",
+    "med=0",
+    "community.append(8226:1102)",
+    "community.append(3344:60000, 3344:60020, 3344:8330)",
+    "community .= { 100 }",
+    "aspath.prepend(AS1, AS1, AS1)",
+]
+
+PARSED_ACTION_EXAMPLES = [
+    {"assignment": {"assigned": ["100"], "assignee": "pref"}},
+    {"assignment": {"assigned": ["200"], "assignee": "pref"}},
+    {"assignment": {"assigned": ["0"], "assignee": "med"}},
+    {"community": {"args": ["8226:1102"], "method": "append"}},
+    {
+        "community": {
+            "args": ["3344:60000", "3344:60020", "3344:8330"],
+            "method": "append",
+        }
+    },
+    {"add_community": ["100"]},
+    {
+        "method-call": {
+            "args": ["AS1", "AS1", "AS1"],
+            "method": "prepend",
+            "rp-attribute": "aspath",
+        }
+    },
+]
+
+
+def test_action():
+    for example, expected in zip(ACTION_EXAMPLES, PARSED_ACTION_EXAMPLES):
+        success, results = action.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
         assert isinstance(result, ParseResults)

@@ -21,6 +21,8 @@ field_wo_comma = Word(printables, exclude_chars=(exclude_chars + ","))
 """Any printable characters except ` `, `#`, `;`, `,`"""
 field_w_space = Word(printables + " ", exclude_chars=exclude_chars)
 """Any printable characters except `#`, `;`, `,`"""
+field_wo_brace = Word(printables, exclude_chars=(exclude_chars + ",(){}"))
+"""A field without `,`, `(`, `)`, `{`, `}`"""
 semicolon = Word(";").suppress()
 """Semicolon, suppressed"""
 from_kw = CaselessKeyword("from")
@@ -34,6 +36,7 @@ not_kw = CaselessKeyword("not")
 except_kw = CaselessKeyword("except")
 refine_kw = CaselessKeyword("refine")
 at_kw = CaselessKeyword("at")
+community_kw = CaselessKeyword("community")
 protocol = CaselessKeyword("protocol") + field("protocol-1")
 """protocol <protocol-1>"""
 into_protocol = CaselessKeyword("into") + field("protocol-2")
@@ -204,15 +207,26 @@ mp_peering = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
+community_field = (
+    community_kw
+    + "("
+    + Group(delimited_list(field_wo_brace, delim=",")).set_results_name("community")
+    + ")"
+)
+path_attribute = community_field | Group(
+    OneOrMore(~(and_kw | or_kw | not_kw) + field_wo_brace)
+).set_results_name("path-attribute")
+"""Path attribute
+<https://www.rfc-editor.org/rfc/rfc4271.html#section-5>"""
 address_prefix_set = (
     "{"
-    + Group(delimited_list(field_wo_comma, delim=",")).set_results_name(
+    + Group(delimited_list(field_wo_brace, delim=",")).set_results_name(
         "address-prefix-set"
     )
     + "}"
 )
 """An explicit list of address prefixes enclosed in braces '{' and '}'"""
-policy_filter = address_prefix_set | field
+policy_filter = address_prefix_set | path_attribute
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""

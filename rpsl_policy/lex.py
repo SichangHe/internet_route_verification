@@ -230,10 +230,12 @@ of these routes
 mp_filter = Forward()
 """Policy filter composite by using the operators AND, OR, and NOT
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
-policy_filter_or_not = Opt(not_kw("modifier")) + policy_filter
-mp_filter_item = policy_filter_or_not | (Suppress("(") + mp_filter + Suppress(")"))
+mp_filter_item = Opt(not_kw("modifier")) + (
+    (Suppress("(") + mp_filter + Suppress(")")) | policy_filter
+)
 mp_filter <<= Group(
-    mp_filter_item + Opt(Group((and_kw | or_kw)("logic") + mp_filter_item)("nested"))
+    mp_filter_item
+    + Opt(OneOrMore(Group((and_kw | or_kw)("logic") + mp_filter_item))("nested"))
 ).set_results_name("mp-filter")
 
 # TODO: Parse <action>: https://www.rfc-editor.org/rfc/rfc2622#page-43

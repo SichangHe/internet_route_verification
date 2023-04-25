@@ -239,7 +239,9 @@ mp_filter_item = Opt(not_kw("modifier")) + (
 )
 mp_filter <<= Group(
     mp_filter_item
-    + Opt(OneOrMore(Group((and_kw | or_kw)("logic") + mp_filter_item))("nested"))
+    + Opt(
+        OneOrMore(Group((and_kw | or_kw | not_kw)("logic") + mp_filter_item))("nested")
+    )
 ).set_results_name("mp-filter")
 
 # TODO: Parse <action>: https://www.rfc-editor.org/rfc/rfc2622#page-43

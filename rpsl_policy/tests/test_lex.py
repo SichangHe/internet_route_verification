@@ -400,6 +400,7 @@ MP_FILTER_EXAMPLES = [
     "(PeerAS OR PeerAS:AS-TO-AIX) AND <^PeerAS+PeerAS:AS-TO-AIX*$>",
     "AS12874 and AS-FASTWEB and AS-FASTWEB-GLOBAL",
     "ANY AND NOT community.contains(8501:1120)",
+    "ANY ANY NOT AS39326:FLTR-FILTERLIST",
 ]
 
 PARSED_MP_FILTER_EXAMPLES = [
@@ -472,6 +473,12 @@ PARSED_MP_FILTER_EXAMPLES = [
                 }
             ],
             "path-attribute": ["ANY"],
+        }
+    },
+    {
+        "mp-filter": {
+            "nested": [{"logic": "not", "path-attribute": ["AS39326:FLTR-FILTERLIST"]}],
+            "path-attribute": ["ANY", "ANY"],
         }
     },
 ]

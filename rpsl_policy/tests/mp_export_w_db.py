@@ -1,7 +1,7 @@
 from io import TextIOWrapper
 from random import choices
 
-from ..lex import mp_export
+from ..lex import mp_import
 from ..lines import io_wrapper_lines, lines_continued
 
 
@@ -9,10 +9,10 @@ def parse_mp_export(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
     if verbose:
-        success, results = mp_export.run_tests(value, full_dump=False)
+        success, results = mp_import.run_tests(value, full_dump=False)
         if success:
             print(results[0][1].as_dict())  # type: ignore
-    elif not mp_export.matches(value):
+    elif not mp_import.matches(value):
         # Match failed.
         parse_mp_export(line, True)
 

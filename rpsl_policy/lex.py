@@ -209,11 +209,15 @@ mp_peering = (
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
 community_field = Group(
-    Suppress(community_kw + "(")
-    + delimited_list(field_wo_brace, delim=",")
+    Suppress(community_kw)
+    + Opt(Suppress(".") + field_wo_brace("method"))
+    + Suppress("(")
+    + delimited_list(field_wo_brace, delim=",")("args")
     + Suppress(")")
 )
-"""community(<field-1>, ..., <field-N>)"""
+"""community(<arg-1>, ..., <arg-N>)
+or
+community.method(<arg-1>, ..., <arg-N>)"""
 path_attribute = community_field("community") | Group(
     OneOrMore(~(and_kw | or_kw | not_kw) + field_wo_brace)
 ).set_results_name("path-attribute")

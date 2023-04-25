@@ -399,6 +399,7 @@ MP_FILTER_EXAMPLES = [
     "community(8501:1011, 8501:1013, 8501:1014, 8501:1015, 8501:1016)",
     "(PeerAS OR PeerAS:AS-TO-AIX) AND <^PeerAS+PeerAS:AS-TO-AIX*$>",
     "AS12874 and AS-FASTWEB and AS-FASTWEB-GLOBAL",
+    "ANY AND NOT community.contains(8501:1120)",
 ]
 
 PARSED_MP_FILTER_EXAMPLES = [
@@ -430,13 +431,15 @@ PARSED_MP_FILTER_EXAMPLES = [
     {"mp-filter": {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]}},
     {
         "mp-filter": {
-            "community": [
-                "8501:1011",
-                "8501:1013",
-                "8501:1014",
-                "8501:1015",
-                "8501:1016",
-            ]
+            "community": {
+                "args": [
+                    "8501:1011",
+                    "8501:1013",
+                    "8501:1014",
+                    "8501:1015",
+                    "8501:1016",
+                ]
+            }
         }
     },
     {
@@ -457,6 +460,18 @@ PARSED_MP_FILTER_EXAMPLES = [
                 {"logic": "and", "path-attribute": ["AS-FASTWEB-GLOBAL"]},
             ],
             "path-attribute": ["AS12874"],
+        }
+    },
+    {
+        "mp-filter": {
+            "nested": [
+                {
+                    "community": {"args": ["8501:1120"], "method": "contains"},
+                    "logic": "and",
+                    "modifier": "not",
+                }
+            ],
+            "path-attribute": ["ANY"],
         }
     },
 ]

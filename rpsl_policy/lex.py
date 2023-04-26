@@ -43,14 +43,6 @@ except_kw = CaselessKeyword("except")
 refine_kw = CaselessKeyword("refine")
 at_kw = CaselessKeyword("at")
 community_kw = CaselessKeyword("community")
-protocol = CaselessKeyword("protocol") + field("protocol-1")
-"""protocol <protocol-1>"""
-into_protocol = CaselessKeyword("into") + field("protocol-2")
-"""into <protocol-2>"""
-afi = CaselessKeyword("afi") + delimited_list(
-    field_wo_comma, delim=","
-).set_results_name("afi-list")
-"""afi <afi-list>"""
 
 # -----------------------------------------------------------------------------
 # <mp-peering>, not further parsed.
@@ -77,6 +69,17 @@ to <mp-peering-M> [action <action-1>; ... <action-N>;]
 # -----------------------------------------------------------------------------
 # Structured <mp-import>
 # -----------------------------------------------------------------------------
+afi = CaselessKeyword("afi") + delimited_list(
+    field_wo_comma, delim=","
+).set_results_name("afi-list")
+"""afi <afi-list>
+-> afi-list: list[str]"""
+protocol = CaselessKeyword("protocol") + field("protocol-1")
+"""protocol <protocol-1>
+-> protocol-1: str"""
+into_protocol = CaselessKeyword("into") + field("protocol-2")
+"""into <protocol-2>
+-> protocol-2: str"""
 import_factor = (
     Group(OneOrMore(mp_peering_raws)).set_results_name("mp-peerings")
     + (accept_kw | announce_kw)
@@ -87,7 +90,7 @@ from <mp-peering-1> [action <action-1>; ... <action-M>;]
 . . .
 from <mp-peering-N> [action <action-1>; ... <action-K>;]
 accept <mp-filter>
--> mp-peerings: list[{mp-peering, actions}], mp-filter: str
+-> mp-peerings: list[{mp-peering, [actions]}], mp-filter: str
 Note: no trailing `;`, different from spec in RFC."""
 import_term = (
     # Semicolon separated list.
@@ -103,7 +106,7 @@ import_term = (
  . . .
 <import-factor-N>[;]
 } | import-factor[;]
--> list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)"""
+-> import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)"""
 
 # `import_expression` and `afi_import_expression` are recursively defined.
 import_expression = Forward()
@@ -112,13 +115,13 @@ import_expression = Forward()
 <import-term> REFINE <afi-import-expression> |
 <import-term>
 -> import-expression: {import-term, logic, [afi-list],...}
-| list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
+| import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
 """
 afi_import_expression = Opt(afi) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>
 [afi-list]: list[str], (
     import-expression: {import-term, logic, [afi-list], ...}
-    | list[{mp-peerings, mp-filter}]
+    | import-factors: list[{mp-peerings, mp-filter}]
     | (mp-peerings, mp-filter)
 )"""
 import_expression <<= (
@@ -140,8 +143,11 @@ Input should be in one line, without comments. Can also parse `mp-export`.
 <action>, <mp-filter>, <mp-peering> in parse results not further parsed.
 -> [protocol-1]: str, [protocol-2]: str, [afi-list]: list[str], (
     import-expression: {import-term, logic, [afi-list], ...}
-    | list[{mp-peerings, mp-filter}]
-    | (mp-peerings, mp-filter)
+    | import-factors: list[{mp-peerings, mp-filter}]
+    | (
+        mp-peerings: list[{mp-peering: list[str], [actions]: list[str]}],
+        mp-filter: str
+    )
 )
 """
 

@@ -547,7 +547,7 @@ PARSED_ACTION_EXAMPLES = [
             "method": "append",
         }
     },
-    {"add_community": ["100"]},
+    {"add-community": ["100"]},
     {
         "method-call": {
             "args": ["AS1", "AS1", "AS1"],

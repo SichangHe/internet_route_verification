@@ -159,15 +159,18 @@ field_not_at = ~at_kw + field
 fields_not_at_by_and_or_except = Group(
     field_not_at + ZeroOrMore((and_kw | or_kw | except_kw) + field_not_at)
 )
-"""List of fields that are not `at`, chained by `and`, `or`, or `except`"""
+"""List of fields that are not `at`, chained by `and`, `or`, or `except`
+-> list["and" | "or" | "except" | str]"""
 as_expression = fields_not_at_by_and_or_except
 """<as-expression> is an expression over AS numbers and AS sets
-using operators AND, OR, and EXCEPT"""
+using operators AND, OR, and EXCEPT
+-> list["and" | "or" | "except" | str]"""
 # TODO: Varify that inet-rtr names and rtr-set names match `field`.
 mp_router_expression = fields_not_at_by_and_or_except
 """<mp-router-expression> is an expression over router ipv4-addresses or
 ipv6-addresses, inet-rtr names, and rtr-set names using operators AND, OR, and
-EXCEPT"""
+EXCEPT
+-> list["and" | "or" | "except" | str]"""
 mp_peering = (
     as_expression("as-expression")
     + Opt(mp_router_expression("mp-router-expression-1"))
@@ -175,8 +178,12 @@ mp_peering = (
 ) | field("peering-set-name")
 """<mp-peering> ::= <as-expression> [<mp-router-expression-1>]
 [at <mp-router-expression-2>] | <peering-set-name>
-
-<https://www.rfc-editor.org/rfc/rfc4012#section-2.5.1>"""
+<https://www.rfc-editor.org/rfc/rfc4012#section-2.5.1>
+-> (
+    as-expression: list["and" | "or" | "except" | str],
+    [mp-router-expression-1]: list["and" | "or" | "except" | str],
+    [mp-router-expression-2]: list["and" | "or" | "except" | str]
+) | peering-set-name: str"""
 
 # -----------------------------------------------------------------------------
 # Further parse community(), community.append(), etc.
@@ -198,8 +205,10 @@ or
 community.method(<arg-1>, ..., <arg-N>)
 -> {[method]: str, args: list[str]}"""
 community_dot_eq = (
-    Suppress(community_kw) + Suppress(".=") + address_prefix_set("add_community")
+    Suppress(community_kw) + Suppress(".=") + address_prefix_set("add-community")
 )
+"""community .= {...}
+-> add-community: list[str]"""
 
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>

@@ -2,6 +2,8 @@ from io import TextIOWrapper
 from random import choices
 from typing import Generator
 
+from pyparsing import ParseException
+
 from ..lex import mp_import, mp_peering
 from ..lines import io_wrapper_lines, lines_continued
 
@@ -38,7 +40,10 @@ def mp_peering_raws_in_import_factor(
 def parse_mp_import(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
-    result = mp_import.parse_string(value).as_dict()
+    try:
+        result = mp_import.parse_string(value).as_dict()
+    except ParseException:
+        return
     import_factors = get_import_factors(result)
     for import_factor in import_factors:
         for mp_peering_raw in mp_peering_raws_in_import_factor(import_factor):

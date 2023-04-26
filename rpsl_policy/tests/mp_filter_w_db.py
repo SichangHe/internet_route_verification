@@ -1,6 +1,8 @@
 from io import TextIOWrapper
 from random import choices
 
+from pyparsing import ParseException
+
 from ..lex import mp_filter, mp_import
 from ..lines import io_wrapper_lines, lines_continued
 from .mp_peering_w_db import get_import_factors
@@ -19,7 +21,10 @@ def parse_mp_filter(expr: str, verbose: bool = False):
 def parse_mp_import(line: str, verbose: bool = False):
     _, value = line.split(":", maxsplit=1)
     value = value.strip()
-    result = mp_import.parse_string(value).as_dict()
+    try:
+        result = mp_import.parse_string(value).as_dict()
+    except ParseException:
+        return
     import_factors = get_import_factors(result)
     for import_factor in import_factors:
         mp_filter_raw = import_factor["mp-filter"]

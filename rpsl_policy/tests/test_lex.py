@@ -537,9 +537,9 @@ ACTION_EXAMPLES = [
 ]
 
 PARSED_ACTION_EXAMPLES = [
-    {"assignment": {"assigned": ["100"], "assignee": "pref"}},
-    {"assignment": {"assigned": ["200"], "assignee": "pref"}},
-    {"assignment": {"assigned": ["0"], "assignee": "med"}},
+    {"assignment": {"assigned": "100", "assignee": "pref"}},
+    {"assignment": {"assigned": "200", "assignee": "pref"}},
+    {"assignment": {"assigned": "0", "assignee": "med"}},
     {"community": {"args": ["8226:1102"], "method": "append"}},
     {
         "community": {

@@ -213,9 +213,10 @@ community_dot_eq = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
-policy_filter = OneOrMore(~(and_kw | or_kw | not_kw) + Group(
-    field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set")
-))
+policy_filter = OneOrMore(
+    ~(and_kw | or_kw | not_kw)
+    + Group(field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set"))
+)
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
 -> list[{path-attribute: str | address-prefix-set: list[str]}]
@@ -251,11 +252,14 @@ mp_filter <<= mp_filter_and | mp_filter_or | mp_filter_not | mp_filter_base
 # Further parse <action>
 # -----------------------------------------------------------------------------
 assignment = Group(
-    field_wo_eq("assignee") + "=" + (field_wo_eq | address_prefix_set)("assigned")
+    field_wo_eq("assignee")
+    + "="
+    + (field_wo_eq("assigned") | address_prefix_set("assigned-set"))
 )
 """<assignee>=<assigned>
 or
-<assignee>={ addr-1, ... }"""
+<assignee>={ addr-1, ... }
+-> {assignee: str, (assigned: str | assigned-set: list[str])}"""
 method_call = Group(
     simple_field("rp-attribute")
     + Suppress(".")
@@ -264,7 +268,8 @@ method_call = Group(
     + delimited_list(field_wo_brace, delim=",")("args")
     + Suppress(")")
 )
-"""rp-attribute.method(<arg-1>, ..., <arg-N>)"""
+"""rp-attribute.method(<arg-1>, ..., <arg-N>)
+-> {rp-attribute: str, method: str, args: list[str]}"""
 action = (
     assignment("assignment")
     | community_field("community")
@@ -273,5 +278,8 @@ action = (
 )
 """assignee = assigned, community(), community.method(), community .= <assigned>
 or rp-attribute.method()
-
+-> assignment: {assignee: str, (assigned: str | assigned-set: list[str])}
+| community: {[method]: str, args: list[str]}
+| add-community: list[str]
+| method-call: {rp-attribute: str, method: str, args: list[str]}
 <https://www.rfc-editor.org/rfc/rfc2622#page-43>"""

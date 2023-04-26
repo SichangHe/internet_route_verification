@@ -178,7 +178,8 @@ mp_peering = (
 address_prefix_set = Group(
     Suppress("{") + Opt(delimited_list(field_wo_brace, delim=",")) + Suppress("}")
 )
-"""An explicit list of address prefixes enclosed in braces '{' and '}'"""
+"""An explicit list of address prefixes enclosed in braces '{' and '}'
+-> list[str]"""
 community_field = Group(
     Suppress(community_kw)
     + Opt(Suppress(".") + field_wo_brace("method"))
@@ -188,7 +189,8 @@ community_field = Group(
 )
 """community(<arg-1>, ..., <arg-N>)
 or
-community.method(<arg-1>, ..., <arg-N>)"""
+community.method(<arg-1>, ..., <arg-N>)
+-> {[method]: str, args: list[str]}"""
 community_dot_eq = (
     Suppress(community_kw) + Suppress(".=") + address_prefix_set("add_community")
 )
@@ -199,21 +201,43 @@ community_dot_eq = (
 policy_filter_base = ~(and_kw | or_kw | not_kw) + Group(
     field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set")
 )
+"""
+<field without braces> | {<address-prefix-1>, ..., <address-prefix-N>}
+-> {path-attribute: str | address-prefix-set: list[str]}"""
 policy_filter_not = Group(Suppress(not_kw) + policy_filter_base("not"))
+"""-> {not: {path-attribute: str | address-prefix-set: list[str]}}"""
 policy_filter = OneOrMore(policy_filter_not | policy_filter_base)
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
+-> list[
+    {not: {path-attribute: str | address-prefix-set: list[str]}}
+    | {path-attribute: str | address-prefix-set: list[str]}
+]
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
+# `mp_filter` and `mp_filter_base` are recursively defined.
 mp_filter = Forward()
 """Policy filter composite by using the operators AND, OR, and NOT
+-> and: {left: {...}, right: {...}}
+| or: {left: {...}, right: {...}}
+| not: {...}
+| community: {[method]: str, args: list[str]}
+| mp-filter: {...}
+| policy-filter: list[
+    {not: {path-attribute: str | address-prefix-set: list[str]}}
+    | {path-attribute: str | address-prefix-set: list[str]}
+]
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
 mp_filter_base = (
     community_field("community")
     | Group(Suppress("(") + mp_filter + Suppress(")"))("mp-filter")
     | policy_filter("policy-filter")
 )
-
-
+"""-> community: {[method]: str, args: list[str]}
+| mp-filter: {...}
+| policy-filter: list[
+    {not: {path-attribute: str | address-prefix-set: list[str]}}
+    | {path-attribute: str | address-prefix-set: list[str]}
+]"""
 mp_filter_not = Group(Suppress(not_kw) + mp_filter)("not")
 mp_filter_and = Group(
     Group(mp_filter_base)("left") + Suppress(and_kw) + Group(mp_filter)("right")
@@ -221,7 +245,6 @@ mp_filter_and = Group(
 mp_filter_or = Group(
     Group(mp_filter_base)("left") + Suppress(or_kw) + Group(mp_filter)("right")
 )("or")
-
 mp_filter <<= mp_filter_and | mp_filter_or | mp_filter_not | mp_filter_base
 
 # -----------------------------------------------------------------------------

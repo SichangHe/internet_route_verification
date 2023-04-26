@@ -412,7 +412,6 @@ MP_FILTER_EXAMPLES = [
     "(PeerAS OR PeerAS:AS-TO-AIX) AND <^PeerAS+PeerAS:AS-TO-AIX*$>",
     "AS12874 and AS-FASTWEB and AS-FASTWEB-GLOBAL",
     "ANY AND NOT community.contains(8501:1120)",
-    "ANY ANY NOT AS39326:FLTR-FILTERLIST",
     "AS26415 {2001:503:c27::/48, 2001:503:231d::/48}",
 ]
 
@@ -501,13 +500,6 @@ PARSED_MP_FILTER_EXAMPLES = [
     },
     {
         "policy-filter": [
-            {"path-attribute": "ANY"},
-            {"path-attribute": "ANY"},
-            {"not": [{"path-attribute": "AS39326:FLTR-FILTERLIST"}]},
-        ],
-    },
-    {
-        "policy-filter": [
             {"path-attribute": "AS26415"},
             {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]},
         ]
@@ -522,6 +514,16 @@ def test_mp_filter():
         result = results[0][1]
         assert isinstance(result, ParseResults)
         assert result.as_dict() == expected
+
+
+MP_FILTER_ILEGAL_EXAMPLES = [
+    "ANY ANY NOT AS39326:FLTR-FILTERLIST",
+]
+
+
+def test_mp_filter_fail():
+    for example in MP_FILTER_ILEGAL_EXAMPLES:
+        assert not mp_filter.matches(example)
 
 
 ACTION_EXAMPLES = [

@@ -196,28 +196,33 @@ community_dot_eq = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
-policy_filter = OneOrMore(
-    ~(and_kw | or_kw | not_kw)
-    + Group(field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set"))
+policy_filter_base = ~(and_kw | or_kw | not_kw) + Group(
+    field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set")
 )
+policy_filter_not = Group(Suppress(not_kw) + policy_filter_base("not"))
+policy_filter = OneOrMore(policy_filter_not | policy_filter_base)
 """A logical expression which when applied to a set of routes returns a subset
 of these routes
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
 mp_filter = Forward()
 """Policy filter composite by using the operators AND, OR, and NOT
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
-mp_filter_item = Opt(not_kw("modifier")) + (
+mp_filter_base = (
     community_field("community")
-    | (Suppress("(") + mp_filter + Suppress(")"))
+    | Group(Suppress("(") + mp_filter + Suppress(")"))("mp-filter")
     | policy_filter("policy-filter")
 )
 
-mp_filter <<= Group(
-    mp_filter_item
-    + Opt(
-        OneOrMore(Group((and_kw | or_kw | not_kw)("logic") + mp_filter_item))("nested")
-    )
-).set_results_name("mp-filter")
+
+mp_filter_not = Group(Suppress(not_kw) + mp_filter)("not")
+mp_filter_and = Group(
+    Group(mp_filter_base)("left") + Suppress(and_kw) + Group(mp_filter)("right")
+)("and")
+mp_filter_or = Group(
+    Group(mp_filter_base)("left") + Suppress(or_kw) + Group(mp_filter)("right")
+)("or")
+
+mp_filter <<= mp_filter_and | mp_filter_or | mp_filter_not | mp_filter_base
 
 # -----------------------------------------------------------------------------
 # Further parse <action>

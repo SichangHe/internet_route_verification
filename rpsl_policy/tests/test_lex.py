@@ -417,129 +417,100 @@ MP_FILTER_EXAMPLES = [
 ]
 
 PARSED_MP_FILTER_EXAMPLES = [
-    {"mp-filter": {"policy-filter": [{"path-attribute": "ANY"}]}},
-    {"mp-filter": {"modifier": "not", "policy-filter": [{"path-attribute": "ANY"}]}},
-    {"mp-filter": {"policy-filter": [{"address-prefix-set": []}]}},
-    {"mp-filter": {"policy-filter": [{"address-prefix-set": ["0.0.0.0/0"]}]}},
+    {"policy-filter": [{"path-attribute": "ANY"}]},
+    {"not": {"policy-filter": [{"path-attribute": "ANY"}]}},
+    {"policy-filter": [{"address-prefix-set": []}]},
+    {"policy-filter": [{"address-prefix-set": ["0.0.0.0/0"]}]},
     {
-        "mp-filter": {
-            "policy-filter": [
-                {
-                    "address-prefix-set": [
-                        "128.9.0.0/16",
-                        "128.8.0.0/16",
-                        "128.7.128.0/17",
-                        "5.0.0.0/8",
-                    ]
-                }
-            ]
-        }
-    },
-    {
-        "mp-filter": {
-            "policy-filter": [
-                {
-                    "address-prefix-set": [
-                        "5.0.0.0/8^+",
-                        "128.9.0.0/16^-",
-                        "30.0.0.0/8^16",
-                        "30.0.0.0/8^24-32",
-                    ]
-                }
-            ]
-        }
-    },
-    {
-        "mp-filter": {
-            "policy-filter": [
-                {"path-attribute": "AS-SAT-TRAKT-V6"},
-                {"path-attribute": "AS-SOX"},
-            ]
-        }
-    },
-    {
-        "mp-filter": {
-            "policy-filter": [
-                {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]}
-            ]
-        }
-    },
-    {
-        "mp-filter": {
-            "community": {
-                "args": [
-                    "8501:1011",
-                    "8501:1013",
-                    "8501:1014",
-                    "8501:1015",
-                    "8501:1016",
+        "policy-filter": [
+            {
+                "address-prefix-set": [
+                    "128.9.0.0/16",
+                    "128.8.0.0/16",
+                    "128.7.128.0/17",
+                    "5.0.0.0/8",
                 ]
             }
+        ]
+    },
+    {
+        "policy-filter": [
+            {
+                "address-prefix-set": [
+                    "5.0.0.0/8^+",
+                    "128.9.0.0/16^-",
+                    "30.0.0.0/8^16",
+                    "30.0.0.0/8^24-32",
+                ]
+            }
+        ]
+    },
+    {
+        "policy-filter": [
+            {"path-attribute": "AS-SAT-TRAKT-V6"},
+            {"path-attribute": "AS-SOX"},
+        ]
+    },
+    {
+        "policy-filter": [
+            {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]}
+        ]
+    },
+    {
+        "community": {
+            "args": ["8501:1011", "8501:1013", "8501:1014", "8501:1015", "8501:1016"]
         }
     },
     {
-        "mp-filter": {
-            "mp-filter": {
-                "policy-filter": [{"path-attribute": "PeerAS"}],
-                "nested": [
-                    {
-                        "logic": "or",
-                        "policy-filter": [{"path-attribute": "PeerAS:AS-TO-AIX"}],
+        "and": {
+            "left": {
+                "mp-filter": {
+                    "or": {
+                        "left": {"policy-filter": [{"path-attribute": "PeerAS"}]},
+                        "right": {
+                            "policy-filter": [{"path-attribute": "PeerAS:AS-TO-AIX"}]
+                        },
                     }
-                ],
+                }
             },
-            "nested": [
-                {
-                    "logic": "and",
-                    "policy-filter": [
-                        {"path-attribute": "<^PeerAS+PeerAS:AS-TO-AIX*$>"}
-                    ],
+            "right": {
+                "policy-filter": [{"path-attribute": "<^PeerAS+PeerAS:AS-TO-AIX*$>"}]
+            },
+        }
+    },
+    {
+        "and": {
+            "left": {"policy-filter": [{"path-attribute": "AS12874"}]},
+            "right": {
+                "and": {
+                    "left": {"policy-filter": [{"path-attribute": "AS-FASTWEB"}]},
+                    "right": {
+                        "policy-filter": [{"path-attribute": "AS-FASTWEB-GLOBAL"}]
+                    },
                 }
-            ],
+            },
         }
     },
     {
-        "mp-filter": {
-            "policy-filter": [{"path-attribute": "AS12874"}],
-            "nested": [
-                {"logic": "and", "policy-filter": [{"path-attribute": "AS-FASTWEB"}]},
-                {
-                    "logic": "and",
-                    "policy-filter": [{"path-attribute": "AS-FASTWEB-GLOBAL"}],
-                },
-            ],
+        "and": {
+            "left": {"policy-filter": [{"path-attribute": "ANY"}]},
+            "right": {
+                "not": {"community": {"method": "contains", "args": ["8501:1120"]}}
+            },
         }
     },
     {
-        "mp-filter": {
-            "nested": [
-                {
-                    "community": {"args": ["8501:1120"], "method": "contains"},
-                    "logic": "and",
-                    "modifier": "not",
-                }
-            ],
-            "policy-filter": [{"path-attribute": "ANY"}],
-        }
+        "policy-filter": [
+            {"path-attribute": "ANY"},
+            {"path-attribute": "ANY"},
+            {"not": [{"path-attribute": "AS39326:FLTR-FILTERLIST"}]},
+        ],
     },
     {
-        "mp-filter": {
-            "nested": [
-                {
-                    "logic": "not",
-                    "policy-filter": [{"path-attribute": "AS39326:FLTR-FILTERLIST"}],
-                }
-            ],
-            "policy-filter": [{"path-attribute": "ANY"}, {"path-attribute": "ANY"}],
-        }
-    },
-    {
-        "mp-filter": {
-            "policy-filter": [
-                {"path-attribute": "AS26415"},
-                {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]},
-            ]
-        }
+        "policy-filter": [
+            {"path-attribute": "AS26415"},
+            {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]},
+        ]
     },
 ]
 

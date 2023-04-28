@@ -534,6 +534,7 @@ ACTION_EXAMPLES = [
     "community.append(3344:60000, 3344:60020, 3344:8330)",
     "community .= { 100 }",
     "aspath.prepend(AS1, AS1, AS1)",
+    "community = {29222:1000, 29222:1001, 29222:559}",
 ]
 
 PARSED_ACTION_EXAMPLES = [
@@ -553,6 +554,12 @@ PARSED_ACTION_EXAMPLES = [
             "args": ["AS1", "AS1", "AS1"],
             "method": "prepend",
             "rp-attribute": "aspath",
+        }
+    },
+    {
+        "assignment": {
+            "assigned-set": ["29222:1000", "29222:1001", "29222:559"],
+            "assignee": "community",
         }
     },
 ]

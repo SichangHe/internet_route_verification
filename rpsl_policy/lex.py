@@ -254,12 +254,12 @@ mp_filter <<= mp_filter_and | mp_filter_or | mp_filter_not | mp_filter_base
 assignment = Group(
     field_wo_eq("assignee")
     + "="
-    + (field_wo_eq("assigned") | address_prefix_set("assigned-set"))
+    + (address_prefix_set("assigned-set") | field_wo_eq("assigned"))
 )
 """<assignee>=<assigned>
 or
 <assignee>={ addr-1, ... }
--> {assignee: str, (assigned: str | assigned-set: list[str])}"""
+-> {assignee: str, (assigned-set: list[str]) | assigned: str}"""
 method_call = Group(
     simple_field("rp-attribute")
     + Suppress(".")

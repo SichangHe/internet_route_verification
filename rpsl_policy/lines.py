@@ -2,7 +2,7 @@ import re
 from io import TextIOWrapper
 from typing import Generator, Iterable
 
-from rpsl_object import RPSLObject
+from .rpsl_object import RPSLObject
 
 continuation_chars = (" ", "+", "\t")
 spaces = re.compile(r"\s+")

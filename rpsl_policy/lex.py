@@ -116,6 +116,8 @@ import_expression = Forward()
 <import-term>
 -> import-expression: {import-term, logic, [afi-list],...}
 | import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
+<https://www.rfc-editor.org/rfc/rfc4012#page-6>
+<https://www.rfc-editor.org/rfc/rfc2622#page-34>
 """
 afi_import_expression = Opt(afi) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>
@@ -125,13 +127,12 @@ afi_import_expression = Opt(afi) + import_expression
     | (mp-peerings, mp-filter)
 )"""
 import_expression <<= (
-    # TODO: Verify that `EXCEPT` and `REFINE` work.
-    Group(import_term("import-term") + except_kw("logic") + afi_import_expression)(
-        "import-expression"
-    )
-    | Group(import_term("import-term") + refine_kw("logic") + afi_import_expression)(
-        "import-expression"
-    )
+    Group(
+        Group(import_term)("import-term") + except_kw("logic") + afi_import_expression
+    )("import-expression")
+    | Group(
+        Group(import_term)("import-term") + refine_kw("logic") + afi_import_expression
+    )("import-expression")
     | import_term
 )
 

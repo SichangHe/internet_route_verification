@@ -1,8 +1,12 @@
 import sys
 from io import TextIOWrapper
 
-from lines import expressions, io_wrapper_lines, lines_continued, rpsl_objects
-from rpsl_object import AsSet, AutNum, RouteSet, RPSLObject
+from pyparsing import ParseException
+
+from .lex import mp_import
+from .lines import expressions, io_wrapper_lines, lines_continued, rpsl_objects
+from .parse import import_export
+from .rpsl_object import AsSet, AutNum, RouteSet, RPSLObject
 
 aut_nums: list[AutNum] = []
 as_sets: list[AsSet] = []
@@ -10,8 +14,12 @@ route_sets: list[RouteSet] = []
 
 
 def parse_mp_import(expr: str):
-    # TODO
-    pass
+    try:
+        lexed = mp_import.parse_string(expr).as_dict()
+    except ParseException as err:
+        print(err, file=sys.stderr)
+        return
+    return import_export(lexed)
 
 
 def parse_aut_num(obj: RPSLObject):

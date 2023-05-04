@@ -64,13 +64,11 @@ def merge_afi(afis: Iterable[dict[str, str]]) -> list[tuple[str, str]]:
     return [(key, value) for key, value in afi_map.items()]
 
 
-def import_export(lexed: dict):
+def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     if protocol_1 := lexed.get("protocol-1"):
         print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
     if protocol_2 := lexed.get("protocol-2"):
         print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
-
-    result: dict[str, dict[str, list]] = {}
 
     for afi_import_expression in afi_import_expressions(lexed):
         afi_entries = [("any", "any")]
@@ -93,7 +91,7 @@ def import_export(lexed: dict):
                     peering["mp_peering"] = peer
                 else:
                     continue
-                if action_raws := peering_raw["actions"]:
+                if action_raws := peering_raw.get("actions"):
                     peering["actions"] = [
                         act
                         for action_raw in action_raws

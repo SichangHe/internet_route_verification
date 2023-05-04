@@ -19,7 +19,7 @@ MP_IMPORT_EXAMPLES = [
     "afi any { from AS-ANY action community.delete(64628:10, 64628:11, 64628:12, 64628:13, 64628:14, 64628:15, 64628:20, 64628:21, 64628:22); accept ANY; } REFINE afi any { from AS-ANY action pref = 65535; accept community(65535:0); from AS-ANY action pref = 65435; accept ANY; } REFINE afi any { from AS-ANY accept NOT AS199284^+; } REFINE afi ipv4 { from AS-ANY accept NOT fltr-martian; } REFINE afi ipv4 { from AS-ANY accept { 0.0.0.0/0^0-24 } AND NOT community(65535:666); from AS-ANY accept { 0.0.0.0/0^24-32 } AND community(65535:666); } REFINE afi ipv6 { from AS-ANY accept { 2000::/3^4-48 } AND NOT community(65535:666); from AS-ANY accept { 2000::/3^64-128 } AND community(65535:666); } REFINE afi any { from AS15725 action community .= { 64628:20 }; accept AS-IKS AND <^AS-IKS+$>; from AS196714 action community .= { 64628:20 }; accept AS-TNETKOM AND <^AS-TNETKOM+$>; from AS199284:AS-UP action community .= { 64628:21 }; accept ANY; from AS35366 action community .= { 64628:22 }; accept AS-ISPPRO AND <^AS-ISPPRO+$>; from AS20940 action community .= { 64628:22 }; accept <^AS-AKAMAI+$>; from AS16509 action community .= { 64628:22 }; accept <^AS-AMAZON+$>; from AS32934 action community .= { 64628:22 }; accept <^AS-FACEBOOK+$>; from AS2906 action community .= { 64628:22 }; accept <^AS-NFLX+$>; from AS46489 action community .= { 64628:22 }; accept <^AS-TWITCH+$>; from AS714 action community .= { 64628:22 }; accept <^AS-APPLE+$>; from AS26415 action community .= { 64628:22 }; accept <^AS-GTLD+$>; from AS13335 action community .= { 64628:22 }; accept <^AS-CLOUDFLARE+$>; from AS-ANY action community .= { 64628:22 }; accept PeerAS and <^PeerAS+$>; } REFINE afi any { from AS-ANY EXCEPT (AS40027 OR AS63293 OR AS65535) accept ANY; }",
 ]
 
-PARSED_MP_IMPORT_EXAMPLES = [
+LEXED_MP_IMPORT_EXAMPLES = [
     {
         "afi-list": ["ipv6.unicast"],
         "mp-peerings": [{"mp-peering": ["AS9002"]}],
@@ -563,7 +563,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
 
 
 def test_mp_import():
-    for example, expected in zip(MP_IMPORT_EXAMPLES, PARSED_MP_IMPORT_EXAMPLES):
+    for example, expected in zip(MP_IMPORT_EXAMPLES, LEXED_MP_IMPORT_EXAMPLES):
         success, results = mp_import.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
@@ -579,7 +579,7 @@ MP_EXPORT_EXAMPLES = [
     "afi ipv6.unicast to AS41965 at 2001:4D00:0:1:62:89:0:1 action med=0; announce AS8226 AS8226:AS-CUST",
 ]
 
-PARSED_MP_EXPORT_EXAMPLES = [
+LEXED_MP_EXPORT_EXAMPLES = [
     {
         "afi-list": ["ipv6.unicast"],
         "mp-filter": "AS1881",
@@ -618,7 +618,7 @@ PARSED_MP_EXPORT_EXAMPLES = [
 
 
 def test_mp_export():
-    for example, expected in zip(MP_EXPORT_EXAMPLES, PARSED_MP_EXPORT_EXAMPLES):
+    for example, expected in zip(MP_EXPORT_EXAMPLES, LEXED_MP_EXPORT_EXAMPLES):
         success, results = mp_import.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
@@ -636,7 +636,7 @@ MP_PEERING_EXAMPLES = [
     "AS-ANY EXCEPT AS5398:AS-AMS-IX-FILTER",
 ]
 
-PARSED_MP_PEERING_EXAMPLES = [
+LEXED_MP_PEERING_EXAMPLES = [
     {"as-expression": ["AS51468"]},
     {"as-expression": ["AS9150:AS-PEERS-AMSIX"]},
     {
@@ -661,7 +661,7 @@ PARSED_MP_PEERING_EXAMPLES = [
 
 
 def test_mp_peering():
-    for example, expected in zip(MP_PEERING_EXAMPLES, PARSED_MP_PEERING_EXAMPLES):
+    for example, expected in zip(MP_PEERING_EXAMPLES, LEXED_MP_PEERING_EXAMPLES):
         success, results = mp_peering.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
@@ -685,7 +685,7 @@ MP_FILTER_EXAMPLES = [
     "AS26415 {2001:503:c27::/48, 2001:503:231d::/48}",
 ]
 
-PARSED_MP_FILTER_EXAMPLES = [
+LEXED_MP_FILTER_EXAMPLES = [
     {"policy-filter": [{"path-attribute": "ANY"}]},
     {"not": {"policy-filter": [{"path-attribute": "ANY"}]}},
     {"policy-filter": [{"address-prefix-set": []}]},
@@ -778,7 +778,7 @@ PARSED_MP_FILTER_EXAMPLES = [
 
 
 def test_mp_filter():
-    for example, expected in zip(MP_FILTER_EXAMPLES, PARSED_MP_FILTER_EXAMPLES):
+    for example, expected in zip(MP_FILTER_EXAMPLES, LEXED_MP_FILTER_EXAMPLES):
         success, results = mp_filter.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
@@ -807,7 +807,7 @@ ACTION_EXAMPLES = [
     "community = {29222:1000, 29222:1001, 29222:559}",
 ]
 
-PARSED_ACTION_EXAMPLES = [
+LEXED_ACTION_EXAMPLES = [
     {"assignment": {"assigned": "100", "assignee": "pref"}},
     {"assignment": {"assigned": "200", "assignee": "pref"}},
     {"assignment": {"assigned": "0", "assignee": "med"}},
@@ -836,7 +836,7 @@ PARSED_ACTION_EXAMPLES = [
 
 
 def test_action():
-    for example, expected in zip(ACTION_EXAMPLES, PARSED_ACTION_EXAMPLES):
+    for example, expected in zip(ACTION_EXAMPLES, LEXED_ACTION_EXAMPLES):
         success, results = action.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]

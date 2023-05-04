@@ -14,23 +14,23 @@ as_sets: list[AsSet] = []
 route_sets: list[RouteSet] = []
 
 
-def parse_mp_import(expr: str):
+def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
     try:
         lexed = mp_import.parse_string(expr).as_dict()
     except ParseException as err:
         print(err, file=stderr)
         return
-    return import_export(lexed)
+    import_export(lexed, imports)
 
 
 def parse_aut_num(obj: RPSLObject):
-    imports = []
-    exports = []
+    imports: dict[str, dict[str, list[dict]]] = {}
+    exports: dict[str, dict[str, list]] = {}
     for key, expr in expressions(obj.body.splitlines()):
         if key == "import" or key == "mp-import":
-            imports.append(parse_mp_import(expr))
+            parse_mp_import(expr, imports)
         elif key == "export" or key == "mp-export":
-            exports.append(parse_mp_import(expr))
+            parse_mp_import(expr, exports)
     aut_nums.append(AutNum(obj.name, obj.body, imports, exports))
 
 

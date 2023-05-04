@@ -29,15 +29,13 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
                     "mp_peerings": [
                         {
-                            "actions": [
-                                {"assignment": {"assigned": "100", "assignee": "pref"}}
-                            ],
                             "mp_peering": {"as-expression": ["AS6939"]},
+                            "actions": {"pref": "100"},
                         }
                     ],
+                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
                 }
             ]
         }
@@ -46,17 +44,15 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {"as-expression": ["AS21127"]},
+                            "actions": {"pref": "100"},
+                        }
+                    ],
                     "mp_filter": {
                         "policy-filter": [{"path-attribute": "AS-ZSTTK6-SET"}]
                     },
-                    "mp_peerings": [
-                        {
-                            "actions": [
-                                {"assignment": {"assigned": "100", "assignee": "pref"}}
-                            ],
-                            "mp_peering": {"as-expression": ["AS21127"]},
-                        }
-                    ],
                 }
             ]
         }
@@ -65,18 +61,15 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {"as-expression": ["AS21127"]},
+                            "actions": {"pref": "100", "med": "0"},
+                        }
+                    ],
                     "mp_filter": {
                         "policy-filter": [{"path-attribute": "AS-ZSTTK6-SET"}]
                     },
-                    "mp_peerings": [
-                        {
-                            "actions": [
-                                {"assignment": {"assigned": "100", "assignee": "pref"}},
-                                {"assignment": {"assigned": "0", "assignee": "med"}},
-                            ],
-                            "mp_peering": {"as-expression": ["AS21127"]},
-                        }
-                    ],
                 }
             ]
         }
@@ -95,6 +88,12 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {"as-expression": ["AS1299"]},
+                            "actions": {"pref": "200"},
+                        }
+                    ],
                     "mp_filter": {
                         "and": {
                             "left": {"policy-filter": [{"path-attribute": "ANY"}]},
@@ -107,14 +106,6 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             },
                         }
                     },
-                    "mp_peerings": [
-                        {
-                            "actions": [
-                                {"assignment": {"assigned": "200", "assignee": "pref"}}
-                            ],
-                            "mp_peering": {"as-expression": ["AS1299"]},
-                        }
-                    ],
                 }
             ]
         }
@@ -126,21 +117,13 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {"as-expression": ["AS6682at109.68.121.1"]},
-                            "actions": [
-                                {
-                                    "assignment": {
-                                        "assignee": "pref",
-                                        "assigned": "65435",
-                                    }
-                                },
-                                {"assignment": {"assignee": "med", "assigned": "0"}},
-                                {
-                                    "community": {
-                                        "method": "append",
-                                        "args": ["8226:1102"],
-                                    }
-                                },
-                            ],
+                            "actions": {
+                                "pref": "65435",
+                                "med": "0",
+                                "community": [
+                                    {"method": "append", "args": ["8226:1102"]}
+                                ],
+                            },
                         }
                     ],
                     "mp_filter": {
@@ -510,9 +493,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {"as-expression": ["AS2895"]},
-                            "actions": [
-                                {"assignment": {"assignee": "pref", "assigned": "10"}}
-                            ],
+                            "actions": {"pref": "10"},
                         }
                     ],
                     "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
@@ -537,9 +518,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {"as-expression": ["AS8928"]},
-                            "actions": [
-                                {"assignment": {"assignee": "pref", "assigned": "10"}}
-                            ],
+                            "actions": {"pref": "10"},
                         }
                     ],
                     "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
@@ -554,15 +533,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {"as-expression": ["AS3344:PRNG-LONAP"]},
-                            "actions": [
-                                {
-                                    "assignment": {
-                                        "assignee": "pref",
-                                        "assigned": "64535",
-                                    }
-                                },
-                                {
-                                    "community": {
+                            "actions": {
+                                "pref": "64535",
+                                "community": [
+                                    {
                                         "method": "append",
                                         "args": [
                                             "3344:60000",
@@ -570,8 +544,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
                                             "3344:8330",
                                         ],
                                     }
-                                },
-                            ],
+                                ],
+                            },
                         }
                     ],
                     "mp_filter": {

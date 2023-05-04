@@ -64,6 +64,41 @@ def merge_afi(afis: Iterable[dict[str, str]]) -> list[tuple[str, str]]:
     return [(key, value) for key, value in afi_map.items()]
 
 
+def clean_action(
+    actions_lexed: Iterable[dict[str, dict | list]]
+) -> dict[str, str | list[str] | list[dict[str, str | list[str]]]]:
+    """Clean up a stream of <action>s
+    -> {[<assignee1>...]: str | list[str], [community]: list[{
+        [method]: str, args: list[str]
+    }], [<rp-attribute1>...]: list[{method: str, args: list[str]}]}"""
+    cleaned = {}
+    for action_lexed in actions_lexed:
+        if assignment := action_lexed.get("assignment"):
+            assert isinstance(assignment, dict)
+            cleaned[assignment["assignee"]] = (
+                assigned
+                if (assigned := assignment["assigned"])
+                else assignment["assigned-set"]
+            )
+        elif community := action_lexed.get("community"):
+            assert isinstance(community, dict)
+            community_entry = cleaned.get("community", [])
+            community_entry.append(community)
+            cleaned["community"] = community_entry
+        elif add_community := action_lexed.get("add-community"):
+            assert isinstance(add_community, list)
+            community_entry = cleaned.get("community", [])
+            community_entry.append({"method": "=", "args": add_community})
+            cleaned["community"] = community_entry
+        elif method_call := action_lexed.get("method-call"):
+            assert isinstance(method_call, dict)
+            rp_attribute = method_call.pop("rp-attribute")
+            rp_entry = cleaned.get(rp_attribute, [])
+            rp_entry.append(method_call)
+            cleaned[rp_attribute] = rp_entry
+    return cleaned
+
+
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     if protocol_1 := lexed.get("protocol-1"):
         print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
@@ -92,11 +127,11 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
                 else:
                     continue
                 if action_raws := peering_raw.get("actions"):
-                    peering["actions"] = [
-                        act
+                    peering["actions"] = clean_action(
+                        action_lexed
                         for action_raw in action_raws
-                        if (act := lex_with(action, action_raw))
-                    ]
+                        if (action_lexed := lex_with(action, action_raw))
+                    )
                 import_factor["mp_peerings"].append(peering)  # type: ignore
             for version, cast in afi_entries:
                 version_entry = result.get(version, {})

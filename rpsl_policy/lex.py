@@ -43,6 +43,11 @@ except_kw = CaselessKeyword("except")
 refine_kw = CaselessKeyword("refine")
 at_kw = CaselessKeyword("at")
 community_kw = CaselessKeyword("community")
+any_kw = CaselessKeyword("any")
+ipv4_kw = CaselessKeyword("ipv4")
+ipv6_kw = CaselessKeyword("ipv6")
+unicast_kw = CaselessKeyword("unicast")
+multicast_kw = CaselessKeyword("multicast")
 
 # -----------------------------------------------------------------------------
 # <mp-peering>, not further parsed.
@@ -69,7 +74,7 @@ to <mp-peering-M> [action <action-1>; ... <action-N>;]
 # -----------------------------------------------------------------------------
 # Structured <mp-import>
 # -----------------------------------------------------------------------------
-afi = CaselessKeyword("afi") + delimited_list(
+afi_raw = CaselessKeyword("afi") + delimited_list(
     field_wo_comma, delim=","
 ).set_results_name("afi-list")
 """afi <afi-list>
@@ -114,16 +119,18 @@ import_expression = Forward()
 <import-term> EXCEPT <afi-import-expression> |
 <import-term> REFINE <afi-import-expression> |
 <import-term>
--> import-expression: {import-term, logic, [afi-list],...}
-| import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
+-> import-expression: {import-term, logic, [afi-list], (
+    import-expression | import-factors | (mp-peerings, mp-filter)
+)} | import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
 <https://www.rfc-editor.org/rfc/rfc4012#page-6>
 <https://www.rfc-editor.org/rfc/rfc2622#page-34>
 """
-afi_import_expression = Opt(afi) + import_expression
+afi_import_expression = Opt(afi_raw) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>
 [afi-list]: list[str], (
-    import-expression: {import-term, logic, [afi-list], ...}
-    | import-factors: list[{mp-peerings, mp-filter}]
+    import-expression: {import-term, logic, [afi-list], (
+        import-expression | import-factors | (mp-peerings, mp-filter)
+    )} | import-factors: list[{mp-peerings, mp-filter}]
     | (mp-peerings, mp-filter)
 )"""
 import_expression <<= (
@@ -143,7 +150,9 @@ mp_import = Opt(protocol) + Opt(into_protocol) + afi_import_expression
 Input should be in one line, without comments. Can also parse `mp-export`.
 <action>, <mp-filter>, <mp-peering> in parse results not further parsed.
 -> [protocol-1]: str, [protocol-2]: str, [afi-list]: list[str], (
-    import-expression: {import-term, logic, [afi-list], ...}
+    import-expression: {import-term, logic, [afi-list], (
+        import-expression | import-factors | (mp-peerings, mp-filter)
+    )}
     | import-factors: list[{mp-peerings, mp-filter}]
     | (
         mp-peerings: list[{mp-peering: list[str], [actions]: list[str]}],
@@ -284,3 +293,10 @@ or rp-attribute.method()
 | add-community: list[str]
 | method-call: {rp-attribute: str, method: str, args: list[str]}
 <https://www.rfc-editor.org/rfc/rfc2622#page-43>"""
+
+# -----------------------------------------------------------------------------
+# Further parse <afi-list>
+# -----------------------------------------------------------------------------
+afi = (ipv4_kw | ipv6_kw | any_kw)("version") + Opt(
+    "." + (unicast_kw | multicast_kw)("cast")
+)

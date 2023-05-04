@@ -1,39 +1,21 @@
 from io import TextIOWrapper
 from random import choices
-from typing import Generator
 
 from pyparsing import ParseException
 
-from ..lex import mp_import, mp_peering
+from ..lex import afi, mp_import
 from ..lines import io_wrapper_lines, lines_continued
-from ..parse import afi_import_expressions, import_factors_in_flat
+from ..parse import afi_import_expressions
 
 
-def parse_mp_peering(expr: str, verbose: bool = False):
+def parse_afi(expr: str, verbose: bool = False):
     if verbose:
-        success, results = mp_peering.run_tests(expr, full_dump=False)
+        success, results = afi.run_tests(expr, full_dump=False)
         if success:
             print(results[0][1].as_dict())  # type: ignore
-    elif not mp_peering.matches(expr):
+    elif not afi.matches(expr):
         # Match failed.
-        parse_mp_peering(expr, True)
-
-
-def get_import_factors(parsed: dict) -> Generator[dict, None, None]:
-    for afi_import_expression in afi_import_expressions(parsed):
-        for import_factor in import_factors_in_flat(afi_import_expression):
-            yield import_factor
-
-
-def mp_peering_raws_in_import_factor(
-    import_factor: dict,
-) -> Generator[str, None, None]:
-    peerings = import_factor["mp-peerings"]
-    for mp_peering_raw in peerings:
-        yield " ".join(
-            # list[str]
-            mp_peering_raw["mp-peering"]
-        )
+        parse_afi(expr, True)
 
 
 def parse_mp_import(line: str, verbose: bool = False):
@@ -43,10 +25,10 @@ def parse_mp_import(line: str, verbose: bool = False):
         result = mp_import.parse_string(value).as_dict()
     except ParseException:
         return
-    import_factors = get_import_factors(result)
-    for import_factor in import_factors:
-        for mp_peering_raw in mp_peering_raws_in_import_factor(import_factor):
-            parse_mp_peering(mp_peering_raw, verbose and (" " in mp_peering_raw))
+    for afi_import_expression in afi_import_expressions(result):
+        if afi_list := afi_import_expression.get("afi-list"):
+            for afi_item in afi_list:
+                parse_afi(afi_item, verbose)
 
 
 def parse_statement(statement: str, verbose: bool = False):

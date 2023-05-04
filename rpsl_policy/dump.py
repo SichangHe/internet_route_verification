@@ -1,5 +1,6 @@
 import sys
 from io import TextIOWrapper
+from sys import stderr
 
 from pyparsing import ParseException
 
@@ -17,7 +18,7 @@ def parse_mp_import(expr: str):
     try:
         lexed = mp_import.parse_string(expr).as_dict()
     except ParseException as err:
-        print(err, file=sys.stderr)
+        print(err, file=stderr)
         return
     return import_export(lexed)
 

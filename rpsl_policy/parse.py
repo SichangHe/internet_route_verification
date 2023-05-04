@@ -3,7 +3,7 @@ from typing import Generator, Iterable
 
 from pyparsing import ParseException, ParserElement
 
-from .lex import afi
+from .lex import action, afi, mp_filter, mp_peering
 
 
 def lex_with(lexer: ParserElement, string: str) -> dict | None:
@@ -28,7 +28,11 @@ def import_factors_in_flat(afi_import_expression: dict) -> Generator[dict, None,
 def afi_import_expressions(lexed: dict) -> Generator[dict, None, None]:
     """Extract flattened <afi-import-expression>s in a lexed <mp-import> or
     <afi-import-expression>.
-    -> {[afi-list]: list[str], (
+    -> {[import-term: {
+            import-factors: list[{mp-peerings, mp-filter}]
+            | (mp-peerings, mp-filter)
+        }, logic: str],
+    [afi-list]: list[str], (
         import-expression | import-factors: list[{mp-peerings, mp-filter}]
         | (mp-peerings, mp-filter)
     )}"""
@@ -66,7 +70,7 @@ def import_export(lexed: dict):
     if protocol_2 := lexed.get("protocol-2"):
         print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
 
-    result = {}
+    result: dict[str, dict[str, list]] = {}
 
     for afi_import_expression in afi_import_expressions(lexed):
         afi_entries = [("any", "any")]
@@ -74,6 +78,32 @@ def import_export(lexed: dict):
             afi_entries = merge_afi(
                 afi_item for item in afi_list if (afi_item := lex_with(afi, item))
             )
-        # TODO: Parse <import-expression>s.
-
+        if "import-term" in afi_import_expression:
+            # TODO: Handle EXCEPT and REFINE logic.
+            print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
+        for import_factor_raw in import_factors_in_flat(afi_import_expression):
+            import_factor: dict[str, list | dict] = {"mp_peerings": []}
+            if filter := lex_with(mp_filter, import_factor_raw["mp-filter"]):
+                import_factor["mp_filter"] = filter
+            else:
+                continue
+            for peering_raw in import_factor_raw["mp-peerings"]:
+                peering = {}
+                if peer := lex_with(mp_peering, "".join(peering_raw["mp-peering"])):
+                    peering["mp_peering"] = peer
+                else:
+                    continue
+                if action_raws := peering_raw["actions"]:
+                    peering["actions"] = [
+                        act
+                        for action_raw in action_raws
+                        if (act := lex_with(action, action_raw))
+                    ]
+                import_factor["mp_peerings"].append(peering)  # type: ignore
+            for version, cast in afi_entries:
+                version_entry = result.get(version, {})
+                cast_entry = version_entry.get(cast, [])
+                cast_entry.append(import_factor)
+                version_entry[cast] = cast_entry
+                result[version] = version_entry
     return result

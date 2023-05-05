@@ -224,12 +224,11 @@ community_dot_eq = (
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
 policy_filter = OneOrMore(
-    ~(and_kw | or_kw | not_kw)
-    + Group(field_wo_brace("path-attribute") | address_prefix_set("address-prefix-set"))
+    ~(and_kw | or_kw | not_kw) + field_wo_brace | address_prefix_set
 )
-"""A logical expression which when applied to a set of routes returns a subset
-of these routes
--> list[{path-attribute: str | address-prefix-set: list[str]}]
+"""A list of elements that are either <path-attribute>: str or
+<address-prefix-set>: list[str]
+-> list[str | list[str]}]
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
 # `mp_filter` and `mp_filter_base` are recursively defined.
 mp_filter = Forward()
@@ -238,17 +237,15 @@ mp_filter = Forward()
 | or: {left: {...}, right: {...}}
 | not: {...}
 | community: {[method]: str, args: list[str]}
-| mp-filter: {...}
-| policy-filter: list[{path-attribute: str | address-prefix-set: list[str]}]
+| policy-filter: list[str | list[str]}]
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>"""
 mp_filter_base = (
     community_field("community")
-    | Group(Suppress("(") + mp_filter + Suppress(")"))("mp-filter")
+    | (Suppress("(") + mp_filter + Suppress(")"))
     | policy_filter("policy-filter")
 )
 """-> community: {[method]: str, args: list[str]}
-| mp-filter: {...}
-| policy-filter: list[{path-attribute: str | address-prefix-set: list[str]}]"""
+| policy-filter: list[str | list[str]}]"""
 mp_filter_not = Group(Suppress(not_kw) + mp_filter)("not")
 mp_filter_and = Group(
     Group(mp_filter_base)("left") + Suppress(and_kw) + Group(mp_filter)("right")

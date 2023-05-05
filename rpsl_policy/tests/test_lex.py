@@ -686,45 +686,22 @@ MP_FILTER_EXAMPLES = [
 ]
 
 LEXED_MP_FILTER_EXAMPLES = [
-    {"policy-filter": [{"path-attribute": "ANY"}]},
-    {"not": {"policy-filter": [{"path-attribute": "ANY"}]}},
-    {"policy-filter": [{"address-prefix-set": []}]},
-    {"policy-filter": [{"address-prefix-set": ["0.0.0.0/0"]}]},
+    {"policy-filter": ["ANY"]},
+    {"not": {"policy-filter": ["ANY"]}},
+    {"policy-filter": [[]]},
+    {"policy-filter": [["0.0.0.0/0"]]},
     {
         "policy-filter": [
-            {
-                "address-prefix-set": [
-                    "128.9.0.0/16",
-                    "128.8.0.0/16",
-                    "128.7.128.0/17",
-                    "5.0.0.0/8",
-                ]
-            }
+            ["128.9.0.0/16", "128.8.0.0/16", "128.7.128.0/17", "5.0.0.0/8"]
         ]
     },
     {
         "policy-filter": [
-            {
-                "address-prefix-set": [
-                    "5.0.0.0/8^+",
-                    "128.9.0.0/16^-",
-                    "30.0.0.0/8^16",
-                    "30.0.0.0/8^24-32",
-                ]
-            }
+            ["5.0.0.0/8^+", "128.9.0.0/16^-", "30.0.0.0/8^16", "30.0.0.0/8^24-32"]
         ]
     },
-    {
-        "policy-filter": [
-            {"path-attribute": "AS-SAT-TRAKT-V6"},
-            {"path-attribute": "AS-SOX"},
-        ]
-    },
-    {
-        "policy-filter": [
-            {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]}
-        ]
-    },
+    {"policy-filter": ["AS-SAT-TRAKT-V6", "AS-SOX"]},
+    {"policy-filter": [["2001:503:c27::/48", "2001:503:231d::/48"]]},
     {
         "community": {
             "args": ["8501:1011", "8501:1013", "8501:1014", "8501:1015", "8501:1016"]
@@ -733,36 +710,28 @@ LEXED_MP_FILTER_EXAMPLES = [
     {
         "and": {
             "left": {
-                "mp-filter": {
-                    "or": {
-                        "left": {"policy-filter": [{"path-attribute": "PeerAS"}]},
-                        "right": {
-                            "policy-filter": [{"path-attribute": "PeerAS:AS-TO-AIX"}]
-                        },
-                    }
+                "or": {
+                    "left": {"policy-filter": ["PeerAS"]},
+                    "right": {"policy-filter": ["PeerAS:AS-TO-AIX"]},
                 }
             },
-            "right": {
-                "policy-filter": [{"path-attribute": "<^PeerAS+PeerAS:AS-TO-AIX*$>"}]
-            },
+            "right": {"policy-filter": ["<^PeerAS+PeerAS:AS-TO-AIX*$>"]},
         }
     },
     {
         "and": {
-            "left": {"policy-filter": [{"path-attribute": "AS12874"}]},
+            "left": {"policy-filter": ["AS12874"]},
             "right": {
                 "and": {
-                    "left": {"policy-filter": [{"path-attribute": "AS-FASTWEB"}]},
-                    "right": {
-                        "policy-filter": [{"path-attribute": "AS-FASTWEB-GLOBAL"}]
-                    },
+                    "left": {"policy-filter": ["AS-FASTWEB"]},
+                    "right": {"policy-filter": ["AS-FASTWEB-GLOBAL"]},
                 }
             },
         }
     },
     {
         "and": {
-            "left": {"policy-filter": [{"path-attribute": "ANY"}]},
+            "left": {"policy-filter": ["ANY"]},
             "right": {
                 "not": {"community": {"method": "contains", "args": ["8501:1120"]}}
             },
@@ -770,8 +739,8 @@ LEXED_MP_FILTER_EXAMPLES = [
     },
     {
         "policy-filter": [
-            {"path-attribute": "AS26415"},
-            {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]},
+            "AS26415",
+            ["2001:503:c27::/48", "2001:503:231d::/48"],
         ]
     },
 ]

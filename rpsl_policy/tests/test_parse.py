@@ -6,8 +6,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
                     "mp_peerings": [{"mp_peering": {"as-expression": ["AS9002"]}}],
+                    "mp_filter": {"policy-filter": ["ANY"]},
                 }
             ]
         }
@@ -16,11 +16,11 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
                     "mp_peerings": [
                         {"mp_peering": {"as-expression": ["AS9002"]}},
                         {"mp_peering": {"as-expression": ["AS2356"]}},
                     ],
+                    "mp_filter": {"policy-filter": ["ANY"]},
                 }
             ]
         }
@@ -35,7 +35,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "100"},
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
+                    "mp_filter": {"policy-filter": ["ANY"]},
                 }
             ]
         }
@@ -50,9 +50,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "100"},
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-ZSTTK6-SET"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-ZSTTK6-SET"]},
                 }
             ]
         }
@@ -67,9 +65,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "100", "med": "0"},
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-ZSTTK6-SET"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-ZSTTK6-SET"]},
                 }
             ]
         }
@@ -78,8 +74,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "any": [
                 {
-                    "mp_filter": {"policy-filter": [{"address-prefix-set": ["::/0"]}]},
                     "mp_peerings": [{"mp_peering": {"as-expression": ["AS1213"]}}],
+                    "mp_filter": {"policy-filter": [["::/0"]]},
                 }
             ]
         }
@@ -96,14 +92,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     ],
                     "mp_filter": {
                         "and": {
-                            "left": {"policy-filter": [{"path-attribute": "ANY"}]},
-                            "right": {
-                                "not": {
-                                    "policy-filter": [
-                                        {"address-prefix-set": ["0.0.0.0/0"]}
-                                    ]
-                                }
-                            },
+                            "left": {"policy-filter": ["ANY"]},
+                            "right": {"not": {"policy-filter": [["0.0.0.0/0"]]}},
                         }
                     },
                 }
@@ -128,12 +118,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     ],
                     "mp_filter": {
                         "and": {
-                            "left": {"policy-filter": [{"path-attribute": "ANY"}]},
-                            "right": {
-                                "policy-filter": [
-                                    {"address-prefix-set": ["0.0.0.0/0^0-24"]}
-                                ]
-                            },
+                            "left": {"policy-filter": ["ANY"]},
+                            "right": {"policy-filter": [["0.0.0.0/0^0-24"]]},
                         }
                     },
                 }
@@ -151,7 +137,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS174"}]},
+                    "mp_filter": {"policy-filter": ["AS174"]},
                 },
                 {
                     "mp_peerings": [
@@ -161,7 +147,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-UNIC"}]},
+                    "mp_filter": {"policy-filter": ["AS-UNIC"]},
                 },
                 {
                     "mp_peerings": [
@@ -171,7 +157,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-NORDUNET"}]},
+                    "mp_filter": {"policy-filter": ["AS-NORDUNET"]},
                 },
                 {
                     "mp_peerings": [
@@ -181,7 +167,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-IGNEMEA"}]},
+                    "mp_filter": {"policy-filter": ["AS-IGNEMEA"]},
                 },
                 {
                     "mp_peerings": [
@@ -191,9 +177,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-GLOBALIPNET"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-GLOBALIPNET"]},
                 },
                 {
                     "mp_peerings": [
@@ -203,7 +187,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-KMD"}]},
+                    "mp_filter": {"policy-filter": ["AS-KMD"]},
                 },
                 {
                     "mp_peerings": [
@@ -213,7 +197,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-TELENOR"}]},
+                    "mp_filter": {"policy-filter": ["AS-TELENOR"]},
                 },
                 {
                     "mp_peerings": [
@@ -223,7 +207,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-COHAESIO"}]},
+                    "mp_filter": {"policy-filter": ["AS-COHAESIO"]},
                 },
                 {
                     "mp_peerings": [
@@ -233,9 +217,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-WEBPARTNER"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-WEBPARTNER"]},
                 },
                 {
                     "mp_peerings": [
@@ -245,7 +227,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-IPO"}]},
+                    "mp_filter": {"policy-filter": ["AS-IPO"]},
                 },
                 {
                     "mp_peerings": [
@@ -255,7 +237,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-INIT7"}]},
+                    "mp_filter": {"policy-filter": ["AS-INIT7"]},
                 },
                 {
                     "mp_peerings": [
@@ -265,9 +247,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-DK-ARROWHEAD"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-DK-ARROWHEAD"]},
                 },
                 {
                     "mp_peerings": [
@@ -277,7 +257,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-IPX"}]},
+                    "mp_filter": {"policy-filter": ["AS-IPX"]},
                 },
                 {
                     "mp_peerings": [
@@ -287,7 +267,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-JAYNET"}]},
+                    "mp_filter": {"policy-filter": ["AS-JAYNET"]},
                 },
                 {
                     "mp_peerings": [
@@ -297,7 +277,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-JAYNET"}]},
+                    "mp_filter": {"policy-filter": ["AS-JAYNET"]},
                 },
                 {
                     "mp_peerings": [
@@ -307,9 +287,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS16150:AS-CUSTOMERS"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS16150:AS-CUSTOMERS"]},
                 },
                 {
                     "mp_peerings": [
@@ -319,7 +297,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-NGDC"}]},
+                    "mp_filter": {"policy-filter": ["AS-NGDC"]},
                 },
                 {
                     "mp_peerings": [
@@ -329,9 +307,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-INFOCONNECT"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-INFOCONNECT"]},
                 },
                 {
                     "mp_peerings": [
@@ -341,9 +317,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-INFOCONNECT"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-INFOCONNECT"]},
                 },
                 {
                     "mp_peerings": [
@@ -353,7 +327,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-DMDATADK"}]},
+                    "mp_filter": {"policy-filter": ["AS-DMDATADK"]},
                 },
                 {
                     "mp_peerings": [
@@ -363,7 +337,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-DMDATADK"}]},
+                    "mp_filter": {"policy-filter": ["AS-DMDATADK"]},
                 },
                 {
                     "mp_peerings": [
@@ -373,9 +347,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-ZENSYSTEMS"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-ZENSYSTEMS"]},
                 },
                 {
                     "mp_peerings": [
@@ -385,7 +357,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS29100"}]},
+                    "mp_filter": {"policy-filter": ["AS29100"]},
                 },
                 {
                     "mp_peerings": [
@@ -395,9 +367,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-DANMARKSRADIO"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-DANMARKSRADIO"]},
                 },
                 {
                     "mp_peerings": [
@@ -407,7 +377,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-NIANET"}]},
+                    "mp_filter": {"policy-filter": ["AS-NIANET"]},
                 },
                 {
                     "mp_peerings": [
@@ -417,7 +387,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-COMX"}]},
+                    "mp_filter": {"policy-filter": ["AS-COMX"]},
                 },
                 {
                     "mp_peerings": [
@@ -427,7 +397,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS33916"}]},
+                    "mp_filter": {"policy-filter": ["AS33916"]},
                 },
                 {
                     "mp_peerings": [
@@ -437,9 +407,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-EUROTRANSIT"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-EUROTRANSIT"]},
                 },
                 {
                     "mp_peerings": [
@@ -449,7 +417,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS34823"}]},
+                    "mp_filter": {"policy-filter": ["AS34823"]},
                 },
                 {
                     "mp_peerings": [
@@ -459,9 +427,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {
-                        "policy-filter": [{"path-attribute": "AS-BUTLERNET"}]
-                    },
+                    "mp_filter": {"policy-filter": ["AS-BUTLERNET"]},
                 },
                 {
                     "mp_peerings": [
@@ -471,7 +437,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-GCNET"}]},
+                    "mp_filter": {"policy-filter": ["AS-GCNET"]},
                 },
                 {
                     "mp_peerings": [
@@ -481,7 +447,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-VGDC"}]},
+                    "mp_filter": {"policy-filter": ["AS-VGDC"]},
                 },
             ]
         }
@@ -496,7 +462,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "10"},
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
+                    "mp_filter": {"policy-filter": ["ANY"]},
                 }
             ]
         }
@@ -506,7 +472,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as-expression": ["AS8365"]}}],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "AS-MANDA"}]},
+                    "mp_filter": {"policy-filter": ["AS-MANDA"]},
                 }
             ]
         }
@@ -521,7 +487,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "10"},
                         }
                     ],
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
+                    "mp_filter": {"policy-filter": ["ANY"]},
                 }
             ]
         }
@@ -550,13 +516,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     ],
                     "mp_filter": {
                         "and": {
-                            "left": {"policy-filter": [{"path-attribute": "ANY"}]},
+                            "left": {"policy-filter": ["ANY"]},
                             "right": {
-                                "not": {
-                                    "policy-filter": [
-                                        {"path-attribute": "AS3344:fltr-filterlist"}
-                                    ]
-                                }
+                                "not": {"policy-filter": ["AS3344:fltr-filterlist"]}
                             },
                         }
                     },
@@ -568,7 +530,6 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "any": {
             "any": [
                 {
-                    "mp_filter": {"policy-filter": [{"path-attribute": "ANY"}]},
                     "mp_peerings": [
                         {
                             "mp_peering": {
@@ -578,6 +539,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
+                    "mp_filter": {"policy-filter": ["ANY"]},
                 }
             ]
         }

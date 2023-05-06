@@ -99,6 +99,40 @@ def clean_action(
     return cleaned
 
 
+def clean_mp_filter_base(lexed: dict):
+    """community -> {community: {[method]: str, args: list[str]}}
+    policy-filter -> list[str | list[str]]
+    mp_filter -> ..."""
+    if "community" in lexed:
+        return lexed
+    if policy_filter := lexed.get("policy-filter"):
+        return policy_filter
+    return clean_mp_filter(lexed)
+
+
+def clean_mp_filter(lexed: dict):
+    """-> {(and | or: {left, right}) | not}
+    | {community: {[method]: str, args: list[str]}}
+    | list[str | list[str]]"""
+    if inner := lexed.get("and"):
+        return {
+            "and": {
+                "left": clean_mp_filter(inner["left"]),
+                "right": clean_mp_filter(inner["right"]),
+            }
+        }
+    if inner := lexed.get("or"):
+        return {
+            "or": {
+                "left": clean_mp_filter(inner["left"]),
+                "right": clean_mp_filter(inner["right"]),
+            }
+        }
+    if inner := lexed.get("not"):
+        return {"not": clean_mp_filter(inner)}
+    return clean_mp_filter_base(lexed)
+
+
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     if protocol_1 := lexed.get("protocol-1"):
         print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
@@ -117,7 +151,7 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
         for import_factor_raw in import_factors_in_flat(afi_import_expression):
             import_factor: dict[str, list | dict] = {"mp_peerings": []}
             if filter := lex_with(mp_filter, import_factor_raw["mp-filter"]):
-                import_factor["mp_filter"] = filter
+                import_factor["mp_filter"] = clean_mp_filter(filter)
             else:
                 continue
             for peering_raw in import_factor_raw["mp-peerings"]:

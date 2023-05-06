@@ -35,20 +35,25 @@ def lines_continued(raw_lines: Iterable[str]) -> Generator[str, None, None]:
         yield last_line
 
 
+def cleanup_right_whitespace(string: str):
+    string = string.rstrip()
+    return re.sub(spaces, " ", string)
+
+
 def cleanup_whitespace(string: str):
     string = string.strip()
     return re.sub(spaces, " ", string)
 
 
 def rpsl_objects(lines: Iterable[str]) -> Generator[RPSLObject, None, None]:
-    """Combine continued lines from an iterator into RPSL objects."""
+    """Combine lines from an iterator into RPSL objects."""
     closs = ""
     """Class"""
     name = ""
     body = ""
     new = False
     for line in lines:
-        line = line.strip()
+        line = cleanup_right_whitespace(line)
         if line == "":
             # Empty line suggests the end of the last object.
             if new:

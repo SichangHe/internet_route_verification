@@ -1,3 +1,4 @@
+import json
 import sys
 from io import TextIOWrapper
 
@@ -10,6 +11,8 @@ aut_nums: list[AutNum] = []
 as_sets: list[AsSet] = []
 route_sets: list[RouteSet] = []
 
+n = 0
+
 
 def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
     if lexed := lex_with(mp_import, expr):
@@ -19,7 +22,7 @@ def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
 def parse_aut_num(obj: RPSLObject):
     imports: dict[str, dict[str, list[dict]]] = {}
     exports: dict[str, dict[str, list[dict]]] = {}
-    for key, expr in expressions(obj.body.splitlines()):
+    for key, expr in expressions(lines_continued(obj.body.splitlines())):
         if key == "import" or key == "mp-import":
             parse_mp_import(expr, imports)
         elif key == "export" or key == "mp-export":
@@ -29,13 +32,23 @@ def parse_aut_num(obj: RPSLObject):
 
 def gather_members(obj: RPSLObject) -> list[str]:
     members = []
-    for key, expr in expressions(obj.body.splitlines()):
+    for key, expr in expressions(lines_continued(obj.body.splitlines())):
         if key == "members" or key == "mp-members":
             members.append(expr)
     return members
 
 
+def print_count():
+    print(
+        f"Parsed {len(aut_nums)} aut_nums, {len(as_sets)} as_sets, {len(route_sets)} route_sets.",
+        file=sys.stderr,
+    )
+
+
 def parse_object(obj: RPSLObject):
+    global n
+    if n % 0x100 == 0:
+        print_count()
     if obj.closs == "aut-num":
         parse_aut_num(obj)
     if obj.closs == "as-set":
@@ -44,12 +57,17 @@ def parse_object(obj: RPSLObject):
     if obj.closs == "route-set":
         members = gather_members(obj)
         route_sets.append(RouteSet(obj.name, obj.body, members))
+    n += 1
 
 
 def read_db(db: TextIOWrapper):
     db_lines = io_wrapper_lines(db)
-    for obj in rpsl_objects(lines_continued(db_lines)):
+    for obj in rpsl_objects(db_lines):
         parse_object(obj)
+    json.dump(
+        {"aut_nums": aut_nums, "as_sets": as_sets, "route_sets": route_sets}, sys.stdout
+    )
+    print_count()
 
 
 def main():

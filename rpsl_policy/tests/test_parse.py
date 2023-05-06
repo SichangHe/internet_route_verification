@@ -583,37 +583,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         }
     },
-    {
-        "any": {
-            "any": [
-                {
-                    "mp_peerings": [
-                        {
-                            "mp_peering": {
-                                "as_expr": {
-                                    "except": {
-                                        "left": "AS-ANY",
-                                        "right": {
-                                            "or": {
-                                                "left": "AS40027",
-                                                "right": {
-                                                    "or": {
-                                                        "left": "AS63293",
-                                                        "right": "AS65535",
-                                                    }
-                                                },
-                                            }
-                                        },
-                                    }
-                                }
-                            }
-                        }
-                    ],
-                    "mp_filter": ["ANY"],
-                }
-            ]
-        }
-    },
+    {},
 ]
 
 

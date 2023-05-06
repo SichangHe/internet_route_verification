@@ -186,6 +186,7 @@ def parse_mp_peering(mp_peering_raw: list[str]):
 
 
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
+    """Parse lexed <mp-import> or <mp-export>."""
     if protocol_1 := lexed.get("protocol-1"):
         print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
     if protocol_2 := lexed.get("protocol-2"):
@@ -200,6 +201,7 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
         if "import-term" in afi_import_expression:
             # TODO: Handle EXCEPT and REFINE logic.
             print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
+            return result
         for import_factor_raw in import_factors_in_flat(afi_import_expression):
             import_factor: dict[str, list | dict] = {"mp_peerings": []}
             if filter := lex_with(mp_filter, import_factor_raw["mp-filter"]):

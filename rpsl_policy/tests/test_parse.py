@@ -6,7 +6,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
-                    "mp_peerings": [{"mp_peering": {"as-expression": ["AS9002"]}}],
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS9002"}}],
                     "mp_filter": ["ANY"],
                 }
             ]
@@ -17,8 +17,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [
-                        {"mp_peering": {"as-expression": ["AS9002"]}},
-                        {"mp_peering": {"as-expression": ["AS2356"]}},
+                        {"mp_peering": {"as_expr": "AS9002"}},
+                        {"mp_peering": {"as_expr": "AS2356"}},
                     ],
                     "mp_filter": ["ANY"],
                 }
@@ -31,7 +31,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                 {
                     "mp_peerings": [
                         {
-                            "mp_peering": {"as-expression": ["AS6939"]},
+                            "mp_peering": {"as_expr": "AS6939"},
                             "actions": {"pref": "100"},
                         }
                     ],
@@ -46,7 +46,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                 {
                     "mp_peerings": [
                         {
-                            "mp_peering": {"as-expression": ["AS21127"]},
+                            "mp_peering": {"as_expr": "AS21127"},
                             "actions": {"pref": "100"},
                         }
                     ],
@@ -61,7 +61,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                 {
                     "mp_peerings": [
                         {
-                            "mp_peering": {"as-expression": ["AS21127"]},
+                            "mp_peering": {"as_expr": "AS21127"},
                             "actions": {"pref": "100", "med": "0"},
                         }
                     ],
@@ -74,7 +74,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "any": [
                 {
-                    "mp_peerings": [{"mp_peering": {"as-expression": ["AS1213"]}}],
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS1213"}}],
                     "mp_filter": [["::/0"]],
                 }
             ]
@@ -86,15 +86,12 @@ PARSED_MP_IMPORT_EXAMPLES = [
                 {
                     "mp_peerings": [
                         {
-                            "mp_peering": {"as-expression": ["AS1299"]},
+                            "mp_peering": {"as_expr": "AS1299"},
                             "actions": {"pref": "200"},
                         }
                     ],
                     "mp_filter": {
-                        "and": {
-                            "left": ["ANY"],
-                            "right": {"not": [["0.0.0.0/0"]]},
-                        }
+                        "and": {"left": ["ANY"], "right": {"not": [["0.0.0.0/0"]]}}
                     },
                 }
             ]
@@ -106,7 +103,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                 {
                     "mp_peerings": [
                         {
-                            "mp_peering": {"as-expression": ["AS6682at109.68.121.1"]},
+                            "mp_peering": {
+                                "as_expr": "AS6682",
+                                "router_expr2": "109.68.121.1",
+                            },
                             "actions": {
                                 "pref": "65435",
                                 "med": "0",
@@ -130,7 +130,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS174192.38.7.14at192.38.7.75"]
+                                "as_expr": "AS174",
+                                "router_expr1": "192.38.7.14",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -140,7 +142,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS1835192.38.7.1at192.38.7.75"]
+                                "as_expr": "AS1835",
+                                "router_expr1": "192.38.7.1",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -150,7 +154,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS2603192.38.7.50at192.38.7.75"]
+                                "as_expr": "AS2603",
+                                "router_expr1": "192.38.7.50",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -160,7 +166,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS2686192.38.7.8at192.38.7.75"]
+                                "as_expr": "AS2686",
+                                "router_expr1": "192.38.7.8",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -170,7 +178,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS2874192.38.7.10at192.38.7.75"]
+                                "as_expr": "AS2874",
+                                "router_expr1": "192.38.7.10",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -180,7 +190,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS6834192.38.7.4at192.38.7.75"]
+                                "as_expr": "AS6834",
+                                "router_expr1": "192.38.7.4",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -190,7 +202,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS8434192.38.7.92at192.38.7.75"]
+                                "as_expr": "AS8434",
+                                "router_expr1": "192.38.7.92",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -200,7 +214,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS9120192.38.7.46at192.38.7.75"]
+                                "as_expr": "AS9120",
+                                "router_expr1": "192.38.7.46",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -210,7 +226,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS9167192.38.7.49at192.38.7.75"]
+                                "as_expr": "AS9167",
+                                "router_expr1": "192.38.7.49",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -220,7 +238,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS12552192.38.7.68at192.38.7.75"]
+                                "as_expr": "AS12552",
+                                "router_expr1": "192.38.7.68",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -230,7 +250,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS13030192.38.7.52at192.38.7.75"]
+                                "as_expr": "AS13030",
+                                "router_expr1": "192.38.7.52",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -240,7 +262,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS15516192.38.7.64at192.38.7.75"]
+                                "as_expr": "AS15516",
+                                "router_expr1": "192.38.7.64",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -250,7 +274,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS15598192.38.7.84at192.38.7.75"]
+                                "as_expr": "AS15598",
+                                "router_expr1": "192.38.7.84",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -260,7 +286,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS16095192.38.7.66at192.38.7.75"]
+                                "as_expr": "AS16095",
+                                "router_expr1": "192.38.7.66",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -270,7 +298,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS16095192.38.7.67at192.38.7.75"]
+                                "as_expr": "AS16095",
+                                "router_expr1": "192.38.7.67",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -280,7 +310,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS16150192.38.7.43at192.38.7.75"]
+                                "as_expr": "AS16150",
+                                "router_expr1": "192.38.7.43",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -290,7 +322,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS16245192.38.7.93at192.38.7.75"]
+                                "as_expr": "AS16245",
+                                "router_expr1": "192.38.7.93",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -300,7 +334,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS20618192.38.7.99at192.38.7.75"]
+                                "as_expr": "AS20618",
+                                "router_expr1": "192.38.7.99",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -310,7 +346,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS20618192.38.7.100at192.38.7.75"]
+                                "as_expr": "AS20618",
+                                "router_expr1": "192.38.7.100",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -320,7 +358,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS25384192.38.7.97at192.38.7.75"]
+                                "as_expr": "AS25384",
+                                "router_expr1": "192.38.7.97",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -330,7 +370,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS25384192.38.7.98at192.38.7.75"]
+                                "as_expr": "AS25384",
+                                "router_expr1": "192.38.7.98",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -340,7 +382,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS28717192.38.7.82at192.38.7.75"]
+                                "as_expr": "AS28717",
+                                "router_expr1": "192.38.7.82",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -350,7 +394,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS29100192.38.7.77at192.38.7.75"]
+                                "as_expr": "AS29100",
+                                "router_expr1": "192.38.7.77",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -360,7 +406,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS29266192.38.7.41at192.38.7.75"]
+                                "as_expr": "AS29266",
+                                "router_expr1": "192.38.7.41",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -370,7 +418,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS31027192.38.7.58at192.38.7.75"]
+                                "as_expr": "AS31027",
+                                "router_expr1": "192.38.7.58",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -380,7 +430,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS31661192.38.7.12at192.38.7.75"]
+                                "as_expr": "AS31661",
+                                "router_expr1": "192.38.7.12",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -390,7 +442,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS33916192.38.7.87at192.38.7.75"]
+                                "as_expr": "AS33916",
+                                "router_expr1": "192.38.7.87",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -400,7 +454,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS33926192.38.7.72at192.38.7.75"]
+                                "as_expr": "AS33926",
+                                "router_expr1": "192.38.7.72",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -410,7 +466,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS34823192.38.7.95at192.38.7.75"]
+                                "as_expr": "AS34823",
+                                "router_expr1": "192.38.7.95",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -420,7 +478,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS41025192.38.7.28at192.38.7.75"]
+                                "as_expr": "AS41025",
+                                "router_expr1": "192.38.7.28",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -430,7 +490,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS42525192.38.7.26at192.38.7.75"]
+                                "as_expr": "AS42525",
+                                "router_expr1": "192.38.7.26",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -440,7 +502,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": ["AS43457192.38.7.73at192.38.7.75"]
+                                "as_expr": "AS43457",
+                                "router_expr1": "192.38.7.73",
+                                "router_expr2": "192.38.7.75",
                             }
                         }
                     ],
@@ -454,10 +518,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [
-                        {
-                            "mp_peering": {"as-expression": ["AS2895"]},
-                            "actions": {"pref": "10"},
-                        }
+                        {"mp_peering": {"as_expr": "AS2895"}, "actions": {"pref": "10"}}
                     ],
                     "mp_filter": ["ANY"],
                 }
@@ -468,7 +529,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
         "ipv6": {
             "unicast": [
                 {
-                    "mp_peerings": [{"mp_peering": {"as-expression": ["AS8365"]}}],
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS8365"}}],
                     "mp_filter": ["AS-MANDA"],
                 }
             ]
@@ -479,10 +540,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [
-                        {
-                            "mp_peering": {"as-expression": ["AS8928"]},
-                            "actions": {"pref": "10"},
-                        }
+                        {"mp_peering": {"as_expr": "AS8928"}, "actions": {"pref": "10"}}
                     ],
                     "mp_filter": ["ANY"],
                 }
@@ -495,7 +553,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                 {
                     "mp_peerings": [
                         {
-                            "mp_peering": {"as-expression": ["AS3344:PRNG-LONAP"]},
+                            "mp_peering": {"as_expr": "AS3344:PRNG-LONAP"},
                             "actions": {
                                 "pref": "64535",
                                 "community": [
@@ -528,9 +586,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as-expression": [
-                                    "AS-ANYEXCEPT(AS40027ORAS63293ORAS65535)"
-                                ]
+                                "as_expr": "AS-ANY except (AS40027 or AS63293 or AS65535)"
                             }
                         }
                     ],

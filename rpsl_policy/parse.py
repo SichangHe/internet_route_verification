@@ -133,6 +133,19 @@ def clean_mp_filter(lexed: dict):
     return clean_mp_filter_base(lexed)
 
 
+def clean_mp_peering(lexed: dict):
+    """-> str | {as_expr: str, [router_expr1]: str, [router_expr2]: str}"""
+    if peering_set := lexed.get("peering-set-name"):
+        return peering_set
+    # TODO: Parse logic inside AS expressions.
+    result = {"as_expr": " ".join(lexed["as-expression"])}
+    if expr1 := lexed.get("mp-router-expression-1"):
+        result["router_expr1"] = " ".join(expr1)
+    if expr2 := lexed.get("mp-router-expression-2"):
+        result["router_expr2"] = " ".join(expr2)
+    return result
+
+
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     if protocol_1 := lexed.get("protocol-1"):
         print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
@@ -156,8 +169,8 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
                 continue
             for peering_raw in import_factor_raw["mp-peerings"]:
                 peering = {}
-                if peer := lex_with(mp_peering, "".join(peering_raw["mp-peering"])):
-                    peering["mp_peering"] = peer
+                if peer := lex_with(mp_peering, " ".join(peering_raw["mp-peering"])):
+                    peering["mp_peering"] = clean_mp_peering(peer)
                 else:
                     continue
                 if action_raws := peering_raw.get("actions"):

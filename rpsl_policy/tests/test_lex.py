@@ -634,6 +634,8 @@ MP_PEERING_EXAMPLES = [
     "AS10310 at AS3326---DEE---mx01-fra1",
     "AS9186:AS-CUSTOMERS AND AS204094",
     "AS-ANY EXCEPT AS5398:AS-AMS-IX-FILTER",
+    "(AS42 or AS3856)",
+    "AS28788 80.249.208.237",
 ]
 
 LEXED_MP_PEERING_EXAMPLES = [
@@ -657,6 +659,8 @@ LEXED_MP_PEERING_EXAMPLES = [
         "as-expression": ["AS9186:AS-CUSTOMERS", "and", "AS204094"],
     },
     {"as-expression": ["AS-ANY", "except", "AS5398:AS-AMS-IX-FILTER"]},
+    {"as-expression": ["(AS42", "or", "AS3856)"]},
+    {"as-expression": ["AS28788"], "mp-router-expression-1": ["80.249.208.237"]},
 ]
 
 

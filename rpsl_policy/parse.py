@@ -3,7 +3,7 @@ from typing import Generator, Iterable
 
 from pyparsing import ParseException, ParserElement
 
-from .lex import action, afi, mp_filter, mp_peering
+from .lex import action, afi, as_expr, mp_filter, mp_peering
 
 
 def lex_with(lexer: ParserElement, string: str) -> dict | None:
@@ -133,17 +133,56 @@ def clean_mp_filter(lexed: dict):
     return clean_mp_filter_base(lexed)
 
 
+def clean_as_expr(lexed: dict):
+    """ "-> str | {and | or | except: {left, right}}"""
+    if inner := lexed.get("field"):
+        return inner
+    if inner := lexed.get("and"):
+        return {
+            "and": {
+                "left": clean_as_expr(inner["left"]),
+                "right": clean_as_expr(inner["right"]),
+            }
+        }
+    if inner := lexed.get("or"):
+        return {
+            "or": {
+                "left": clean_as_expr(inner["left"]),
+                "right": clean_as_expr(inner["right"]),
+            }
+        }
+    if inner := lexed.get("except"):
+        return {
+            "except": {
+                "left": clean_as_expr(inner["left"]),
+                "right": clean_as_expr(inner["right"]),
+            }
+        }
+
+
 def clean_mp_peering(lexed: dict):
     """-> str | {as_expr: str, [router_expr1]: str, [router_expr2]: str}"""
     if peering_set := lexed.get("peering-set-name"):
         return peering_set
-    # TODO: Parse logic inside AS expressions.
-    result = {"as_expr": " ".join(lexed["as-expression"])}
-    if expr1 := lexed.get("mp-router-expression-1"):
-        result["router_expr1"] = " ".join(expr1)
-    if expr2 := lexed.get("mp-router-expression-2"):
-        result["router_expr2"] = " ".join(expr2)
+    as_expr_raw = " ".join(lexed["as-expression"])
+    if expr := lex_with(as_expr, as_expr_raw):
+        result = {"as_expr": clean_as_expr(expr)}
+    else:
+        return None
+    if (expr1 := lexed.get("mp-router-expression-1")) and (
+        expr := lex_with(as_expr, " ".join(expr1))
+    ):
+        result["router_expr1"] = clean_as_expr(expr)
+    if (expr2 := lexed.get("mp-router-expression-2")) and (
+        expr := lex_with(as_expr, " ".join(expr2))
+    ):
+        result["router_expr2"] = clean_as_expr(expr)
     return result
+
+
+def parse_mp_peering(mp_peering_raw: list[str]):
+    if lexed := lex_with(mp_peering, " ".join(mp_peering_raw)):
+        return clean_mp_peering(lexed)
 
 
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
@@ -169,8 +208,8 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
                 continue
             for peering_raw in import_factor_raw["mp-peerings"]:
                 peering = {}
-                if peer := lex_with(mp_peering, " ".join(peering_raw["mp-peering"])):
-                    peering["mp_peering"] = clean_mp_peering(peer)
+                if peer := parse_mp_peering(peering_raw["mp-peering"]):
+                    peering["mp_peering"] = peer
                 else:
                     continue
                 if action_raws := peering_raw.get("actions"):

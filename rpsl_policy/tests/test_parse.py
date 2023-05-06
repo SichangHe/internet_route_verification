@@ -1,5 +1,5 @@
-from ..parse import import_export
-from .test_lex import LEXED_MP_IMPORT_EXAMPLES
+from ..parse import import_export, parse_mp_peering
+from .test_lex import LEXED_MP_IMPORT_EXAMPLES, MP_PEERING_EXAMPLES
 
 PARSED_MP_IMPORT_EXAMPLES = [
     {
@@ -586,7 +586,22 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {
                             "mp_peering": {
-                                "as_expr": "AS-ANY except (AS40027 or AS63293 or AS65535)"
+                                "as_expr": {
+                                    "except": {
+                                        "left": "AS-ANY",
+                                        "right": {
+                                            "or": {
+                                                "left": "AS40027",
+                                                "right": {
+                                                    "or": {
+                                                        "left": "AS63293",
+                                                        "right": "AS65535",
+                                                    }
+                                                },
+                                            }
+                                        },
+                                    }
+                                }
                             }
                         }
                     ],
@@ -601,4 +616,44 @@ PARSED_MP_IMPORT_EXAMPLES = [
 def test_parse_mp_import():
     for lexed, expected in zip(LEXED_MP_IMPORT_EXAMPLES, PARSED_MP_IMPORT_EXAMPLES):
         result = import_export(lexed, {})
+        assert result == expected
+
+
+PARSED_MP_PEERING_EXAMPLES = [
+    {"as_expr": "AS51468"},
+    {"as_expr": "AS9150:AS-PEERS-AMSIX"},
+    {
+        "as_expr": "AS8717",
+        "router_expr1": "2001:67c:20d0:fffe:ffff:ffff:ffff:fffe",
+        "router_expr2": "2001:67c:20d0:fffe:ffff:ffff:ffff:fffd",
+    },
+    {
+        "as_expr": "AS35053",
+        "router_expr1": "2001:7f8:8:20:0:88ed:0:1",
+        "router_expr2": "2001:7f8:8:20:0:2349:0:fe",
+    },
+    {"as_expr": "AS10310", "router_expr2": "AS3326---DEE---mx01-fra1"},
+    {"as_expr": {"and": {"left": "AS9186:AS-CUSTOMERS", "right": "AS204094"}}},
+    {"as_expr": {"except": {"left": "AS-ANY", "right": "AS5398:AS-AMS-IX-FILTER"}}},
+    {"as_expr": {"or": {"left": "AS42", "right": "AS3856"}}},
+    {"as_expr": "AS28788", "router_expr1": "80.249.208.237"},
+    {
+        "as_expr": {
+            "except": {
+                "left": "AS-ANY",
+                "right": {
+                    "or": {
+                        "left": "AS40027",
+                        "right": {"or": {"left": "AS63293", "right": "AS65535"}},
+                    }
+                },
+            }
+        }
+    },
+]
+
+
+def test_parse_as_expr():
+    for raw, expected in zip(MP_PEERING_EXAMPLES, PARSED_MP_PEERING_EXAMPLES):
+        result = parse_mp_peering(raw.split(" "))
         assert result == expected

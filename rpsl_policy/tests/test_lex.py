@@ -1,6 +1,6 @@
 from pyparsing import ParseResults
 
-from ..lex import action, mp_filter, mp_import, mp_peering
+from ..lex import action, as_expr, mp_filter, mp_import, mp_peering
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -636,6 +636,7 @@ MP_PEERING_EXAMPLES = [
     "AS-ANY EXCEPT AS5398:AS-AMS-IX-FILTER",
     "(AS42 or AS3856)",
     "AS28788 80.249.208.237",
+    "AS-ANY except (AS40027 or AS63293 or AS65535)",
 ]
 
 LEXED_MP_PEERING_EXAMPLES = [
@@ -661,6 +662,17 @@ LEXED_MP_PEERING_EXAMPLES = [
     {"as-expression": ["AS-ANY", "except", "AS5398:AS-AMS-IX-FILTER"]},
     {"as-expression": ["(AS42", "or", "AS3856)"]},
     {"as-expression": ["AS28788"], "mp-router-expression-1": ["80.249.208.237"]},
+    {
+        "as-expression": [
+            "AS-ANY",
+            "except",
+            "(AS40027",
+            "or",
+            "AS63293",
+            "or",
+            "AS65535)",
+        ]
+    },
 ]
 
 
@@ -811,6 +823,52 @@ LEXED_ACTION_EXAMPLES = [
 def test_action():
     for example, expected in zip(ACTION_EXAMPLES, LEXED_ACTION_EXAMPLES):
         success, results = action.run_tests(example, full_dump=False)
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected
+
+
+AS_EXPR_EXAMPLES = [
+    "AS51468",
+    "AS9186:AS-CUSTOMERS AND AS204094",
+    "AS-ANY EXCEPT AS5398:AS-AMS-IX-FILTER",
+    "(AS42 or AS3856)",
+    "AS-ANY except (AS40027 or AS63293 or AS65535)",
+]
+
+LEXED_AS_EXPR_EXAMPLES = [
+    {"field": "AS51468"},
+    {"and": {"left": {"field": "AS9186:AS-CUSTOMERS"}, "right": {"field": "AS204094"}}},
+    {
+        "except": {
+            "left": {"field": "AS-ANY"},
+            "right": {"field": "AS5398:AS-AMS-IX-FILTER"},
+        }
+    },
+    {"or": {"left": {"field": "AS42"}, "right": {"field": "AS3856"}}},
+    {
+        "except": {
+            "left": {"field": "AS-ANY"},
+            "right": {
+                "or": {
+                    "left": {"field": "AS40027"},
+                    "right": {
+                        "or": {
+                            "left": {"field": "AS63293"},
+                            "right": {"field": "AS65535"},
+                        }
+                    },
+                }
+            },
+        }
+    },
+]
+
+
+def test_as_expr():
+    for example, expected in zip(AS_EXPR_EXAMPLES, LEXED_AS_EXPR_EXAMPLES):
+        success, results = as_expr.run_tests(example, full_dump=False)
         assert success
         result = results[0][1]
         assert isinstance(result, ParseResults)

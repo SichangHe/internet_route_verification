@@ -171,20 +171,20 @@ fields_not_at_by_and_or_except = Group(
 )
 """List of fields that are not `at`, chained by `and`, `or`, or `except`
 -> list["and" | "or" | "except" | str]"""
-as_expression = fields_not_at_by_and_or_except
+as_expression_raw = fields_not_at_by_and_or_except
 """<as-expression> is an expression over AS numbers and AS sets
 using operators AND, OR, and EXCEPT
 -> list["and" | "or" | "except" | str]"""
 # TODO: Varify that inet-rtr names and rtr-set names match `field`.
-mp_router_expression = fields_not_at_by_and_or_except
+mp_router_expression_raw = fields_not_at_by_and_or_except
 """<mp-router-expression> is an expression over router ipv4-addresses or
 ipv6-addresses, inet-rtr names, and rtr-set names using operators AND, OR, and
 EXCEPT
 -> list["and" | "or" | "except" | str]"""
 mp_peering = (
-    as_expression("as-expression")
-    + Opt(mp_router_expression("mp-router-expression-1"))
-    + Opt(at_kw + mp_router_expression("mp-router-expression-2"))
+    as_expression_raw("as-expression")
+    + Opt(mp_router_expression_raw("mp-router-expression-1"))
+    + Opt(at_kw + mp_router_expression_raw("mp-router-expression-2"))
 ) | field("peering-set-name")
 """<mp-peering> ::= <as-expression> [<mp-router-expression-1>]
 [at <mp-router-expression-2>] | <peering-set-name>
@@ -194,6 +194,21 @@ mp_peering = (
     [mp-router-expression-1]: list["and" | "or" | "except" | str],
     [mp-router-expression-2]: list["and" | "or" | "except" | str]
 ) | peering-set-name: str"""
+
+# -----------------------------------------------------------------------------
+# Further parse <as-expression> and <mp-router-expression>.
+# -----------------------------------------------------------------------------
+as_expr = Forward()
+"""-> and | or | except: {left, right} | field: str"""
+as_expr_base = (Suppress("(") + as_expr + Suppress(")")) | field_wo_brace("field")
+as_expr_and = Group(Group(as_expr_base)("left") + and_kw + Group(as_expr)("right"))(
+    "and"
+)
+as_expr_or = Group(Group(as_expr_base)("left") + or_kw + Group(as_expr)("right"))("or")
+as_expr_except = Group(
+    Group(as_expr_base)("left") + except_kw + Group(as_expr)("right")
+)("except")
+as_expr <<= as_expr_and | as_expr_or | as_expr_except | as_expr_base
 
 # -----------------------------------------------------------------------------
 # Further parse community(), community.append(), etc.

@@ -1,5 +1,9 @@
 from ..parse import import_export, parse_mp_peering
-from .test_lex import LEXED_MP_IMPORT_EXAMPLES, MP_PEERING_EXAMPLES
+from .test_lex import (
+    LEXED_MP_EXPORT_EXAMPLES,
+    LEXED_MP_IMPORT_EXAMPLES,
+    MP_PEERING_EXAMPLES,
+)
 
 PARSED_MP_IMPORT_EXAMPLES = [
     {
@@ -656,4 +660,87 @@ PARSED_MP_PEERING_EXAMPLES = [
 def test_parse_as_expr():
     for raw, expected in zip(MP_PEERING_EXAMPLES, PARSED_MP_PEERING_EXAMPLES):
         result = parse_mp_peering(raw.split(" "))
+        assert result == expected
+
+
+PARSED_MP_EXPORT_EXAMPLES = [
+    {
+        "ipv6": {
+            "unicast": [
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS1880"}}],
+                    "mp_filter": ["AS1881"],
+                }
+            ]
+        }
+    },
+    {
+        "ipv6": {
+            "unicast": [
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS3356"}}],
+                    "mp_filter": ["AS2597:AS-CUSTOMERS-v6"],
+                }
+            ]
+        }
+    },
+    {
+        "ipv4": {
+            "unicast": [
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": "AS6802",
+                                "router_expr1": "194.141.252.21",
+                                "router_expr2": "194.141.252.22",
+                            }
+                        }
+                    ],
+                    "mp_filter": ["AS5421", "AS112"],
+                }
+            ]
+        }
+    },
+    {
+        "ipv4": {
+            "unicast": [
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {"as_expr": "AS6777"},
+                            "actions": {
+                                "community": [{"method": "=", "args": ["6777:6777"]}]
+                            },
+                        }
+                    ],
+                    "mp_filter": ["AS9150:AS-INTERCONNECT"],
+                }
+            ]
+        }
+    },
+    {
+        "ipv6": {
+            "unicast": [
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": "AS41965",
+                                "router_expr2": "2001:4D00:0:1:62:89:0:1",
+                            },
+                            "actions": {"med": "0"},
+                        }
+                    ],
+                    "mp_filter": ["AS8226", "AS8226:AS-CUST"],
+                }
+            ]
+        }
+    },
+]
+
+
+def test_parse_mp_export():
+    for lexed, expected in zip(LEXED_MP_EXPORT_EXAMPLES, PARSED_MP_EXPORT_EXAMPLES):
+        result = import_export(lexed, {})
         assert result == expected

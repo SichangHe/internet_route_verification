@@ -77,7 +77,7 @@ def clean_action(
             assert isinstance(assignment, dict)
             cleaned[assignment["assignee"]] = (
                 assigned
-                if (assigned := assignment["assigned"])
+                if (assigned := assignment.get("assigned"))
                 else assignment["assigned-set"]
             )
         elif community := action_lexed.get("community"):

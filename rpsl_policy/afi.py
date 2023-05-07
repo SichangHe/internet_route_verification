@@ -31,7 +31,7 @@ def unwrap_afi_set_version(afis: set[tuple[str, str]]):
         if version == "any":
             for version in ("ipv4", "ipv6"):
                 new.add((version, cast))
-        new.remove(("any", cast))
+            new.remove(("any", cast))
     return new
 
 
@@ -41,7 +41,7 @@ def unwrap_afi_set_cast(afis: set[tuple[str, str]]):
         if cast == "any":
             for cast in ("unicast", "multicast"):
                 new.add((version, cast))
-        new.remove((version, "any"))
+            new.remove((version, "any"))
     return new
 
 

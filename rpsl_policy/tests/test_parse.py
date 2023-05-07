@@ -609,6 +609,95 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         }
     },
+    # TODO: Fix this nested example.
+    {
+        "ipv6": {
+            "unicast": [
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
+                    "mp_filter": ["as-foo"],
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65003"}}],
+                    "mp_filter": {
+                        "and": {
+                            "left": ["as-foo"],
+                            "right": {
+                                "and": {
+                                    "left": ["AS65226"],
+                                    "right": [["2001:0DB8::/32"]],
+                                }
+                            },
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
+                    "mp_filter": {
+                        "and": {
+                            "left": ["as-foo"],
+                            "right": {
+                                "not": {
+                                    "and": {
+                                        "left": ["AS65226"],
+                                        "right": [["2001:0DB8::/32"]],
+                                    }
+                                }
+                            },
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65002"}}],
+                    "mp_filter": {
+                        "and": {
+                            "left": ["as-foo"],
+                            "right": {
+                                "and": {
+                                    "left": ["AS65226"],
+                                    "right": {"not": [["2001:0DB8::/32"]]},
+                                }
+                            },
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
+                    "mp_filter": {
+                        "and": {
+                            "left": ["as-foo"],
+                            "right": {
+                                "not": {
+                                    "and": {
+                                        "left": ["AS65226"],
+                                        "right": {"not": [["2001:0DB8::/32"]]},
+                                    }
+                                }
+                            },
+                        }
+                    },
+                },
+            ]
+        },
+        "ipv4": {
+            "unicast": [
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65002"}}],
+                    "mp_filter": {"and": {"left": ["as-foo"], "right": ["AS65226"]}},
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
+                    "mp_filter": {
+                        "and": {"left": ["as-foo"], "right": {"not": ["AS65226"]}}
+                    },
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
+                    "mp_filter": ["as-foo"],
+                },
+            ]
+        },
+    },
 ]
 
 

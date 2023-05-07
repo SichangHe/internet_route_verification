@@ -200,13 +200,31 @@ def apply_except(left: dict[str, list | dict], right: dict):
     return [first, second]
 
 
+def parse_import_term(
+    lexed: dict,
+) -> list[dict[str, list | dict]] | None:
+    if import_factors := lexed.get("import-factors"):
+        parsed = []
+        for import_factor_raw in import_factors:
+            if import_factor := parse_import_factor(import_factor_raw):
+                parsed.append(import_factor)
+        return parsed
+
+    if "mp-peerings" in lexed and "mp-filter" in lexed:
+        if import_factor := parse_import_factor(lexed):
+            return [import_factor]
+
+
 def parse_import_expression_except(
     lexed: dict, afi_entries: set[tuple[str, str]]
 ) -> list[tuple[set[tuple[str, str]], list[dict]]]:
     result = []
     right = parse_afi_import_expression(lexed["right"], afi_entries)
-    left = parse_import_factor(lexed["left"])
-    if left is None:
+    if lefts := parse_import_term(lexed["left"]):
+        assert len(lefts) == 1
+        left = lefts[0]
+    else:
+        print(f"Skipping because import-term not parsed: {lexed}", file=stderr)
         return []
     for right_afis, parsed_list in right:
         intersection, difference = afi_set_intersection_difference(
@@ -239,18 +257,8 @@ def parse_afi_import_expression(
             afi_item for item in afi_list if (afi_item := lex_with(afi, item))
         )
 
-    if import_factors := afi_import_expression.get("import-factors"):
-        parsed = []
-        for import_factor_raw in import_factors:
-            if import_factor := parse_import_factor(import_factor_raw):
-                parsed.append(import_factor)
-        return [(afi_entries, parsed)]
-
-    if "mp-peerings" in afi_import_expression and "mp-filter" in afi_import_expression:
-        if import_factor := parse_import_factor(afi_import_expression):
-            return [(afi_entries, [import_factor])]
-        else:
-            return []
+    if import_term := parse_import_term(afi_import_expression):
+        return [(afi_entries, import_term)]
 
     if except_expr := afi_import_expression.get("except"):
         return parse_import_expression_except(except_expr, afi_entries)
@@ -258,9 +266,8 @@ def parse_afi_import_expression(
     if "refine" in afi_import_expression:
         # TODO: Handle REFINE logic.
         print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
-        return []
 
-    raise ValueError(f"Illegal keys: {afi_import_expression}.")
+    return []
 
 
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):

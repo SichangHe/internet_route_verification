@@ -119,29 +119,57 @@ import_expression = Forward()
 <import-term> EXCEPT <afi-import-expression> |
 <import-term> REFINE <afi-import-expression> |
 <import-term>
--> import-expression: {import-term, logic, [afi-list], (
-    import-expression | import-factors | (mp-peerings, mp-filter)
-)} | import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
+-> except | refine: {
+    left: {import-factors | (mp-peerings, mp-filter)},
+    right: {[afi-list], (
+        except: {...} | refine: {...} | import-factors: list[...]
+        | (mp-peerings, mp-filter)
+    )}
+} | import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
 <https://www.rfc-editor.org/rfc/rfc4012#page-6>
 <https://www.rfc-editor.org/rfc/rfc2622#page-34>
 """
 afi_import_expression = Opt(afi_raw) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>
 [afi-list]: list[str], (
-    import-expression: {import-term, logic, [afi-list], (
-        import-expression | import-factors | (mp-peerings, mp-filter)
-    )} | import-factors: list[{mp-peerings, mp-filter}]
+    except | refine: {
+        left: {import-factors | (mp-peerings, mp-filter)},
+        right: {[afi-list], (
+            except: {...} | refine: {...} | import-factors: list[...]
+            | (mp-peerings, mp-filter)
+        )}
+    } | import-factors: list[{mp-peerings, mp-filter}]
     | (mp-peerings, mp-filter)
 )"""
-import_expression <<= (
-    Group(
-        Group(import_term)("import-term") + except_kw("logic") + afi_import_expression
-    )("import-expression")
-    | Group(
-        Group(import_term)("import-term") + refine_kw("logic") + afi_import_expression
-    )("import-expression")
-    | import_term
-)
+import_expression_except = Group(
+    Group(import_term)("left")
+    + Suppress(except_kw)
+    + Group(afi_import_expression)("right")
+)("except")
+"""<import-term> EXCEPT <afi-import-expression>
+-> except: {
+    left: {import-factors: list[{mp-peerings, mp-filter}]
+        | (mp-peerings, mp-filter)},
+    right: {[afi-list], (
+        except: {...} | refine: {...} | import-factors: list[...]
+        | (mp-peerings, mp-filter)
+    )}
+}"""
+import_expression_refine = Group(
+    Group(import_term)("left")
+    + Suppress(refine_kw)
+    + Group(afi_import_expression)("right")
+)("refine")
+"""<import-term> REFINE <afi-import-expression>
+-> refine: {
+    left: {import-factors: list[{mp-peerings, mp-filter}]
+        | (mp-peerings, mp-filter)},
+    right: {[afi-list], (
+        except: {...} | refine: {...} | import-factors: list[...]
+        | (mp-peerings, mp-filter)
+    )}
+}"""
+import_expression <<= import_expression_except | import_expression_refine | import_term
 
 mp_import = Opt(protocol) + Opt(into_protocol) + afi_import_expression
 """mp-import: [protocol <protocol-1>] [into <protocol-2>]
@@ -150,14 +178,14 @@ mp_import = Opt(protocol) + Opt(into_protocol) + afi_import_expression
 Input should be in one line, without comments. Can also parse `mp-export`.
 <action>, <mp-filter>, <mp-peering> in parse results not further parsed.
 -> [protocol-1]: str, [protocol-2]: str, [afi-list]: list[str], (
-    import-expression: {import-term, logic, [afi-list], (
-        import-expression | import-factors | (mp-peerings, mp-filter)
-    )}
-    | import-factors: list[{mp-peerings, mp-filter}]
-    | (
-        mp-peerings: list[{mp-peering: list[str], [actions]: list[str]}],
-        mp-filter: str
-    )
+    except | refine: {
+        left: {import-factors | (mp-peerings, mp-filter)},
+        right: {[afi-list], (
+            except: {...} | refine: {...} | import-factors: list[...]
+            | (mp-peerings, mp-filter)
+        )}
+    } | import-factors: list[{mp-peerings, mp-filter}]
+    | (mp-peerings, mp-filter)
 )
 """
 

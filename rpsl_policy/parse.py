@@ -198,7 +198,7 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
             afi_entries = merge_afi(
                 afi_item for item in afi_list if (afi_item := lex_with(afi, item))
             )
-        if "import-term" in afi_import_expression:
+        if "except" in afi_import_expression or "refine" in afi_import_expression:
             # TODO: Handle EXCEPT and REFINE logic.
             print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
             return result

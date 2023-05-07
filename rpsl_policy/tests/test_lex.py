@@ -292,8 +292,8 @@ LEXED_MP_IMPORT_EXAMPLES = [
     },
     {
         "afi-list": ["any"],
-        "import-expression": {
-            "import-term": {
+        "refine": {
+            "left": {
                 "import-factors": [
                     {
                         "mp-peerings": [
@@ -308,249 +308,304 @@ LEXED_MP_IMPORT_EXAMPLES = [
                     }
                 ]
             },
-            "logic": "refine",
-            "afi-list": ["any"],
-            "import-expression": {
-                "import-term": {
-                    "import-factors": [
-                        {
-                            "mp-peerings": [
-                                {"mp-peering": ["AS-ANY"], "actions": ["pref = 65535"]}
-                            ],
-                            "mp-filter": "community(65535:0)",
-                        },
-                        {
-                            "mp-peerings": [
-                                {"mp-peering": ["AS-ANY"], "actions": ["pref = 65435"]}
-                            ],
-                            "mp-filter": "ANY",
-                        },
-                    ]
-                },
-                "logic": "refine",
+            "right": {
                 "afi-list": ["any"],
-                "import-expression": {
-                    "import-term": {
+                "refine": {
+                    "left": {
                         "import-factors": [
                             {
-                                "mp-peerings": [{"mp-peering": ["AS-ANY"]}],
-                                "mp-filter": "NOT AS199284^+",
-                            }
+                                "mp-peerings": [
+                                    {
+                                        "mp-peering": ["AS-ANY"],
+                                        "actions": ["pref = 65535"],
+                                    }
+                                ],
+                                "mp-filter": "community(65535:0)",
+                            },
+                            {
+                                "mp-peerings": [
+                                    {
+                                        "mp-peering": ["AS-ANY"],
+                                        "actions": ["pref = 65435"],
+                                    }
+                                ],
+                                "mp-filter": "ANY",
+                            },
                         ]
                     },
-                    "logic": "refine",
-                    "afi-list": ["ipv4"],
-                    "import-expression": {
-                        "import-term": {
-                            "import-factors": [
-                                {
-                                    "mp-peerings": [{"mp-peering": ["AS-ANY"]}],
-                                    "mp-filter": "NOT fltr-martian",
-                                }
-                            ]
-                        },
-                        "logic": "refine",
-                        "afi-list": ["ipv4"],
-                        "import-expression": {
-                            "import-term": {
+                    "right": {
+                        "afi-list": ["any"],
+                        "refine": {
+                            "left": {
                                 "import-factors": [
                                     {
                                         "mp-peerings": [{"mp-peering": ["AS-ANY"]}],
-                                        "mp-filter": "{ 0.0.0.0/0^0-24 } AND NOT community(65535:666)",
-                                    },
-                                    {
-                                        "mp-peerings": [{"mp-peering": ["AS-ANY"]}],
-                                        "mp-filter": "{ 0.0.0.0/0^24-32 } AND community(65535:666)",
-                                    },
+                                        "mp-filter": "NOT AS199284^+",
+                                    }
                                 ]
                             },
-                            "logic": "refine",
-                            "afi-list": ["ipv6"],
-                            "import-expression": {
-                                "import-term": {
-                                    "import-factors": [
-                                        {
-                                            "mp-peerings": [{"mp-peering": ["AS-ANY"]}],
-                                            "mp-filter": "{ 2000::/3^4-48 } AND NOT community(65535:666)",
-                                        },
-                                        {
-                                            "mp-peerings": [{"mp-peering": ["AS-ANY"]}],
-                                            "mp-filter": "{ 2000::/3^64-128 } AND community(65535:666)",
-                                        },
-                                    ]
-                                },
-                                "logic": "refine",
-                                "afi-list": ["any"],
-                                "import-expression": {
-                                    "import-term": {
+                            "right": {
+                                "afi-list": ["ipv4"],
+                                "refine": {
+                                    "left": {
                                         "import-factors": [
                                             {
                                                 "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS15725"],
-                                                        "actions": [
-                                                            "community .= { 64628:20 }"
-                                                        ],
-                                                    }
+                                                    {"mp-peering": ["AS-ANY"]}
                                                 ],
-                                                "mp-filter": "AS-IKS AND <^AS-IKS+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS196714"],
-                                                        "actions": [
-                                                            "community .= { 64628:20 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "AS-TNETKOM AND <^AS-TNETKOM+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": [
-                                                            "AS199284:AS-UP"
-                                                        ],
-                                                        "actions": [
-                                                            "community .= { 64628:21 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "ANY",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS35366"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "AS-ISPPRO AND <^AS-ISPPRO+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS20940"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-AKAMAI+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS16509"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-AMAZON+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS32934"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-FACEBOOK+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS2906"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-NFLX+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS46489"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-TWITCH+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS714"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-APPLE+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS26415"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-GTLD+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS13335"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "<^AS-CLOUDFLARE+$>",
-                                            },
-                                            {
-                                                "mp-peerings": [
-                                                    {
-                                                        "mp-peering": ["AS-ANY"],
-                                                        "actions": [
-                                                            "community .= { 64628:22 }"
-                                                        ],
-                                                    }
-                                                ],
-                                                "mp-filter": "PeerAS and <^PeerAS+$>",
-                                            },
+                                                "mp-filter": "NOT fltr-martian",
+                                            }
                                         ]
                                     },
-                                    "logic": "refine",
-                                    "afi-list": ["any"],
-                                    "import-factors": [
-                                        {
-                                            "mp-peerings": [
-                                                {
-                                                    "mp-peering": [
-                                                        "AS-ANY",
-                                                        "EXCEPT",
-                                                        "(AS40027",
-                                                        "OR",
-                                                        "AS63293",
-                                                        "OR",
-                                                        "AS65535)",
-                                                    ]
-                                                }
-                                            ],
-                                            "mp-filter": "ANY",
-                                        }
-                                    ],
+                                    "right": {
+                                        "afi-list": ["ipv4"],
+                                        "refine": {
+                                            "left": {
+                                                "import-factors": [
+                                                    {
+                                                        "mp-peerings": [
+                                                            {"mp-peering": ["AS-ANY"]}
+                                                        ],
+                                                        "mp-filter": "{ 0.0.0.0/0^0-24 } AND NOT community(65535:666)",
+                                                    },
+                                                    {
+                                                        "mp-peerings": [
+                                                            {"mp-peering": ["AS-ANY"]}
+                                                        ],
+                                                        "mp-filter": "{ 0.0.0.0/0^24-32 } AND community(65535:666)",
+                                                    },
+                                                ]
+                                            },
+                                            "right": {
+                                                "afi-list": ["ipv6"],
+                                                "refine": {
+                                                    "left": {
+                                                        "import-factors": [
+                                                            {
+                                                                "mp-peerings": [
+                                                                    {
+                                                                        "mp-peering": [
+                                                                            "AS-ANY"
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "mp-filter": "{ 2000::/3^4-48 } AND NOT community(65535:666)",
+                                                            },
+                                                            {
+                                                                "mp-peerings": [
+                                                                    {
+                                                                        "mp-peering": [
+                                                                            "AS-ANY"
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                "mp-filter": "{ 2000::/3^64-128 } AND community(65535:666)",
+                                                            },
+                                                        ]
+                                                    },
+                                                    "right": {
+                                                        "afi-list": ["any"],
+                                                        "refine": {
+                                                            "left": {
+                                                                "import-factors": [
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS15725"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:20 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "AS-IKS AND <^AS-IKS+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS196714"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:20 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "AS-TNETKOM AND <^AS-TNETKOM+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS199284:AS-UP"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:21 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "ANY",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS35366"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "AS-ISPPRO AND <^AS-ISPPRO+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS20940"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-AKAMAI+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS16509"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-AMAZON+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS32934"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-FACEBOOK+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS2906"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-NFLX+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS46489"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-TWITCH+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS714"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-APPLE+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS26415"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-GTLD+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS13335"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "<^AS-CLOUDFLARE+$>",
+                                                                    },
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS-ANY"
+                                                                                ],
+                                                                                "actions": [
+                                                                                    "community .= { 64628:22 }"
+                                                                                ],
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "PeerAS and <^PeerAS+$>",
+                                                                    },
+                                                                ]
+                                                            },
+                                                            "right": {
+                                                                "afi-list": ["any"],
+                                                                "import-factors": [
+                                                                    {
+                                                                        "mp-peerings": [
+                                                                            {
+                                                                                "mp-peering": [
+                                                                                    "AS-ANY",
+                                                                                    "EXCEPT",
+                                                                                    "(AS40027",
+                                                                                    "OR",
+                                                                                    "AS63293",
+                                                                                    "OR",
+                                                                                    "AS65535)",
+                                                                                ]
+                                                                            }
+                                                                        ],
+                                                                        "mp-filter": "ANY",
+                                                                    }
+                                                                ],
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
                                 },
                             },
                         },

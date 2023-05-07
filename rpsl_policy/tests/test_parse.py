@@ -584,6 +584,31 @@ PARSED_MP_IMPORT_EXAMPLES = [
         }
     },
     {},
+    {
+        "any": {
+            "any": [
+                {
+                    "mp_peerings": [
+                        {"mp_peering": {"as_expr": "AS3"}, "actions": {"pref": "3"}}
+                    ],
+                    "mp_filter": {
+                        "and": {"left": ["AS226"], "right": [["128.9.0.0/16"]]}
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {"mp_peering": {"as_expr": "AS2"}, "actions": {"pref": "2"}}
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": ["AS226"],
+                            "right": {"not": [["128.9.0.0/16"]]},
+                        }
+                    },
+                },
+            ]
+        }
+    },
 ]
 
 

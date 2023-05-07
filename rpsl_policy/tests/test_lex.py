@@ -1,6 +1,12 @@
 from pyparsing import ParseResults
 
-from ..lex import action, as_expr, mp_filter, mp_import, mp_peering
+from ..lex import (
+    action,
+    as_expr,
+    mp_filter,
+    mp_import,
+    mp_peering,
+)
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -17,6 +23,7 @@ MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS8928 action pref= 10; accept ANY",
     "afi ipv4.unicast from AS3344:PRNG-LONAP action pref=64535; community.append(3344:60000, 3344:60020, 3344:8330); accept ANY AND NOT AS3344:fltr-filterlist",
     "afi any { from AS-ANY action community.delete(64628:10, 64628:11, 64628:12, 64628:13, 64628:14, 64628:15, 64628:20, 64628:21, 64628:22); accept ANY; } REFINE afi any { from AS-ANY action pref = 65535; accept community(65535:0); from AS-ANY action pref = 65435; accept ANY; } REFINE afi any { from AS-ANY accept NOT AS199284^+; } REFINE afi ipv4 { from AS-ANY accept NOT fltr-martian; } REFINE afi ipv4 { from AS-ANY accept { 0.0.0.0/0^0-24 } AND NOT community(65535:666); from AS-ANY accept { 0.0.0.0/0^24-32 } AND community(65535:666); } REFINE afi ipv6 { from AS-ANY accept { 2000::/3^4-48 } AND NOT community(65535:666); from AS-ANY accept { 2000::/3^64-128 } AND community(65535:666); } REFINE afi any { from AS15725 action community .= { 64628:20 }; accept AS-IKS AND <^AS-IKS+$>; from AS196714 action community .= { 64628:20 }; accept AS-TNETKOM AND <^AS-TNETKOM+$>; from AS199284:AS-UP action community .= { 64628:21 }; accept ANY; from AS35366 action community .= { 64628:22 }; accept AS-ISPPRO AND <^AS-ISPPRO+$>; from AS20940 action community .= { 64628:22 }; accept <^AS-AKAMAI+$>; from AS16509 action community .= { 64628:22 }; accept <^AS-AMAZON+$>; from AS32934 action community .= { 64628:22 }; accept <^AS-FACEBOOK+$>; from AS2906 action community .= { 64628:22 }; accept <^AS-NFLX+$>; from AS46489 action community .= { 64628:22 }; accept <^AS-TWITCH+$>; from AS714 action community .= { 64628:22 }; accept <^AS-APPLE+$>; from AS26415 action community .= { 64628:22 }; accept <^AS-GTLD+$>; from AS13335 action community .= { 64628:22 }; accept <^AS-CLOUDFLARE+$>; from AS-ANY action community .= { 64628:22 }; accept PeerAS and <^PeerAS+$>; } REFINE afi any { from AS-ANY EXCEPT (AS40027 OR AS63293 OR AS65535) accept ANY; }",
+    "from AS2 action pref = 2; accept AS226; except { from AS3 action pref = 3; accept {128.9.0.0/16}; }",
 ]
 
 LEXED_MP_IMPORT_EXAMPLES = [
@@ -613,6 +620,24 @@ LEXED_MP_IMPORT_EXAMPLES = [
                 },
             },
         },
+    },
+    {
+        "except": {
+            "left": {
+                "mp-peerings": [{"mp-peering": ["AS2"], "actions": ["pref = 2"]}],
+                "mp-filter": "AS226",
+            },
+            "right": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {"mp-peering": ["AS3"], "actions": ["pref = 3"]}
+                        ],
+                        "mp-filter": "{128.9.0.0/16}",
+                    }
+                ]
+            },
+        }
     },
 ]
 

@@ -1,5 +1,5 @@
 from sys import stderr
-from typing import Generator, Iterable
+from typing import Iterable
 
 from pyparsing import ParseException, ParserElement
 
@@ -11,37 +11,6 @@ def lex_with(lexer: ParserElement, string: str) -> dict | None:
         return lexer.parse_string(string).as_dict()
     except ParseException as err:
         print(f"{err} parsing `{string}`.", file=stderr)
-
-
-def import_factors_in_flat(afi_import_expression: dict) -> Generator[dict, None, None]:
-    """Extract <import-factor>s from <afi-import-expression>, ignoring nesting.
-    -> mp-peerings: list[{mp-peering, [actions]}], mp-filter: str"""
-    if import_factors := afi_import_expression.get("import-factors"):
-        for import_factor in import_factors:
-            yield import_factor
-    elif (
-        "mp-peerings" in afi_import_expression and "mp-filter" in afi_import_expression
-    ):
-        yield afi_import_expression
-
-
-def afi_import_expressions(lexed: dict) -> Generator[dict, None, None]:
-    """Extract flattened <afi-import-expression>s in a lexed <mp-import> or
-    <afi-import-expression>.
-    -> {[import-term: {
-            import-factors: list[{mp-peerings, mp-filter}]
-            | (mp-peerings, mp-filter)
-        }, logic: str],
-    [afi-list]: list[str], (
-        import-expression | import-factors: list[{mp-peerings, mp-filter}]
-        | (mp-peerings, mp-filter)
-    )}"""
-    if import_expr := lexed.get("import-expression"):
-        yield lexed
-        for afi_import_expression in afi_import_expressions(import_expr):
-            yield afi_import_expression
-    if "import-factors" in lexed or ("mp-peerings" in lexed and "mp-filter" in lexed):
-        yield lexed
 
 
 def merge_afi(afis: Iterable[dict[str, str]]) -> list[tuple[str, str]]:
@@ -207,6 +176,35 @@ def parse_import_factor(import_factor_raw: dict):
     return import_factor
 
 
+def parse_afi_import_expression(
+    afi_import_expression: dict, afi_entries: list[tuple[str, str]]
+) -> list[tuple[list[tuple[str, str]], list[dict]]]:
+    """-> list[tuple[afi_entries, parsed]]"""
+    if afi_list := afi_import_expression.get("afi-list"):
+        afi_entries = merge_afi(
+            afi_item for item in afi_list if (afi_item := lex_with(afi, item))
+        )
+
+    parsed = []
+    if import_factors := afi_import_expression.get("import-factors"):
+        for import_factor_raw in import_factors:
+            if import_factor := parse_import_factor(import_factor_raw):
+                parsed.append(import_factor)
+        return [(afi_entries, parsed)]
+
+    if "mp-peerings" in afi_import_expression and "mp-filter" in afi_import_expression:
+        if import_factor := parse_import_factor(afi_import_expression):
+            parsed.append(import_factor)
+        return [(afi_entries, parsed)]
+
+    if "except" in afi_import_expression or "refine" in afi_import_expression:
+        # TODO: Handle EXCEPT and REFINE logic.
+        print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
+        return []
+
+    raise ValueError(f"Illegal keys: {afi_import_expression}.")
+
+
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     """Parse lexed <mp-import> or <mp-export>."""
     if protocol_1 := lexed.get("protocol-1"):
@@ -214,22 +212,12 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     if protocol_2 := lexed.get("protocol-2"):
         print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
 
-    for afi_import_expression in afi_import_expressions(lexed):
-        afi_entries = [("any", "any")]
-        if afi_list := afi_import_expression.get("afi-list"):
-            afi_entries = merge_afi(
-                afi_item for item in afi_list if (afi_item := lex_with(afi, item))
-            )
-        if "except" in afi_import_expression or "refine" in afi_import_expression:
-            # TODO: Handle EXCEPT and REFINE logic.
-            print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
-            return result
-        for import_factor_raw in import_factors_in_flat(afi_import_expression):
-            if import_factor := parse_import_factor(import_factor_raw):
-                for version, cast in afi_entries:
-                    version_entry = result.get(version, {})
-                    cast_entry = version_entry.get(cast, [])
-                    cast_entry.append(import_factor)
-                    version_entry[cast] = cast_entry
-                    result[version] = version_entry
+    parsed_list = parse_afi_import_expression(lexed, [("any", "any")])
+    for afi_entries, parsed in parsed_list:
+        for version, cast in afi_entries:
+            version_entry = result.get(version, {})
+            cast_entry = version_entry.get(cast, [])
+            cast_entry.extend(parsed)
+            version_entry[cast] = cast_entry
+            result[version] = version_entry
     return result

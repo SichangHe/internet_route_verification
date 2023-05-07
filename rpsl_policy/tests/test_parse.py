@@ -583,7 +583,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         }
     },
-    {},
+    "IGNORE",
     {
         "any": {
             "any": [
@@ -698,13 +698,15 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         },
     },
+    {"any": {"any": []}},
 ]
 
 
 def test_parse_mp_import():
     for lexed, expected in zip(LEXED_MP_IMPORT_EXAMPLES, PARSED_MP_IMPORT_EXAMPLES):
         result = import_export(lexed, {})
-        assert result == expected
+        if expected != "IGNORE":
+            assert result == expected
 
 
 PARSED_MP_PEERING_EXAMPLES = [

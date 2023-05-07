@@ -248,6 +248,71 @@ def parse_import_expression_except(
     return result
 
 
+def apply_refine(
+    left: dict[str, list | dict], right: dict
+) -> dict[str, dict | list] | None:
+    peerings = []
+    for left_peer in left["mp_peerings"]:
+        left_peering = left_peer["mp_peering"]
+        # Future improvement: fix quadratic lookup.
+        for right_peer in right["mp_peerings"]:
+            right_peering = right_peer["mp_peering"]
+            if left_peering == right_peering:
+                combined = {
+                    "mp_peering": left_peering,
+                }
+                if left_actions := left_peer.get("actions"):
+                    combined["actions"] = (
+                        left_actions.update(right_actions)
+                        if (right_actions := right_peer.get("actions"))
+                        else left_actions
+                    )
+                elif right_actions := right_peer.get("actions"):
+                    combined["actions"] = right_actions
+                peerings.append(combined)
+
+    if len(peerings) > 0:
+        return {
+            "mp_peerings": peerings,
+            "mp_filter": {
+                "and": {"left": left["mp_filter"], "right": right["mp_filter"]}
+            },
+        }
+
+
+# FIX: Does not work correctly.
+def parse_import_expression_refine(
+    lexed: dict, afi_entries: set[tuple[str, str]]
+) -> list[tuple[set[tuple[str, str]], list[dict]]]:
+    result = []
+    right = parse_afi_import_expression(lexed["right"], afi_entries)
+    lefts = parse_import_term(lexed["left"])
+    if lefts is None:
+        print(f"Skipping because import-term not parsed: {lexed}", file=stderr)
+        return []
+    for right_afis, parsed_list in right:
+        for left in lefts:
+            intersection, difference = afi_set_intersection_difference(
+                afi_entries, right_afis
+            )
+            if len(difference) > 0:
+                # This part of the REFINE clause is ignored.
+                result.append((difference, [left]))
+
+            """The address family may be specified in subsequent refine or except
+            policy expressions and is valid only within the policy expression
+            that contains it."""
+            if len(intersection) > 0:
+                applied_list = [
+                    applied
+                    for parsed in parsed_list
+                    if (applied := apply_refine(left, parsed))
+                ]
+                result.append((intersection, applied_list))
+
+    return result
+
+
 def parse_afi_import_expression(
     afi_import_expression: dict, afi_entries: set[tuple[str, str]]
 ) -> list[tuple[set[tuple[str, str]], list[dict]]]:
@@ -263,9 +328,8 @@ def parse_afi_import_expression(
     if except_expr := afi_import_expression.get("except"):
         return parse_import_expression_except(except_expr, afi_entries)
 
-    if "refine" in afi_import_expression:
-        # TODO: Handle REFINE logic.
-        print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
+    if refine_expr := afi_import_expression.get("refine"):
+        return parse_import_expression_refine(refine_expr, afi_entries)
 
     return []
 

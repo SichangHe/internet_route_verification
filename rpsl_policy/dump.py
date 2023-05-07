@@ -47,7 +47,7 @@ def print_count():
 
 def parse_object(obj: RPSLObject):
     global n
-    if n % 0x100 == 0:
+    if n % 0x1000 == 0:
         print_count()
     if obj.closs == "aut-num":
         parse_aut_num(obj)

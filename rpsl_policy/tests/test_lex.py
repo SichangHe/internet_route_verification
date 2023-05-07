@@ -19,6 +19,7 @@ MP_IMPORT_EXAMPLES = [
     "afi any { from AS-ANY action community.delete(64628:10, 64628:11, 64628:12, 64628:13, 64628:14, 64628:15, 64628:20, 64628:21, 64628:22); accept ANY; } REFINE afi any { from AS-ANY action pref = 65535; accept community(65535:0); from AS-ANY action pref = 65435; accept ANY; } REFINE afi any { from AS-ANY accept NOT AS199284^+; } REFINE afi ipv4 { from AS-ANY accept NOT fltr-martian; } REFINE afi ipv4 { from AS-ANY accept { 0.0.0.0/0^0-24 } AND NOT community(65535:666); from AS-ANY accept { 0.0.0.0/0^24-32 } AND community(65535:666); } REFINE afi ipv6 { from AS-ANY accept { 2000::/3^4-48 } AND NOT community(65535:666); from AS-ANY accept { 2000::/3^64-128 } AND community(65535:666); } REFINE afi any { from AS15725 action community .= { 64628:20 }; accept AS-IKS AND <^AS-IKS+$>; from AS196714 action community .= { 64628:20 }; accept AS-TNETKOM AND <^AS-TNETKOM+$>; from AS199284:AS-UP action community .= { 64628:21 }; accept ANY; from AS35366 action community .= { 64628:22 }; accept AS-ISPPRO AND <^AS-ISPPRO+$>; from AS20940 action community .= { 64628:22 }; accept <^AS-AKAMAI+$>; from AS16509 action community .= { 64628:22 }; accept <^AS-AMAZON+$>; from AS32934 action community .= { 64628:22 }; accept <^AS-FACEBOOK+$>; from AS2906 action community .= { 64628:22 }; accept <^AS-NFLX+$>; from AS46489 action community .= { 64628:22 }; accept <^AS-TWITCH+$>; from AS714 action community .= { 64628:22 }; accept <^AS-APPLE+$>; from AS26415 action community .= { 64628:22 }; accept <^AS-GTLD+$>; from AS13335 action community .= { 64628:22 }; accept <^AS-CLOUDFLARE+$>; from AS-ANY action community .= { 64628:22 }; accept PeerAS and <^PeerAS+$>; } REFINE afi any { from AS-ANY EXCEPT (AS40027 OR AS63293 OR AS65535) accept ANY; }",
     "from AS2 action pref = 2; accept AS226; except { from AS3 action pref = 3; accept {128.9.0.0/16}; }",
     "afi any.unicast from AS65001 accept as-foo; except afi any.unicast { from AS65002 accept AS65226; } except afi ipv6.unicast { from AS65003 accept {2001:0DB8::/32}; }",
+    "{ from AS-ANY action pref = 1; accept community(3560:10); from AS-ANY action pref = 2; accept community(3560:20); } refine { from AS1 accept AS1; from AS2 accept AS2; from AS3 accept AS3; }",
 ]
 
 LEXED_MP_IMPORT_EXAMPLES = [
@@ -664,6 +665,33 @@ LEXED_MP_IMPORT_EXAMPLES = [
                 },
             },
         },
+    },
+    {
+        "refine": {
+            "left": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {"mp-peering": ["AS-ANY"], "actions": ["pref = 1"]}
+                        ],
+                        "mp-filter": "community(3560:10)",
+                    },
+                    {
+                        "mp-peerings": [
+                            {"mp-peering": ["AS-ANY"], "actions": ["pref = 2"]}
+                        ],
+                        "mp-filter": "community(3560:20)",
+                    },
+                ]
+            },
+            "right": {
+                "import-factors": [
+                    {"mp-peerings": [{"mp-peering": ["AS1"]}], "mp-filter": "AS1"},
+                    {"mp-peerings": [{"mp-peering": ["AS2"]}], "mp-filter": "AS2"},
+                    {"mp-peerings": [{"mp-peering": ["AS3"]}], "mp-filter": "AS3"},
+                ]
+            },
+        }
     },
 ]
 

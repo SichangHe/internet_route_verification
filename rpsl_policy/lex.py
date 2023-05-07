@@ -131,7 +131,7 @@ import_expression = Forward()
 """
 afi_import_expression = Opt(afi_raw) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>
-[afi-list]: list[str], (
+-> [afi-list]: list[str], (
     except | refine: {
         left: {import-factors | (mp-peerings, mp-filter)},
         right: {[afi-list], (

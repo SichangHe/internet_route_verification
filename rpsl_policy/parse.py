@@ -185,6 +185,28 @@ def parse_mp_peering(mp_peering_raw: list[str]):
         return clean_mp_peering(lexed)
 
 
+def parse_import_factor(import_factor_raw: dict):
+    import_factor: dict[str, list | dict] = {"mp_peerings": []}
+    if filter := lex_with(mp_filter, import_factor_raw["mp-filter"]):
+        import_factor["mp_filter"] = clean_mp_filter(filter)
+    else:
+        return
+    for peering_raw in import_factor_raw["mp-peerings"]:
+        peering = {}
+        if peer := parse_mp_peering(peering_raw["mp-peering"]):
+            peering["mp_peering"] = peer
+        else:
+            continue
+        if action_raws := peering_raw.get("actions"):
+            peering["actions"] = clean_action(
+                action_lexed
+                for action_raw in action_raws
+                if (action_lexed := lex_with(action, action_raw))
+            )
+        import_factor["mp_peerings"].append(peering)  # type: ignore
+    return import_factor
+
+
 def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     """Parse lexed <mp-import> or <mp-export>."""
     if protocol_1 := lexed.get("protocol-1"):
@@ -203,28 +225,11 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
             print(f"Skipping complex logic in {afi_import_expression}", file=stderr)
             return result
         for import_factor_raw in import_factors_in_flat(afi_import_expression):
-            import_factor: dict[str, list | dict] = {"mp_peerings": []}
-            if filter := lex_with(mp_filter, import_factor_raw["mp-filter"]):
-                import_factor["mp_filter"] = clean_mp_filter(filter)
-            else:
-                continue
-            for peering_raw in import_factor_raw["mp-peerings"]:
-                peering = {}
-                if peer := parse_mp_peering(peering_raw["mp-peering"]):
-                    peering["mp_peering"] = peer
-                else:
-                    continue
-                if action_raws := peering_raw.get("actions"):
-                    peering["actions"] = clean_action(
-                        action_lexed
-                        for action_raw in action_raws
-                        if (action_lexed := lex_with(action, action_raw))
-                    )
-                import_factor["mp_peerings"].append(peering)  # type: ignore
-            for version, cast in afi_entries:
-                version_entry = result.get(version, {})
-                cast_entry = version_entry.get(cast, [])
-                cast_entry.append(import_factor)
-                version_entry[cast] = cast_entry
-                result[version] = version_entry
+            if import_factor := parse_import_factor(import_factor_raw):
+                for version, cast in afi_entries:
+                    version_entry = result.get(version, {})
+                    cast_entry = version_entry.get(cast, [])
+                    cast_entry.append(import_factor)
+                    version_entry[cast] = cast_entry
+                    result[version] = version_entry
     return result

@@ -942,6 +942,7 @@ MP_FILTER_EXAMPLES = [
     "AS12874 and AS-FASTWEB and AS-FASTWEB-GLOBAL",
     "ANY AND NOT community.contains(8501:1120)",
     "AS26415 {2001:503:c27::/48, 2001:503:231d::/48}",
+    "ANY ANY NOT AS39326:FLTR-FILTERLIST",
 ]
 
 LEXED_MP_FILTER_EXAMPLES = [
@@ -1002,6 +1003,12 @@ LEXED_MP_FILTER_EXAMPLES = [
             ["2001:503:c27::/48", "2001:503:231d::/48"],
         ]
     },
+    {
+        "or": {
+            "left": {"policy-filter": ["ANY", "ANY"]},
+            "right": {"not": {"policy-filter": ["AS39326:FLTR-FILTERLIST"]}},
+        }
+    },
 ]
 
 
@@ -1014,9 +1021,7 @@ def test_mp_filter():
         assert result.as_dict() == expected
 
 
-MP_FILTER_ILEGAL_EXAMPLES = [
-    "ANY ANY NOT AS39326:FLTR-FILTERLIST",
-]
+MP_FILTER_ILEGAL_EXAMPLES = []
 
 
 def test_mp_filter_fail():

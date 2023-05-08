@@ -319,6 +319,7 @@ def apply_refine(
 def parse_import_expression_refine(
     lexed: dict, afi_entries: set[tuple[str, str]]
 ) -> list[tuple[set[tuple[str, str]], list[dict]]]:
+    """<https://www.rfc-editor.org/rfc/rfc2622#page-36>"""
     result = []
     right = parse_afi_import_expression(lexed["right"], afi_entries)
     lefts = parse_import_term(lexed["left"])

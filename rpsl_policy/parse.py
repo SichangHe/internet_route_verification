@@ -113,14 +113,12 @@ def clean_as_expr(lexed: dict) -> str | dict:
     raise ValueError(f"Illegal keys: {lexed}")
 
 
-def clean_mp_peering(lexed: dict) -> str | dict[str, str | dict] | None:
-    """-> str | {
+def clean_mp_peering(lexed: dict) -> dict[str, str | dict] | None:
+    """-> {
         as_expr: str | {and | or | except: {left, right}},
         [router_expr1]: str | {and | or | except: {left, right}},
         [router_expr2]: str | {and | or | except: {left, right}}
     }"""
-    if peering_set := lexed.get("peering-set-name"):
-        return peering_set
     as_expr_raw = " ".join(lexed["as-expression"])
     if expr := lex_with(as_expr, as_expr_raw):
         result = {"as_expr": clean_as_expr(expr)}
@@ -138,7 +136,7 @@ def clean_mp_peering(lexed: dict) -> str | dict[str, str | dict] | None:
 
 
 def parse_mp_peering(mp_peering_raw: list[str]):
-    """-> str | {
+    """-> {
         as_expr: str | {and | or | except: {left, right}},
         [router_expr1]: str | {and | or | except: {left, right}},
         [router_expr2]: str | {and | or | except: {left, right}}
@@ -150,7 +148,7 @@ def parse_mp_peering(mp_peering_raw: list[str]):
 def parse_import_factor(import_factor_raw: dict) -> dict[str, list | dict] | None:
     """-> {
         mp_peerings: list[{
-            mp_peering: str | {as_expr, [router_expr1], [router_expr2]}
+            mp_peering: {as_expr, [router_expr1], [router_expr2]}
             actions: {[<assignee1>...]: str | list[str], [community]: list[{
                 [method]: str, args: list[str]
             }], [<rp-attribute1>...]: list[{method: str, args: list[str]}]}
@@ -251,33 +249,45 @@ def parse_import_expression_except(
 def apply_refine(
     left: dict[str, list | dict], right: dict
 ) -> dict[str, dict | list] | None:
-    peerings = []
-    for left_peer in left["mp_peerings"]:
-        left_peering = left_peer["mp_peering"]
-        # Future improvement: fix quadratic lookup.
-        for right_peer in right["mp_peerings"]:
-            right_peering = right_peer["mp_peering"]
-            if left_peering == right_peering:
-                combined = {
-                    "mp_peering": left_peering,
+    left_peerings = left["mp_peerings"]
+    assert len(left_peerings) == 1
+    left_peering_action = left_peerings[0]
+    left_peering = left_peering_action["mp_peering"]
+    assert left_peering.get("router_expr1") is None
+    assert left_peering.get("router_expr2") is None
+    # FIX: Don't do lookup, just AND the <mp-peering>s.
+    right_peerings = right["mp_peerings"]
+    assert len(right_peerings) == 1
+    right_peering_action = right_peerings[0]
+    right_peering = right_peering_action["mp_peering"]
+    assert right_peering.get("router_expr1") is None
+    assert right_peering.get("router_expr2") is None
+    combined_peering_action = {
+        "mp_peering": {
+            "as_expr": {
+                "and": {
+                    "left": left_peering["as_expr"],
+                    "right": right_peering["as_expr"],
                 }
-                if left_actions := left_peer.get("actions"):
-                    combined["actions"] = (
-                        left_actions.update(right_actions)
-                        if (right_actions := right_peer.get("actions"))
-                        else left_actions
-                    )
-                elif right_actions := right_peer.get("actions"):
-                    combined["actions"] = right_actions
-                peerings.append(combined)
-
-    if len(peerings) > 0:
-        return {
-            "mp_peerings": peerings,
-            "mp_filter": {
-                "and": {"left": left["mp_filter"], "right": right["mp_filter"]}
-            },
+            }
         }
+    }
+
+    if left_actions := left_peering_action.get("actions"):
+        if right_actions := right_peering_action.get("actions"):
+            left_actions_copy = left_actions.copy()
+            combined_peering_action["actions"] = left_actions_copy.update(right_actions)
+        else:
+            combined_peering_action["actions"] = left_actions
+    elif right_actions := right_peering_action.get("actions"):
+        combined_peering_action["actions"] = right_actions
+
+    return {
+        "mp_peerings": [combined_peering_action],
+        "mp_filter": {
+            "and": {"left": left["mp_filter"], "right": right["mp_filter"]}
+        },
+    }
 
 
 # FIX: Does not work correctly.

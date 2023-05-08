@@ -213,15 +213,13 @@ mp_peering = (
     as_expression_raw("as-expression")
     + Opt(mp_router_expression_raw("mp-router-expression-1"))
     + Opt(at_kw + mp_router_expression_raw("mp-router-expression-2"))
-) | field("peering-set-name")
+)
 """<mp-peering> ::= <as-expression> [<mp-router-expression-1>]
 [at <mp-router-expression-2>] | <peering-set-name>
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.1>
--> (
-    as-expression: list["and" | "or" | "except" | str],
-    [mp-router-expression-1]: list["and" | "or" | "except" | str],
-    [mp-router-expression-2]: list["and" | "or" | "except" | str]
-) | peering-set-name: str"""
+-> as-expression: list["and" | "or" | "except" | str],
+[mp-router-expression-1]: list["and" | "or" | "except" | str],
+[mp-router-expression-2]: list["and" | "or" | "except" | str]"""
 
 # -----------------------------------------------------------------------------
 # Further parse <as-expression> and <mp-router-expression>.

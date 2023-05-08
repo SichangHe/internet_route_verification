@@ -698,7 +698,108 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         },
     },
-    {"any": {"any": []}},
+    {
+        "any": {
+            "any": [
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS1"}}
+                            },
+                            "actions": {"pref": "1"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"community": {"args": ["3560:10"]}},
+                            "right": ["AS1"],
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS2"}}
+                            },
+                            "actions": {"pref": "1"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"community": {"args": ["3560:10"]}},
+                            "right": ["AS2"],
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS3"}}
+                            },
+                            "actions": {"pref": "1"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"community": {"args": ["3560:10"]}},
+                            "right": ["AS3"],
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS1"}}
+                            },
+                            "actions": {"pref": "2"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"community": {"args": ["3560:20"]}},
+                            "right": ["AS1"],
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS2"}}
+                            },
+                            "actions": {"pref": "2"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"community": {"args": ["3560:20"]}},
+                            "right": ["AS2"],
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS3"}}
+                            },
+                            "actions": {"pref": "2"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"community": {"args": ["3560:20"]}},
+                            "right": ["AS3"],
+                        }
+                    },
+                },
+            ]
+        }
+    },
 ]
 
 

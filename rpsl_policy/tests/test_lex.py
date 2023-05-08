@@ -20,6 +20,7 @@ MP_IMPORT_EXAMPLES = [
     "from AS2 action pref = 2; accept AS226; except { from AS3 action pref = 3; accept {128.9.0.0/16}; }",
     "afi any.unicast from AS65001 accept as-foo; except afi any.unicast { from AS65002 accept AS65226; } except afi ipv6.unicast { from AS65003 accept {2001:0DB8::/32}; }",
     "{ from AS-ANY action pref = 1; accept community(3560:10); from AS-ANY action pref = 2; accept community(3560:20); } refine { from AS1 accept AS1; from AS2 accept AS2; from AS3 accept AS3; }",
+    "{ from AS-ANY action med = 0; accept {0.0.0.0/0^0-18}; } refine { from AS1 at 7.7.7.1 action pref = 1; accept AS1; from AS1 action pref = 2; accept AS1; }",
 ]
 
 LEXED_MP_IMPORT_EXAMPLES = [
@@ -689,6 +690,39 @@ LEXED_MP_IMPORT_EXAMPLES = [
                     {"mp-peerings": [{"mp-peering": ["AS1"]}], "mp-filter": "AS1"},
                     {"mp-peerings": [{"mp-peering": ["AS2"]}], "mp-filter": "AS2"},
                     {"mp-peerings": [{"mp-peering": ["AS3"]}], "mp-filter": "AS3"},
+                ]
+            },
+        }
+    },
+    {
+        "refine": {
+            "left": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {"mp-peering": ["AS-ANY"], "actions": ["med = 0"]}
+                        ],
+                        "mp-filter": "{0.0.0.0/0^0-18}",
+                    }
+                ]
+            },
+            "right": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {
+                                "mp-peering": ["AS1", "at", "7.7.7.1"],
+                                "actions": ["pref = 1"],
+                            }
+                        ],
+                        "mp-filter": "AS1",
+                    },
+                    {
+                        "mp-peerings": [
+                            {"mp-peering": ["AS1"], "actions": ["pref = 2"]}
+                        ],
+                        "mp-filter": "AS1",
+                    },
                 ]
             },
         }

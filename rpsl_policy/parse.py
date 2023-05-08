@@ -246,6 +246,30 @@ def parse_import_expression_except(
     return result
 
 
+def try_get_and(key: str, left: dict[str, dict], right: dict[str, dict]) -> dict | None:
+    if left_value := left.get(key):
+        if right_value := right.get(key):
+            return {"and": {"left": left_value, "right": right_value}}
+        else:
+            return left_value
+    elif right_value := right.get(key):
+        return right_value
+
+
+def try_get_merge(
+    key: str, left: dict[str, dict], right: dict[str, dict]
+) -> dict | None:
+    if left_value := left.get(key):
+        if right_value := right.get(key):
+            left_value_copy = left_value.copy()
+            left_value_copy.update(right_value)
+            return left_value_copy
+        else:
+            return left_value
+    elif right_value := right.get(key):
+        return right_value
+
+
 def apply_refine(
     left: dict[str, list | dict], right: dict
 ) -> dict[str, dict | list] | None:
@@ -253,44 +277,42 @@ def apply_refine(
     assert len(left_peerings) == 1
     left_peering_action = left_peerings[0]
     left_peering = left_peering_action["mp_peering"]
-    assert left_peering.get("router_expr1") is None
-    assert left_peering.get("router_expr2") is None
-    # FIX: Don't do lookup, just AND the <mp-peering>s.
+
     right_peerings = right["mp_peerings"]
     assert len(right_peerings) == 1
     right_peering_action = right_peerings[0]
     right_peering = right_peering_action["mp_peering"]
-    assert right_peering.get("router_expr1") is None
-    assert right_peering.get("router_expr2") is None
-    combined_peering_action = {
-        "mp_peering": {
-            "as_expr": {
-                "and": {
-                    "left": left_peering["as_expr"],
-                    "right": right_peering["as_expr"],
-                }
+    combined_peering = {
+        "as_expr": {
+            "and": {
+                "left": left_peering["as_expr"],
+                "right": right_peering["as_expr"],
             }
         }
     }
 
-    if left_actions := left_peering_action.get("actions"):
-        if right_actions := right_peering_action.get("actions"):
-            left_actions_copy = left_actions.copy()
-            combined_peering_action["actions"] = left_actions_copy.update(right_actions)
-        else:
-            combined_peering_action["actions"] = left_actions
-    elif right_actions := right_peering_action.get("actions"):
-        combined_peering_action["actions"] = right_actions
+    if combined_router_expr1 := try_get_and(
+        "router_expr1", left_peering, right_peering
+    ):
+        combined_peering["router_expr1"] = combined_router_expr1
+    if combined_router_expr2 := try_get_and(
+        "router_expr2", left_peering, right_peering
+    ):
+        combined_peering["router_expr2"] = combined_router_expr2
+
+    combined_peering_action = {"mp_peering": combined_peering}
+
+    if combined_actions := try_get_merge(
+        "actions", left_peering_action, right_peering_action
+    ):
+        combined_peering_action["actions"] = combined_actions
 
     return {
         "mp_peerings": [combined_peering_action],
-        "mp_filter": {
-            "and": {"left": left["mp_filter"], "right": right["mp_filter"]}
-        },
+        "mp_filter": {"and": {"left": left["mp_filter"], "right": right["mp_filter"]}},
     }
 
 
-# FIX: Does not work correctly.
 def parse_import_expression_refine(
     lexed: dict, afi_entries: set[tuple[str, str]]
 ) -> list[tuple[set[tuple[str, str]], list[dict]]]:

@@ -800,6 +800,39 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         }
     },
+    {
+        "any": {
+            "any": [
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS1"}},
+                                "router_expr2": "7.7.7.1",
+                            },
+                            "actions": {"med": "0", "pref": "1"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {"left": [["0.0.0.0/0^0-18"]], "right": ["AS1"]}
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {"and": {"left": "AS-ANY", "right": "AS1"}}
+                            },
+                            "actions": {"med": "0", "pref": "2"},
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {"left": [["0.0.0.0/0^0-18"]], "right": ["AS1"]}
+                    },
+                },
+            ]
+        }
+    },
 ]
 
 

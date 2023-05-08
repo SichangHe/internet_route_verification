@@ -22,6 +22,7 @@ MP_IMPORT_EXAMPLES = [
     "{ from AS-ANY action pref = 1; accept community(3560:10); from AS-ANY action pref = 2; accept community(3560:20); } refine { from AS1 accept AS1; from AS2 accept AS2; from AS3 accept AS3; }",
     "{ from AS-ANY action med = 0; accept {0.0.0.0/0^0-18}; } refine { from AS1 at 7.7.7.1 action pref = 1; accept AS1; from AS1 action pref = 2; accept AS1; }",
     "{ from AS-ANY action community(6774:65231); accept ANY AND NOT AS6774:FLTR-BOGONS; } refine { from AS6774:PRNG-BE-BNIX action community.append(6774:65100); from AS6774:PRNG-DE-DECIX action community.append(6774:65104); from AS6774:PRNG-FR-SFINX action community.append(6774:65102); from AS6774:PRNG-NL-AMSIX action community.append(6774:65101); from AS6774:PRNG-UK-LINX action community.append(6774:65103); accept (PeerAS OR AS6774:AS-PEERS:PeerAS); }",
+    "from AS20965 62.40.124.89 action community.append(5408:1001); accept NOT community.contains(5408:1002) AND NOT community.contains(5408:1003) AND NOT fltr-martian; REFINE { from AS20965 action aspath.prepend(AS20965,AS20965,AS20965); accept community.contains(20965:7777); from AS20965 accept ANY; }",
 ]
 
 LEXED_MP_IMPORT_EXAMPLES = [
@@ -770,6 +771,33 @@ LEXED_MP_IMPORT_EXAMPLES = [
                         ],
                         "mp-filter": "(PeerAS OR AS6774:AS-PEERS:PeerAS)",
                     }
+                ]
+            },
+        }
+    },
+    {
+        "refine": {
+            "left": {
+                "mp-peerings": [
+                    {
+                        "mp-peering": ["AS20965", "62.40.124.89"],
+                        "actions": ["community.append(5408:1001)"],
+                    }
+                ],
+                "mp-filter": "NOT community.contains(5408:1002) AND NOT community.contains(5408:1003) AND NOT fltr-martian",
+            },
+            "right": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {
+                                "mp-peering": ["AS20965"],
+                                "actions": ["aspath.prepend(AS20965,AS20965,AS20965)"],
+                            }
+                        ],
+                        "mp-filter": "community.contains(20965:7777)",
+                    },
+                    {"mp-peerings": [{"mp-peering": ["AS20965"]}], "mp-filter": "ANY"},
                 ]
             },
         }

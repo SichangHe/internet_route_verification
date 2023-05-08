@@ -9,7 +9,7 @@ from .lex import action, afi, as_expr, mp_filter, mp_peering
 
 def lex_with(lexer: ParserElement, string: str) -> dict | None:
     try:
-        return lexer.parse_string(string).as_dict()
+        return lexer.parse_string(string, parse_all=True).as_dict()
     except ParseException as err:
         print(f"{err} parsing `{string}`.", file=stderr)
 

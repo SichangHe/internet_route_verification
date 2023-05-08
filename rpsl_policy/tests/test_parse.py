@@ -834,6 +834,117 @@ PARSED_MP_IMPORT_EXAMPLES = [
         }
     },
     {"any": {"any": []}},
+    {
+        "any": {
+            "any": [
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {
+                                    "and": {"left": "AS20965", "right": "AS20965"}
+                                },
+                                "router_expr1": "62.40.124.89",
+                            },
+                            "actions": {
+                                "community": [
+                                    {"method": "append", "args": ["5408:1001"]}
+                                ],
+                                "aspath": [
+                                    {
+                                        "method": "prepend",
+                                        "args": ["AS20965", "AS20965", "AS20965"],
+                                    }
+                                ],
+                            },
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {
+                                "and": {
+                                    "left": {
+                                        "not": {
+                                            "community": {
+                                                "method": "contains",
+                                                "args": ["5408:1002"],
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "and": {
+                                            "left": {
+                                                "not": {
+                                                    "community": {
+                                                        "method": "contains",
+                                                        "args": ["5408:1003"],
+                                                    }
+                                                }
+                                            },
+                                            "right": {"not": ["fltr-martian"]},
+                                        }
+                                    },
+                                }
+                            },
+                            "right": {
+                                "community": {
+                                    "method": "contains",
+                                    "args": ["20965:7777"],
+                                }
+                            },
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [
+                        {
+                            "mp_peering": {
+                                "as_expr": {
+                                    "and": {"left": "AS20965", "right": "AS20965"}
+                                },
+                                "router_expr1": "62.40.124.89",
+                            },
+                            "actions": {
+                                "community": [
+                                    {"method": "append", "args": ["5408:1001"]}
+                                ]
+                            },
+                        }
+                    ],
+                    "mp_filter": {
+                        "and": {
+                            "left": {
+                                "and": {
+                                    "left": {
+                                        "not": {
+                                            "community": {
+                                                "method": "contains",
+                                                "args": ["5408:1002"],
+                                            }
+                                        }
+                                    },
+                                    "right": {
+                                        "and": {
+                                            "left": {
+                                                "not": {
+                                                    "community": {
+                                                        "method": "contains",
+                                                        "args": ["5408:1003"],
+                                                    }
+                                                }
+                                            },
+                                            "right": {"not": ["fltr-martian"]},
+                                        }
+                                    },
+                                }
+                            },
+                            "right": ["ANY"],
+                        }
+                    },
+                },
+            ]
+        }
+    },
 ]
 
 

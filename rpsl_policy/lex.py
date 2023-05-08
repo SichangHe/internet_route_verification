@@ -287,12 +287,13 @@ mp_filter_base = (
 )
 """-> community: {[method]: str, args: list[str]}
 | policy-filter: list[str | list[str]}]"""
-mp_filter_not = Group(Suppress(not_kw) + mp_filter)("not")
+mp_filter_not = Group(Suppress(not_kw) + mp_filter_base)("not")
+mp_filter_or_not = mp_filter_base | mp_filter_not
 mp_filter_and = Group(
-    Group(mp_filter_base)("left") + Suppress(and_kw) + Group(mp_filter)("right")
+    Group(mp_filter_or_not)("left") + Suppress(and_kw) + Group(mp_filter)("right")
 )("and")
 mp_filter_or = Group(
-    Group(mp_filter_base)("left") + Suppress(or_kw) + Group(mp_filter)("right")
+    Group(mp_filter_or_not)("left") + Suppress(or_kw) + Group(mp_filter)("right")
 )("or")
 mp_filter <<= mp_filter_and | mp_filter_or | mp_filter_not | mp_filter_base
 

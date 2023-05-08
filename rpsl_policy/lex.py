@@ -302,7 +302,6 @@ mp_filter_implicit_or = Group(
 mp_filter <<= (
     mp_filter_and
     | mp_filter_or
-    | mp_filter_not
     | mp_filter_implicit_or
     | mp_filter_or_not
 )

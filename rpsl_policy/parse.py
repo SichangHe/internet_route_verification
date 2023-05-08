@@ -7,11 +7,11 @@ from .afi import afi_set_intersection_difference, merge_afi_dict
 from .lex import action, afi, as_expr, mp_filter, mp_peering
 
 
-def lex_with(lexer: ParserElement, string: str) -> dict | None:
+def lex_with(lexer: ParserElement, string: str) -> dict:
     try:
         return lexer.parse_string(string, parse_all=True).as_dict()
     except ParseException as err:
-        print(f"{err} parsing `{string}`.", file=stderr)
+        raise ValueError(f"{err} parsing `{string}`.")
 
 
 def clean_action(
@@ -222,8 +222,7 @@ def parse_import_expression_except(
         assert len(lefts) == 1
         left = lefts[0]
     else:
-        print(f"Skipping because import-term not parsed: {lexed}", file=stderr)
-        return []
+        raise ValueError(f"Import-term not parsed: {lexed}")
     for right_afis, parsed_list in right:
         intersection, difference = afi_set_intersection_difference(
             afi_entries, right_afis
@@ -272,7 +271,7 @@ def try_get_merge(
 
 def apply_refine(
     left: dict[str, list | dict], right: dict
-) -> dict[str, dict | list] | None:
+) -> dict[str, dict | list]:
     left_peerings = left["mp_peerings"]
     assert len(left_peerings) == 1
     left_peering_action = left_peerings[0]
@@ -281,8 +280,9 @@ def apply_refine(
     right_peerings = right["mp_peerings"]
     # TODO: Deal with multiple <mp-peering>s.
     if len(right_peerings) > 1:
-        print(f"Skipping REFINE expression with multiple <mp-peering>s: {right}.")
-        return
+        raise ValueError(
+            f"Skipping REFINE expression with multiple <mp-peering>s: {right}."
+        )
     right_peering_action = right_peerings[0]
     right_peering = right_peering_action["mp_peering"]
     combined_peering = {
@@ -324,8 +324,7 @@ def parse_import_expression_refine(
     right = parse_afi_import_expression(lexed["right"], afi_entries)
     lefts = parse_import_term(lexed["left"])
     if lefts is None:
-        print(f"Skipping because import-term not parsed: {lexed}", file=stderr)
-        return []
+        raise ValueError(f"Import-term not parsed: {lexed}")
     for right_afis, parsed_list in right:
         for left in lefts:
             intersection, difference = afi_set_intersection_difference(

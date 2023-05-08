@@ -15,8 +15,11 @@ n = 0
 
 
 def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
-    if lexed := lex_with(mp_import, expr):
-        import_export(lexed, imports)
+    try:
+        if lexed := lex_with(mp_import, expr):
+            import_export(lexed, imports)
+    except Exception as err:
+        print(f"{err} while parsing {expr}.", file=sys.stderr)
 
 
 def parse_aut_num(obj: RPSLObject):

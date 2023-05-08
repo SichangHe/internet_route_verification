@@ -279,7 +279,10 @@ def apply_refine(
     left_peering = left_peering_action["mp_peering"]
 
     right_peerings = right["mp_peerings"]
-    assert len(right_peerings) == 1
+    # TODO: Deal with multiple <mp-peering>s.
+    if len(right_peerings) > 1:
+        print(f"Skipping REFINE expression with multiple <mp-peering>s: {right}.")
+        return
     right_peering_action = right_peerings[0]
     right_peering = right_peering_action["mp_peering"]
     combined_peering = {

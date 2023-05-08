@@ -21,6 +21,7 @@ MP_IMPORT_EXAMPLES = [
     "afi any.unicast from AS65001 accept as-foo; except afi any.unicast { from AS65002 accept AS65226; } except afi ipv6.unicast { from AS65003 accept {2001:0DB8::/32}; }",
     "{ from AS-ANY action pref = 1; accept community(3560:10); from AS-ANY action pref = 2; accept community(3560:20); } refine { from AS1 accept AS1; from AS2 accept AS2; from AS3 accept AS3; }",
     "{ from AS-ANY action med = 0; accept {0.0.0.0/0^0-18}; } refine { from AS1 at 7.7.7.1 action pref = 1; accept AS1; from AS1 action pref = 2; accept AS1; }",
+    "{ from AS-ANY action community(6774:65231); accept ANY AND NOT AS6774:FLTR-BOGONS; } refine { from AS6774:PRNG-BE-BNIX action community.append(6774:65100); from AS6774:PRNG-DE-DECIX action community.append(6774:65104); from AS6774:PRNG-FR-SFINX action community.append(6774:65102); from AS6774:PRNG-NL-AMSIX action community.append(6774:65101); from AS6774:PRNG-UK-LINX action community.append(6774:65103); accept (PeerAS OR AS6774:AS-PEERS:PeerAS); }",
 ]
 
 LEXED_MP_IMPORT_EXAMPLES = [
@@ -723,6 +724,52 @@ LEXED_MP_IMPORT_EXAMPLES = [
                         ],
                         "mp-filter": "AS1",
                     },
+                ]
+            },
+        }
+    },
+    {
+        "refine": {
+            "left": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {
+                                "mp-peering": ["AS-ANY"],
+                                "actions": ["community(6774:65231)"],
+                            }
+                        ],
+                        "mp-filter": "ANY AND NOT AS6774:FLTR-BOGONS",
+                    }
+                ]
+            },
+            "right": {
+                "import-factors": [
+                    {
+                        "mp-peerings": [
+                            {
+                                "mp-peering": ["AS6774:PRNG-BE-BNIX"],
+                                "actions": ["community.append(6774:65100)"],
+                            },
+                            {
+                                "mp-peering": ["AS6774:PRNG-DE-DECIX"],
+                                "actions": ["community.append(6774:65104)"],
+                            },
+                            {
+                                "mp-peering": ["AS6774:PRNG-FR-SFINX"],
+                                "actions": ["community.append(6774:65102)"],
+                            },
+                            {
+                                "mp-peering": ["AS6774:PRNG-NL-AMSIX"],
+                                "actions": ["community.append(6774:65101)"],
+                            },
+                            {
+                                "mp-peering": ["AS6774:PRNG-UK-LINX"],
+                                "actions": ["community.append(6774:65103)"],
+                            },
+                        ],
+                        "mp-filter": "(PeerAS OR AS6774:AS-PEERS:PeerAS)",
+                    }
                 ]
             },
         }

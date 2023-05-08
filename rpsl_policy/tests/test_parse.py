@@ -833,6 +833,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             ]
         }
     },
+    {"any": {"any": []}},
 ]
 
 

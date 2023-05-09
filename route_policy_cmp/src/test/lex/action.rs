@@ -1,0 +1,31 @@
+use std::collections::BTreeMap;
+
+use crate::lex::action::{Action::*, Actions, Call};
+
+use super::*;
+
+const ACTION_EXAMPLE: &str = r#"{
+    "pref": "65435",
+    "med": "0",
+    "community": [
+        {"method": "append", "args": ["8226:1102"]}
+    ]
+}"#;
+
+#[test]
+fn action() -> Result<()> {
+    let parsed: Actions = serde_json::from_str(ACTION_EXAMPLE)?;
+    let expected: Actions = BTreeMap::from([
+        ("pref".into(), Assigned("65435".into())),
+        ("med".into(), Assigned("0".into())),
+        (
+            "community".into(),
+            MethodCall(vec![Call {
+                method: Some("append".into()),
+                args: vec!["8226:1102".into()],
+            }]),
+        ),
+    ]);
+    assert_eq!(parsed, expected);
+    Ok(())
+}

@@ -226,7 +226,9 @@ mp_peering = (
 # -----------------------------------------------------------------------------
 as_expr = Forward()
 """-> and | or | except: {left, right} | field: str"""
-as_expr_base = (Suppress("(") + as_expr + Suppress(")")) | field_wo_brace("field")
+as_expr_base = Group(Suppress("(") + as_expr + Suppress(")"))("group") | field_wo_brace(
+    "field"
+)
 as_expr_and = Group(Group(as_expr_base)("left") + and_kw + Group(as_expr)("right"))(
     "and"
 )

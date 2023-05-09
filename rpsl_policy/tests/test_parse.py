@@ -973,16 +973,18 @@ PARSED_MP_PEERING_EXAMPLES = [
     {"as_expr": "AS10310", "router_expr2": "AS3326---DEE---mx01-fra1"},
     {"as_expr": {"and": {"left": "AS9186:AS-CUSTOMERS", "right": "AS204094"}}},
     {"as_expr": {"except": {"left": "AS-ANY", "right": "AS5398:AS-AMS-IX-FILTER"}}},
-    {"as_expr": {"or": {"left": "AS42", "right": "AS3856"}}},
+    {"as_expr": {"group": {"or": {"left": "AS42", "right": "AS3856"}}}},
     {"as_expr": "AS28788", "router_expr1": "80.249.208.237"},
     {
         "as_expr": {
             "except": {
                 "left": "AS-ANY",
                 "right": {
-                    "or": {
-                        "left": "AS40027",
-                        "right": {"or": {"left": "AS63293", "right": "AS65535"}},
+                    "group": {
+                        "or": {
+                            "left": "AS40027",
+                            "right": {"or": {"left": "AS63293", "right": "AS65535"}},
+                        }
                     }
                 },
             }

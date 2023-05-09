@@ -112,14 +112,16 @@ def clean_as_expr(lexed: dict) -> str | dict:
                 "right": clean_as_expr(inner["right"]),
             }
         }
+    if inner := lexed.get("group"):
+        return {"group": clean_as_expr(inner)}
     raise ValueError(f"Illegal keys: {lexed}")
 
 
 def clean_mp_peering(lexed: dict) -> dict[str, str | dict] | None:
     """-> {
-        as_expr: str | {and | or | except: {left, right}},
-        [router_expr1]: str | {and | or | except: {left, right}},
-        [router_expr2]: str | {and | or | except: {left, right}}
+        as_expr: str | {and | or | except: {left, right} | group: {...}},
+        [router_expr1]: str | {and | or | except: {left, right} | group: {...}},
+        [router_expr2]: str | {and | or | except: {left, right} | group: {...}}
     }"""
     as_expr_raw = " ".join(lexed["as-expression"])
     if expr := lex_with(as_expr, as_expr_raw):
@@ -139,9 +141,9 @@ def clean_mp_peering(lexed: dict) -> dict[str, str | dict] | None:
 
 def parse_mp_peering(mp_peering_raw: list[str]):
     """-> {
-        as_expr: str | {and | or | except: {left, right}},
-        [router_expr1]: str | {and | or | except: {left, right}},
-        [router_expr2]: str | {and | or | except: {left, right}}
+        as_expr: str | {and | or | except: {left, right} | group: {...}},
+        [router_expr1]: str | {and | or | except: {left, right} | group: {...}},
+        [router_expr2]: str | {and | or | except: {left, right} | group: {...}}
     }"""
     if lexed := lex_with(mp_peering, " ".join(mp_peering_raw)):
         return clean_mp_peering(lexed)
@@ -155,7 +157,7 @@ def parse_import_factor(import_factor_raw: dict) -> dict[str, list | dict] | Non
                 [method]: str, args: list[str]
             }], [<rp-attribute1>...]: list[{method: str, args: list[str]}]}
         }],
-        mp_filter: {(and | or: {left, right}) | not}
+        mp_filter: {(and | or: {left, right}) | not | group}
             | {community: {[method]: str, args: list[str]}}
             | list[str | list[str]]
     }"""
@@ -271,9 +273,7 @@ def try_get_merge(
         return right_value
 
 
-def apply_refine(
-    left: dict[str, list | dict], right: dict
-) -> dict[str, dict | list]:
+def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | list]:
     left_peerings = left["mp_peerings"]
     assert len(left_peerings) == 1
     left_peering_action = left_peerings[0]

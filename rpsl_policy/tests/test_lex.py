@@ -1023,14 +1023,6 @@ def test_mp_filter():
         assert result.as_dict() == expected
 
 
-MP_FILTER_ILEGAL_EXAMPLES = []
-
-
-def test_mp_filter_fail():
-    for example in MP_FILTER_ILEGAL_EXAMPLES:
-        assert not mp_filter.matches(example)
-
-
 ACTION_EXAMPLES = [
     "pref=100",
     "pref = 200",
@@ -1096,19 +1088,21 @@ LEXED_AS_EXPR_EXAMPLES = [
             "right": {"field": "AS5398:AS-AMS-IX-FILTER"},
         }
     },
-    {"or": {"left": {"field": "AS42"}, "right": {"field": "AS3856"}}},
+    {"group": {"or": {"left": {"field": "AS42"}, "right": {"field": "AS3856"}}}},
     {
         "except": {
             "left": {"field": "AS-ANY"},
             "right": {
-                "or": {
-                    "left": {"field": "AS40027"},
-                    "right": {
-                        "or": {
-                            "left": {"field": "AS63293"},
-                            "right": {"field": "AS65535"},
-                        }
-                    },
+                "group": {
+                    "or": {
+                        "left": {"field": "AS40027"},
+                        "right": {
+                            "or": {
+                                "left": {"field": "AS63293"},
+                                "right": {"field": "AS65535"},
+                            }
+                        },
+                    }
                 }
             },
         }

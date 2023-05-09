@@ -341,8 +341,9 @@ or rp-attribute.method()
 <https://www.rfc-editor.org/rfc/rfc2622#page-43>"""
 
 # -----------------------------------------------------------------------------
-# Further parse <afi-list>
+# Further parse <afi-list> and <members>.
 # -----------------------------------------------------------------------------
 afi = (ipv4_kw | ipv6_kw | any_kw)("version") + Opt(
     "." + (unicast_kw | multicast_kw)("cast")
 )
+member = delimited_list(field_wo_comma, delim=",")

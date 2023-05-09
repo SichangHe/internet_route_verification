@@ -2,7 +2,9 @@ import json
 import sys
 from io import TextIOWrapper
 
-from .lex import mp_import
+from pyparsing import ParseException
+
+from .lex import member, mp_import
 from .lines import expressions, io_wrapper_lines, lines_continued, rpsl_objects
 from .parse import import_export, lex_with
 from .rpsl_object import AsSet, AutNum, RouteSet, RPSLObject
@@ -37,7 +39,12 @@ def gather_members(obj: RPSLObject) -> list[str]:
     members = []
     for key, expr in expressions(lines_continued(obj.body.splitlines())):
         if key == "members" or key == "mp-members":
-            members.append(expr)
+            try:
+                lexed = member.parse_string(expr, parse_all=True)
+            except ParseException as err:
+                print(f"{err} while parsing {expr} in {obj}.", file=sys.stderr)
+                continue
+            members.extend(lexed.as_list())
     return members
 
 

@@ -11,12 +11,12 @@ pub struct Peering {
 #[serde(untagged)]
 pub enum AsExpr {
     Field(String),
-    Complex(ComplexExpr),
+    AsComp(ComplexAsExpr),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ComplexExpr {
+pub enum ComplexAsExpr {
     And {
         left: Box<AsExpr>,
         right: Box<AsExpr>,

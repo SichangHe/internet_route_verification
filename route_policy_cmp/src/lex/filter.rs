@@ -5,7 +5,7 @@ use super::community::Call;
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(untagged)]
 pub enum Filter {
-    Complex(Base),
+    Mixed(Base),
     Policies(Vec<Policy>),
 }
 

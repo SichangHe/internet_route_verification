@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-use crate::lex::peering::{AsExpr::*, ComplexExpr::*, Peering};
+use crate::lex::peering::{AsExpr::*, ComplexAsExpr::*, Peering};
 
 use super::*;
 
@@ -45,7 +45,7 @@ fn peering() -> Result<()> {
             router_expr2: Some(Field("2001:67c:20d0:fffe:ffff:ffff:ffff:fffd".into())),
         },
         Peering {
-            as_expr: Complex(And {
+            as_expr: AsComp(And {
                 left: Box::new(Field("AS9186:AS-CUSTOMERS".into())),
                 right: Box::new(Field("AS204094".into())),
             }),
@@ -53,7 +53,7 @@ fn peering() -> Result<()> {
             router_expr2: None,
         },
         Peering {
-            as_expr: Complex(Except {
+            as_expr: AsComp(Except {
                 left: Box::new(Field("AS-ANY".into())),
                 right: Box::new(Field("AS5398:AS-AMS-IX-FILTER".into())),
             }),
@@ -61,7 +61,7 @@ fn peering() -> Result<()> {
             router_expr2: None,
         },
         Peering {
-            as_expr: Complex(Group(Box::new(Complex(Or {
+            as_expr: AsComp(Group(Box::new(AsComp(Or {
                 left: Box::new(Field("AS42".into())),
                 right: Box::new(Field("AS3856".into())),
             })))),
@@ -69,11 +69,11 @@ fn peering() -> Result<()> {
             router_expr2: None,
         },
         Peering {
-            as_expr: Complex(Except {
+            as_expr: AsComp(Except {
                 left: Box::new(Field("AS-ANY".into())),
-                right: Box::new(Complex(Group(Box::new(Complex(Or {
+                right: Box::new(AsComp(Group(Box::new(AsComp(Or {
                     left: Box::new(Field("AS40027".into())),
-                    right: Box::new(Complex(Or {
+                    right: Box::new(AsComp(Or {
                         left: Box::new(Field("AS63293".into())),
                         right: Box::new(Field("AS65535".into())),
                     })),

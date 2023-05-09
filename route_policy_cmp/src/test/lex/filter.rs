@@ -30,13 +30,13 @@ const FILTER_EXAMPLES: &[&str] = &[
 fn filter() -> Result<()> {
     let parsed_filters = [
         Policies(vec![PathAttr("AS-UNIC".into())]),
-        Complex(And {
+        Mixed(And {
             left: Box::new(Policies(vec![PathAttr("ANY".into())])),
             right: Box::new(Policies(vec![AddrPrefixSet(vec!["0.0.0.0/0^0-24".into()])])),
         }),
-        Complex(And {
+        Mixed(And {
             left: Box::new(Policies(vec![PathAttr("as-foo".into())])),
-            right: Box::new(Complex(And {
+            right: Box::new(Mixed(And {
                 left: Box::new(Policies(vec![PathAttr("AS65226".into())])),
                 right: Box::new(Policies(vec![AddrPrefixSet(vec!["2001:0DB8::/32".into()])])),
             })),

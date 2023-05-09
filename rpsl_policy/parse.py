@@ -63,7 +63,7 @@ def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | lis
 def clean_mp_filter(
     lexed: dict,
 ) -> dict[str, dict | list] | list[str | list[str]]:
-    """-> {(and | or: {left, right}) | not}
+    """-> {(and | or: {left, right}) | not | group}
     | {community: {[method]: str, args: list[str]}}
     | list[str | list[str]]"""
     if inner := lexed.get("and"):
@@ -82,6 +82,8 @@ def clean_mp_filter(
         }
     if inner := lexed.get("not"):
         return {"not": clean_mp_filter(inner)}
+    if inner := lexed.get("group"):
+        return {"group": clean_mp_filter(inner)}
     return clean_mp_filter_base(lexed)
 
 

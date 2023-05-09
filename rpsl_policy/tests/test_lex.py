@@ -970,9 +970,11 @@ LEXED_MP_FILTER_EXAMPLES = [
     {
         "and": {
             "left": {
-                "or": {
-                    "left": {"policy-filter": ["PeerAS"]},
-                    "right": {"policy-filter": ["PeerAS:AS-TO-AIX"]},
+                "group": {
+                    "or": {
+                        "left": {"policy-filter": ["PeerAS"]},
+                        "right": {"policy-filter": ["PeerAS:AS-TO-AIX"]},
+                    }
                 }
             },
             "right": {"policy-filter": ["<^PeerAS+PeerAS:AS-TO-AIX*$>"]},

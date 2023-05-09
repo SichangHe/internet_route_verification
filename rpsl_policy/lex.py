@@ -277,13 +277,14 @@ mp_filter = Forward()
 -> and: {left: {...}, right: {...}}
 | or: {left: {...}, right: {...}}
 | not: {...}
+| group: {...}
 | community: {[method]: str, args: list[str]}
 | policy-filter: list[str | list[str]}]
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
 mp_filter_base = (
     community_field("community")
-    | (Suppress("(") + mp_filter + Suppress(")"))
+    | Group(Suppress("(") + mp_filter + Suppress(")"))("group")
     | policy_filter("policy-filter")
 )
 """-> community: {[method]: str, args: list[str]}
@@ -299,12 +300,7 @@ mp_filter_or = Group(
 mp_filter_implicit_or = Group(
     Group(mp_filter_or_not)("left") + Group(mp_filter)("right")
 )("or")
-mp_filter <<= (
-    mp_filter_and
-    | mp_filter_or
-    | mp_filter_implicit_or
-    | mp_filter_or_not
-)
+mp_filter <<= mp_filter_and | mp_filter_or | mp_filter_implicit_or | mp_filter_or_not
 
 # -----------------------------------------------------------------------------
 # Further parse <action>

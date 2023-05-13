@@ -8,6 +8,7 @@ pub mod parse;
 mod test;
 
 fn main() -> Result<()> {
+    env_logger::init();
     // Test lex dumped.
     let file = File::open("../dump.json")?;
     let lexed: Dump = serde_json::from_reader(file)?;

@@ -45,7 +45,14 @@ const MP_IMPORT_EXAMPLE: &str = r#"{
 
 #[test]
 fn mp_import() -> Result<()> {
-    let expected = Versions {
+    let expected = expected_mp_import();
+    let parsed: Versions = serde_json::from_str(MP_IMPORT_EXAMPLE)?;
+    assert_eq!(parsed, expected);
+    Ok(())
+}
+
+fn expected_mp_import() -> Versions {
+    Versions {
         any: None,
         ipv4: Some(Casts {
             any: None,
@@ -81,8 +88,5 @@ fn mp_import() -> Result<()> {
             multicast: None,
         }),
         ipv6: None,
-    };
-    let parsed: Versions = serde_json::from_str(MP_IMPORT_EXAMPLE)?;
-    assert_eq!(parsed, expected);
-    Ok(())
+    }
 }

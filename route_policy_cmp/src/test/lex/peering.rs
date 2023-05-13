@@ -33,7 +33,17 @@ const PEERING_EXAMPLES: &[&str] = &[
 
 #[test]
 fn peering() -> Result<()> {
-    let parsed_peerings = [
+    let parsed_peerings = expected_peerings();
+
+    for (&peering, expected) in zip(PEERING_EXAMPLES, parsed_peerings) {
+        let result: Peering = serde_json::from_str(peering)?;
+        assert_eq!(result, expected);
+    }
+    Ok(())
+}
+
+fn expected_peerings() -> [Peering; 6] {
+    [
         Peering {
             as_expr: Field("AS51468".into()),
             router_expr1: None,
@@ -82,11 +92,5 @@ fn peering() -> Result<()> {
             router_expr1: None,
             router_expr2: None,
         },
-    ];
-
-    for (&peering, expected) in zip(PEERING_EXAMPLES, parsed_peerings) {
-        let result: Peering = serde_json::from_str(peering)?;
-        assert_eq!(result, expected);
-    }
-    Ok(())
+    ]
 }

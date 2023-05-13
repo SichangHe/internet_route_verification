@@ -18,7 +18,13 @@ const ACTION_EXAMPLE: &str = r#"{
 #[test]
 fn action() -> Result<()> {
     let parsed: Actions = serde_json::from_str(ACTION_EXAMPLE)?;
-    let expected: Actions = BTreeMap::from([
+    let expected: Actions = expected_action();
+    assert_eq!(parsed, expected);
+    Ok(())
+}
+
+fn expected_action() -> BTreeMap<String, crate::lex::action::Action> {
+    BTreeMap::from([
         ("pref".into(), Assigned("65435".into())),
         ("med".into(), Assigned("0".into())),
         (
@@ -28,7 +34,5 @@ fn action() -> Result<()> {
                 args: vec!["8226:1102".into()],
             }]),
         ),
-    ]);
-    assert_eq!(parsed, expected);
-    Ok(())
+    ])
 }

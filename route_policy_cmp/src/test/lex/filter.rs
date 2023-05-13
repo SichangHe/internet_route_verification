@@ -28,7 +28,16 @@ const FILTER_EXAMPLES: &[&str] = &[
 
 #[test]
 fn filter() -> Result<()> {
-    let parsed_filters = [
+    let parsed_filters = expected_filters();
+    for (&filter, expected) in zip(FILTER_EXAMPLES, parsed_filters) {
+        let parsed: Filter = serde_json::from_str(filter)?;
+        assert_eq!(parsed, expected);
+    }
+    Ok(())
+}
+
+fn expected_filters() -> [Filter; 3] {
+    [
         Policies(vec![PathAttr("AS-UNIC".into())]),
         Mixed(And {
             left: Box::new(Policies(vec![PathAttr("ANY".into())])),
@@ -41,10 +50,5 @@ fn filter() -> Result<()> {
                 right: Box::new(Policies(vec![AddrPrefixSet(vec!["2001:0DB8::/32".into()])])),
             })),
         }),
-    ];
-    for (&filter, expected) in zip(FILTER_EXAMPLES, parsed_filters) {
-        let parsed: Filter = serde_json::from_str(filter)?;
-        assert_eq!(parsed, expected);
-    }
-    Ok(())
+    ]
 }

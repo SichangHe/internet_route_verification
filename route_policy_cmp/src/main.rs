@@ -3,6 +3,7 @@ use lex::dump::Dump;
 use std::fs::File;
 
 pub mod lex;
+pub mod parse;
 #[cfg(test)]
 mod test;
 

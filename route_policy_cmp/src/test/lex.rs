@@ -1,7 +1,7 @@
 pub use super::*;
 
 mod action;
-mod dump;
+pub mod dump;
 mod filter;
 mod mp_import;
 mod peering;

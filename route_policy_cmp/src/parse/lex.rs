@@ -48,7 +48,8 @@ pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, 
             }
         };
         parsed.insert(num, AutNum { body, errors });
-        todo!("{imports:?}, {exports:?}")
+        // TODO: Implement.
+        println!("{imports:?}, {exports:?}")
     }
     parsed
 }
@@ -63,9 +64,15 @@ pub fn parse_aut_num_name(name: &str) -> Result<usize> {
 }
 
 pub fn parse_lexed_as_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, AsSet> {
-    todo!("{lexed:?}")
+    let parsed = BTreeMap::new();
+    // TODO: Implement.
+    println!("{lexed:?}");
+    parsed
 }
 
 pub fn parse_lexed_route_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {
-    todo!("{lexed:?}")
+    let parsed = BTreeMap::new();
+    // TODO: Implement.
+    println!("{lexed:?}");
+    parsed
 }

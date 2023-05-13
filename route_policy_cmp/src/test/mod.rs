@@ -1,3 +1,3 @@
 pub use anyhow::Result;
-mod lex;
+pub mod lex;
 mod parse;

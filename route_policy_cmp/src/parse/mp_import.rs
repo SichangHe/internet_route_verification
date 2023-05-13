@@ -2,7 +2,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::lex::mp_import;
 
-use super::{action::Actions, filter::Filter, peering::Peering};
+use super::{
+    filter::{parse_filter, Filter},
+    peering::{parse_mp_peerings, PeeringAction},
+};
 
 pub fn parse_imports(imports: mp_import::Versions) -> Versions {
     let mp_import::Versions { any, ipv4, ipv6 } = imports;
@@ -29,7 +32,20 @@ pub fn parse_casts(casts: mp_import::Casts) -> Casts {
 }
 
 pub fn parse_entries(entries: Vec<mp_import::Entry>) -> Vec<Entry> {
-    todo!("{entries:?}")
+    entries.into_iter().map(parse_entry).collect()
+}
+
+pub fn parse_entry(entry: mp_import::Entry) -> Entry {
+    let mp_import::Entry {
+        mp_peerings,
+        mp_filter,
+    } = entry;
+    let mp_peerings = parse_mp_peerings(mp_peerings);
+    let mp_filter = parse_filter(mp_filter);
+    Entry {
+        mp_peerings,
+        mp_filter,
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
@@ -50,10 +66,4 @@ pub struct Casts {
 pub struct Entry {
     pub mp_peerings: Vec<PeeringAction>,
     pub mp_filter: Filter,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct PeeringAction {
-    pub mp_peering: Peering,
-    pub actions: Option<Actions>,
 }

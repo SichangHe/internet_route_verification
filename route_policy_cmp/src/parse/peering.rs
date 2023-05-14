@@ -68,7 +68,23 @@ pub fn parse_as_expr(as_expr: peering::AsExpr) -> AsExpr {
 }
 
 pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
-    todo!()
+    use AsExpr::AsComp;
+    use ComplexAsExpr::*;
+    match comp {
+        peering::ComplexAsExpr::And { left, right } => AsComp(And {
+            left: Box::new(parse_as_expr(*left)),
+            right: Box::new(parse_as_expr(*right)),
+        }),
+        peering::ComplexAsExpr::Or { left, right } => AsComp(Or {
+            left: Box::new(parse_as_expr(*left)),
+            right: Box::new(parse_as_expr(*right)),
+        }),
+        peering::ComplexAsExpr::Except { left, right } => AsComp(Except {
+            left: Box::new(parse_as_expr(*left)),
+            right: Box::new(parse_as_expr(*right)),
+        }),
+        peering::ComplexAsExpr::Group(group) => AsComp(Group(Box::new(parse_as_expr(*group)))),
+    }
 }
 
 /// A simple AS field is either a AS number or a AS set.
@@ -129,4 +145,5 @@ pub enum ComplexAsExpr {
         left: Box<AsExpr>,
         right: Box<AsExpr>,
     },
+    Group(Box<AsExpr>),
 }

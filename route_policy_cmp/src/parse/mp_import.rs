@@ -48,21 +48,21 @@ pub fn parse_entry(entry: mp_import::Entry) -> Entry {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Versions {
     pub any: Option<Casts>,
     pub ipv4: Option<Casts>,
     pub ipv6: Option<Casts>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Casts {
     pub any: Option<Vec<Entry>>,
     pub unicast: Option<Vec<Entry>>,
     pub multicast: Option<Vec<Entry>>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Entry {
     pub mp_peerings: Vec<PeeringAction>,
     pub mp_filter: Filter,

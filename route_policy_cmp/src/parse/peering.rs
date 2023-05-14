@@ -105,7 +105,7 @@ pub fn parse_as_expr_field(field: &str) -> AsExpr {
 
 // TODO: Fill in.
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Peering {
     PeeringSpec {
         as_expr: AsExpr,
@@ -115,13 +115,13 @@ pub enum Peering {
     PeeringSet(String),
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PeeringAction {
     pub mp_peering: Peering,
     pub actions: Option<Actions>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(untagged)]
 pub enum AsExpr {
     AsNum(usize),
@@ -130,7 +130,7 @@ pub enum AsExpr {
     Illegal(String),
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ComplexAsExpr {
     And {

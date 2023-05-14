@@ -6,7 +6,7 @@ use super::community::Call;
 
 pub type Actions = BTreeMap<String, Action>;
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(untagged)]
 pub enum Action {
     Assigned(String),

@@ -7,7 +7,7 @@ pub fn parse_router_expr(router_expr: peering::AsExpr) -> RouterExpr {
     RouterExpr::Todo
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum RouterExpr {
     Todo, // TODO: Fill in
 }

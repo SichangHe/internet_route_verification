@@ -13,6 +13,6 @@ pub fn parse_actions(actions: action::Actions) -> Actions {
 }
 
 // TODO: Fill in.
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(untagged)]
 pub enum Action {}

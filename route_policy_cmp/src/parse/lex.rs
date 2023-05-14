@@ -6,6 +6,7 @@ use log::error;
 
 use super::{
     aut_num::AutNum,
+    mp_import::parse_imports,
     set::{AsSet, RouteSet},
 };
 use crate::lex::{dump::Dump, rpsl_object};
@@ -47,9 +48,17 @@ pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, 
                 continue;
             }
         };
-        parsed.insert(num, AutNum { body, errors });
-        // TODO: Implement.
-        println!("{imports:?}, {exports:?}")
+        let imports = parse_imports(imports);
+        let exports = parse_imports(exports);
+        parsed.insert(
+            num,
+            AutNum {
+                body,
+                errors,
+                imports,
+                exports,
+            },
+        );
     }
     parsed
 }

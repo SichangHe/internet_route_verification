@@ -38,13 +38,13 @@ pub fn parsing_mp_peering(mp_peering: peering::Peering) -> Peering {
         router_expr1,
         router_expr2,
     } = mp_peering;
-    let as_expr = parse_as_expr(as_expr);
-    let router_expr1 = router_expr1.map(parse_router_expr);
-    let router_expr2 = router_expr2.map(parse_router_expr);
+    let remote_as = parse_as_expr(as_expr);
+    let remote_router = router_expr1.map(parse_router_expr);
+    let local_router = router_expr2.map(parse_router_expr);
     Peering::PeeringSpec {
-        as_expr,
-        router_expr1,
-        router_expr2,
+        remote_as,
+        remote_router,
+        local_router,
     }
 }
 
@@ -103,14 +103,13 @@ pub fn parse_as_expr_field(field: &str) -> AsExpr {
     }
 }
 
-// TODO: Fill in.
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Peering {
     PeeringSpec {
-        as_expr: AsExpr,
-        router_expr1: Option<RouterExpr>,
-        router_expr2: Option<RouterExpr>,
+        remote_as: AsExpr,
+        remote_router: Option<RouterExpr>,
+        local_router: Option<RouterExpr>,
     },
     PeeringSet(String),
 }

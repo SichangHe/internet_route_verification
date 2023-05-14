@@ -41,9 +41,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(690),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(690),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -52,9 +52,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(513),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(513),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -63,9 +63,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(559),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(559),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -74,9 +74,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(697),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(697),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -96,9 +96,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(690),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(690),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -107,9 +107,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(513),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(513),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -118,9 +118,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(559),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(559),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],
@@ -129,9 +129,9 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            as_expr: AsNum(697),
-                            router_expr1: None,
-                            router_expr2: None,
+                            remote_as: AsNum(697),
+                            remote_router: None,
+                            local_router: None,
                         },
                         actions: btreemap! {},
                     }],

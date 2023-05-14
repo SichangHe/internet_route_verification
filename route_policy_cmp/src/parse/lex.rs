@@ -55,7 +55,7 @@ pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, 
 }
 
 pub fn parse_aut_num_name(name: &str) -> Result<usize> {
-    match regex_captures!(r"AS(\d+)", name) {
+    match regex_captures!(r"^AS(\d+)$", name) {
         Some((_, num)) => num
             .parse()
             .map_err(|err| Error::new(err).context("parsing {name}")),

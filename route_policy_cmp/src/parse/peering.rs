@@ -20,7 +20,7 @@ pub fn parse_peering_action(peering_action: mp_import::PeeringAction) -> Peering
         actions,
     } = peering_action;
     let mp_peering = parsing_mp_peering(mp_peering);
-    let actions = actions.map(parse_actions);
+    let actions = parse_actions(actions);
     PeeringAction {
         mp_peering,
         actions,
@@ -118,7 +118,7 @@ pub enum Peering {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PeeringAction {
     pub mp_peering: Peering,
-    pub actions: Option<Actions>,
+    pub actions: Actions,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

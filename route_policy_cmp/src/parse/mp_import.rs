@@ -9,9 +9,9 @@ use super::{
 
 pub fn parse_imports(imports: mp_import::Versions) -> Versions {
     let mp_import::Versions { any, ipv4, ipv6 } = imports;
-    let any = any.map(parse_casts);
-    let ipv4 = ipv4.map(parse_casts);
-    let ipv6 = ipv6.map(parse_casts);
+    let any = parse_casts(any);
+    let ipv4 = parse_casts(ipv4);
+    let ipv6 = parse_casts(ipv6);
     Versions { any, ipv4, ipv6 }
 }
 
@@ -21,9 +21,9 @@ pub fn parse_casts(casts: mp_import::Casts) -> Casts {
         unicast,
         multicast,
     } = casts;
-    let any = any.map(parse_entries);
-    let unicast = unicast.map(parse_entries);
-    let multicast = multicast.map(parse_entries);
+    let any = parse_entries(any);
+    let unicast = parse_entries(unicast);
+    let multicast = parse_entries(multicast);
     Casts {
         any,
         unicast,
@@ -50,16 +50,16 @@ pub fn parse_entry(entry: mp_import::Entry) -> Entry {
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Versions {
-    pub any: Option<Casts>,
-    pub ipv4: Option<Casts>,
-    pub ipv6: Option<Casts>,
+    pub any: Casts,
+    pub ipv4: Casts,
+    pub ipv6: Casts,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Casts {
-    pub any: Option<Vec<Entry>>,
-    pub unicast: Option<Vec<Entry>>,
-    pub multicast: Option<Vec<Entry>>,
+    pub any: Vec<Entry>,
+    pub unicast: Vec<Entry>,
+    pub multicast: Vec<Entry>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

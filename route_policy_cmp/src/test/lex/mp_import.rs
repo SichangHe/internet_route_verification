@@ -53,17 +53,17 @@ fn mp_import() -> Result<()> {
 
 fn expected_mp_import() -> Versions {
     Versions {
-        any: None,
-        ipv4: Some(Casts {
-            any: None,
-            unicast: Some(vec![Entry {
+        any: Casts::default(),
+        ipv4: Casts {
+            any: vec![],
+            unicast: vec![Entry {
                 mp_peerings: vec![PeeringAction {
                     mp_peering: Peering {
                         as_expr: Field("AS3344:PRNG-LONAP".into()),
                         router_expr1: None,
                         router_expr2: None,
                     },
-                    actions: Some(BTreeMap::from([
+                    actions: BTreeMap::from([
                         (
                             "community".into(),
                             MethodCall(vec![Call {
@@ -76,7 +76,7 @@ fn expected_mp_import() -> Versions {
                             }]),
                         ),
                         ("pref".into(), Assigned("64535".into())),
-                    ])),
+                    ]),
                 }],
                 mp_filter: Mixed(And {
                     left: Box::new(Policies(vec![PathAttr("ANY".into())])),
@@ -84,9 +84,9 @@ fn expected_mp_import() -> Versions {
                         "AS3344:fltr-filterlist".into(),
                     )]))))),
                 }),
-            }]),
-            multicast: None,
-        }),
-        ipv6: None,
+            }],
+            multicast: vec![],
+        },
+        ipv6: Casts::default(),
     }
 }

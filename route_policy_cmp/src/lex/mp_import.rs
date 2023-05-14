@@ -3,17 +3,19 @@ use serde::{Deserialize, Serialize};
 use super::{action::Actions, filter::Filter, peering::Peering};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(default)]
 pub struct Versions {
-    pub any: Option<Casts>,
-    pub ipv4: Option<Casts>,
-    pub ipv6: Option<Casts>,
+    pub any: Casts,
+    pub ipv4: Casts,
+    pub ipv6: Casts,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(default)]
 pub struct Casts {
-    pub any: Option<Vec<Entry>>,
-    pub unicast: Option<Vec<Entry>>,
-    pub multicast: Option<Vec<Entry>>,
+    pub any: Vec<Entry>,
+    pub unicast: Vec<Entry>,
+    pub multicast: Vec<Entry>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -25,5 +27,6 @@ pub struct Entry {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PeeringAction {
     pub mp_peering: Peering,
-    pub actions: Option<Actions>,
+    #[serde(default)]
+    pub actions: Actions,
 }

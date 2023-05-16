@@ -266,6 +266,7 @@ community_dot_eq = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
+# Fix me: Move array of AS regular expression to implicit or.
 policy_filter = OneOrMore(
     ~(and_kw | or_kw | not_kw) + field_wo_brace | address_prefix_set
 )

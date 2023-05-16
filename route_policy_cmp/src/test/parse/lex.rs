@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use maplit::btreemap;
 
 use crate::{
+    lex::action::Action::*,
     parse::{
         aut_num::AutNum,
         filter::Filter::*,
@@ -45,7 +46,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                             remote_router: None,
                             local_router: None,
                         },
-                        actions: btreemap! {},
+                        actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
                     mp_filter: Todo,
                 },
@@ -56,7 +57,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                             remote_router: None,
                             local_router: None,
                         },
-                        actions: btreemap! {},
+                        actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
                     mp_filter: Todo,
                 },
@@ -67,7 +68,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                             remote_router: None,
                             local_router: None,
                         },
-                        actions: btreemap! {},
+                        actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
                     mp_filter: Todo,
                 },
@@ -78,7 +79,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                             remote_router: None,
                             local_router: None,
                         },
-                        actions: btreemap! {},
+                        actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
                     mp_filter: Todo,
                 },
@@ -86,8 +87,16 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
             unicast: vec![],
             multicast: vec![],
         },
-        ipv4: Casts::default(),
-        ipv6: Casts::default(),
+        ipv4: Casts {
+            any: vec![],
+            unicast: vec![],
+            multicast: vec![],
+        },
+        ipv6: Casts {
+            any: vec![],
+            unicast: vec![],
+            multicast: vec![],
+        },
     };
 
     let exports = Versions {

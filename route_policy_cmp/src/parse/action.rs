@@ -1,18 +1,14 @@
 use std::collections::BTreeMap;
 
-use serde::{Deserialize, Serialize};
-
 use crate::lex::action;
 
+/// <https://www.rfc-editor.org/rfc/rfc2622#section-6.1.1>
 pub type Actions = BTreeMap<String, Action>;
 
 pub fn parse_actions(actions: action::Actions) -> Actions {
-    let parsed = BTreeMap::new();
-    // TODO: Implement.
-    parsed
+    actions
 }
 
-// TODO: Fill in.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-#[serde(untagged)]
-pub enum Action {}
+/// <https://www.rfc-editor.org/rfc/rfc2622#section-7>
+/// For now, we do not further parse <action>s.
+pub type Action = action::Action;

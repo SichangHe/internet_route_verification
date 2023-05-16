@@ -946,22 +946,28 @@ MP_FILTER_EXAMPLES = [
 ]
 
 LEXED_MP_FILTER_EXAMPLES = [
-    {"policy-filter": ["ANY"]},
-    {"not": {"policy-filter": ["ANY"]}},
-    {"policy-filter": [[]]},
-    {"policy-filter": [["0.0.0.0/0"]]},
+    {"filter": "ANY"},
+    {"not": {"filter": "ANY"}},
+    {"address-prefix-set": []},
+    {"address-prefix-set": ["0.0.0.0/0"]},
     {
-        "policy-filter": [
-            ["128.9.0.0/16", "128.8.0.0/16", "128.7.128.0/17", "5.0.0.0/8"]
+        "address-prefix-set": [
+            "128.9.0.0/16",
+            "128.8.0.0/16",
+            "128.7.128.0/17",
+            "5.0.0.0/8",
         ]
     },
     {
-        "policy-filter": [
-            ["5.0.0.0/8^+", "128.9.0.0/16^-", "30.0.0.0/8^16", "30.0.0.0/8^24-32"]
+        "address-prefix-set": [
+            "5.0.0.0/8^+",
+            "128.9.0.0/16^-",
+            "30.0.0.0/8^16",
+            "30.0.0.0/8^24-32",
         ]
     },
-    {"policy-filter": ["AS-SAT-TRAKT-V6", "AS-SOX"]},
-    {"policy-filter": [["2001:503:c27::/48", "2001:503:231d::/48"]]},
+    {"or": {"left": {"filter": "AS-SAT-TRAKT-V6"}, "right": {"filter": "AS-SOX"}}},
+    {"address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]},
     {
         "community": {
             "args": ["8501:1011", "8501:1013", "8501:1014", "8501:1015", "8501:1016"]
@@ -972,43 +978,50 @@ LEXED_MP_FILTER_EXAMPLES = [
             "left": {
                 "group": {
                     "or": {
-                        "left": {"policy-filter": ["PeerAS"]},
-                        "right": {"policy-filter": ["PeerAS:AS-TO-AIX"]},
+                        "left": {"filter": "PeerAS"},
+                        "right": {"filter": "PeerAS:AS-TO-AIX"},
                     }
                 }
             },
-            "right": {"policy-filter": ["<^PeerAS+PeerAS:AS-TO-AIX*$>"]},
+            "right": {"filter": "<^PeerAS+PeerAS:AS-TO-AIX*$>"},
         }
     },
     {
         "and": {
-            "left": {"policy-filter": ["AS12874"]},
+            "left": {"filter": "AS12874"},
             "right": {
                 "and": {
-                    "left": {"policy-filter": ["AS-FASTWEB"]},
-                    "right": {"policy-filter": ["AS-FASTWEB-GLOBAL"]},
+                    "left": {"filter": "AS-FASTWEB"},
+                    "right": {"filter": "AS-FASTWEB-GLOBAL"},
                 }
             },
         }
     },
     {
         "and": {
-            "left": {"policy-filter": ["ANY"]},
+            "left": {"filter": "ANY"},
             "right": {
                 "not": {"community": {"method": "contains", "args": ["8501:1120"]}}
             },
         }
     },
     {
-        "policy-filter": [
-            "AS26415",
-            ["2001:503:c27::/48", "2001:503:231d::/48"],
-        ]
+        "or": {
+            "left": {"filter": "AS26415"},
+            "right": {
+                "address-prefix-set": ["2001:503:c27::/48", "2001:503:231d::/48"]
+            },
+        }
     },
     {
         "or": {
-            "left": {"policy-filter": ["ANY", "ANY"]},
-            "right": {"not": {"policy-filter": ["AS39326:FLTR-FILTERLIST"]}},
+            "left": {"filter": "ANY"},
+            "right": {
+                "or": {
+                    "left": {"filter": "ANY"},
+                    "right": {"not": {"filter": "AS39326:FLTR-FILTERLIST"}},
+                }
+            },
         }
     },
 ]

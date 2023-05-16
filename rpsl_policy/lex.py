@@ -4,6 +4,7 @@ Parse mp-import statement following
 """
 from pyparsing import (
     CaselessKeyword,
+    Combine,
     Forward,
     Group,
     OneOrMore,
@@ -29,6 +30,8 @@ field_wo_brace = Word(printables, exclude_chars=(exclude_chars + ",(){}"))
 """A field without `,`, `(`, `)`, `{`, `}`"""
 field_wo_eq = Word(printables, exclude_chars=(exclude_chars + "="))
 """A field without `=`"""
+field_as_re = Word(printables + " ", exclude_chars=(exclude_chars + "<>"))
+"""A field inside AS regular expression `<… …>`"""
 semicolon = Word(";").suppress()
 """Semicolon, suppressed"""
 from_kw = CaselessKeyword("from")
@@ -266,13 +269,13 @@ community_dot_eq = (
 # -----------------------------------------------------------------------------
 # Further parse <mp-filter>
 # -----------------------------------------------------------------------------
-# Fix me: Move array of AS regular expression to implicit or.
-policy_filter = OneOrMore(
-    ~(and_kw | or_kw | not_kw) + field_wo_brace | address_prefix_set
-)
+policy_filter = (
+    ~(and_kw | or_kw | not_kw)
+    + (Combine("<" + field_as_re + ">")("filter") | field_wo_brace("filter"))
+) | address_prefix_set("address-prefix-set")
 """A list of elements that are either <path-attribute>: str or
 <address-prefix-set>: list[str]
--> list[str | list[str]}]
+-> policy: str | address-prefix-set: list[str]
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
 # `mp_filter` and `mp_filter_base` are recursively defined.
 mp_filter = Forward()
@@ -288,7 +291,7 @@ mp_filter = Forward()
 mp_filter_base = (
     community_field("community")
     | Group(Suppress("(") + mp_filter + Suppress(")"))("group")
-    | policy_filter("policy-filter")
+    | policy_filter
 )
 """-> community: {[method]: str, args: list[str]}
 | policy-filter: list[str | list[str]}]"""

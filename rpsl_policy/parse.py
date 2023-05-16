@@ -49,6 +49,7 @@ def clean_action(
     return cleaned
 
 
+# Fix me: Match newly changed lexer.
 def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | list[str]]:
     """community -> {community: {[method]: str, args: list[str]}}
     policy-filter -> list[str | list[str]]
@@ -57,7 +58,7 @@ def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | lis
         return lexed
     if policy_filter := lexed.get("policy-filter"):
         return policy_filter
-    return clean_mp_filter(lexed)
+    raise ValueError(f"{lexed} is not in a valid <mp-filter> base form.")
 
 
 def clean_mp_filter(

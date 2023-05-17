@@ -16,8 +16,16 @@ pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
         Not(filter) => Filter::Not(Box::new(parse_filter(*filter))),
         Group(group) => Filter::Group(Box::new(parse_filter(*group))),
         Community(call) => Filter::Community(call),
-        PathAttr(_) => todo!(),
-        AddrPrefixSet(_) => todo!(),
+        PathAttr(attr) => parse_path_attribute(attr),
+        AddrPrefixSet(set) => Filter::AddrPrefixSet(set),
+    }
+}
+
+pub fn parse_path_attribute(attr: String) -> Filter {
+    match attr.to_lowercase().as_str() {
+        "any" => Filter::Any,
+        "peeras" => Filter::PeerAs,
+        _ => todo!(),
     }
 }
 

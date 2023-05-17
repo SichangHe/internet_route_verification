@@ -54,7 +54,7 @@ pub fn try_parse_peering_set(mp_peering: &peering::Peering) -> Option<Peering> {
             as_expr: peering::AsExpr::Field(field),
             router_expr1: None,
             router_expr2: None,
-        } => regex_captures!(r"^prng-(\w+)$", field)
+        } => regex_captures!(r"^(?i)((?:AS\d+:)?prng-\S+)$", field)
             .map(|(_, name)| Peering::PeeringSet(name.into())),
         _ => None,
     }
@@ -68,29 +68,28 @@ pub fn parse_as_expr(as_expr: peering::AsExpr) -> AsExpr {
 }
 
 pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
-    use AsExpr::AsComp;
-    use ComplexAsExpr::*;
+    use AsExpr::*;
     match comp {
-        peering::ComplexAsExpr::And { left, right } => AsComp(And {
+        peering::ComplexAsExpr::And { left, right } => And {
             left: Box::new(parse_as_expr(*left)),
             right: Box::new(parse_as_expr(*right)),
-        }),
-        peering::ComplexAsExpr::Or { left, right } => AsComp(Or {
+        },
+        peering::ComplexAsExpr::Or { left, right } => Or {
             left: Box::new(parse_as_expr(*left)),
             right: Box::new(parse_as_expr(*right)),
-        }),
-        peering::ComplexAsExpr::Except { left, right } => AsComp(Except {
+        },
+        peering::ComplexAsExpr::Except { left, right } => Except {
             left: Box::new(parse_as_expr(*left)),
             right: Box::new(parse_as_expr(*right)),
-        }),
-        peering::ComplexAsExpr::Group(group) => AsComp(Group(Box::new(parse_as_expr(*group)))),
+        },
+        peering::ComplexAsExpr::Group(group) => Group(Box::new(parse_as_expr(*group))),
     }
 }
 
 /// A simple AS field is either a AS number or a AS set.
 /// Otherwise, return `AsExpr::Illegal`.
 pub fn parse_as_expr_field(field: &str) -> AsExpr {
-    if let Some((_, name)) = regex_captures!(r"^AS-(\w+)$", field) {
+    if let Some((_, name)) = regex_captures!(r"^(?i)AS-(\S+)$", field) {
         // AS set.
         return AsExpr::AsSet(name.into());
     }
@@ -121,17 +120,9 @@ pub struct PeeringAction {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-#[serde(untagged)]
 pub enum AsExpr {
     AsNum(usize),
     AsSet(String),
-    AsComp(ComplexAsExpr),
-    Illegal(String),
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ComplexAsExpr {
     And {
         left: Box<AsExpr>,
         right: Box<AsExpr>,
@@ -145,4 +136,5 @@ pub enum ComplexAsExpr {
         right: Box<AsExpr>,
     },
     Group(Box<AsExpr>),
+    Illegal(String),
 }

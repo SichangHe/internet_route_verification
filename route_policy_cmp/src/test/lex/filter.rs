@@ -1,25 +1,24 @@
 use std::iter::zip;
 
-use crate::lex::filter::{
-    Base::*,
-    Filter::{self, *},
-    Policy::*,
-};
+use crate::lex::filter::Filter::{self, *};
 
 use super::*;
 
 const FILTER_EXAMPLES: &[&str] = &[
-    r#"["AS-UNIC"]"#,
+    r#"{"path_attr": "AS-UNIC"}"#,
     r#"{
-    "and": {"left": ["ANY"], "right": [["0.0.0.0/0^0-24"]]}
+    "and": {
+        "left": {"path_attr": "ANY"},
+        "right": {"addr_prefix_set": ["0.0.0.0/0^0-24"]}
+    }
 }"#,
     r#"{
     "and": {
-        "left": ["as-foo"],
+        "left": {"path_attr": "as-foo"},
         "right": {
             "and": {
-                "left": ["AS65226"],
-                "right": [["2001:0DB8::/32"]]
+                "left": {"path_attr": "AS65226"},
+                "right": {"addr_prefix_set": ["2001:0DB8::/32"]}
             }
         }
     }
@@ -38,17 +37,17 @@ fn filter() -> Result<()> {
 
 fn expected_filters() -> [Filter; 3] {
     [
-        Policies(vec![PathAttr("AS-UNIC".into())]),
-        Mixed(And {
-            left: Box::new(Policies(vec![PathAttr("ANY".into())])),
-            right: Box::new(Policies(vec![AddrPrefixSet(vec!["0.0.0.0/0^0-24".into()])])),
-        }),
-        Mixed(And {
-            left: Box::new(Policies(vec![PathAttr("as-foo".into())])),
-            right: Box::new(Mixed(And {
-                left: Box::new(Policies(vec![PathAttr("AS65226".into())])),
-                right: Box::new(Policies(vec![AddrPrefixSet(vec!["2001:0DB8::/32".into()])])),
-            })),
-        }),
+        PathAttr("AS-UNIC".into()),
+        And {
+            left: Box::new(PathAttr("ANY".into())),
+            right: Box::new(AddrPrefixSet(vec!["0.0.0.0/0^0-24".into()])),
+        },
+        And {
+            left: Box::new(PathAttr("as-foo".into())),
+            right: Box::new(And {
+                left: Box::new(PathAttr("AS65226".into())),
+                right: Box::new(AddrPrefixSet(vec!["2001:0DB8::/32".into()])),
+            }),
+        },
     ]
 }

@@ -58,7 +58,7 @@ def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | lis
         return lexed
     if policy_filter := lexed.get("filter"):
         return {"path_attr": policy_filter}
-    if addr_prefix_set := lexed.get("address-prefix-set"):
+    if (addr_prefix_set := lexed.get("address-prefix-set")) is not None:
         return {"addr_prefix_set": addr_prefix_set}
     raise ValueError(f"{lexed} is not in a valid <mp-filter> base form.")
 

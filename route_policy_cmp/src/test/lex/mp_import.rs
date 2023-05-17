@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use crate::lex::{
     action::Action::*,
     community::Call,
-    filter::{Base::*, Filter::*, Policy::*},
+    filter::Filter::*,
     mp_import::{Casts, Entry, PeeringAction, Versions},
     peering::{AsExpr::*, Peering},
 };
@@ -34,8 +34,8 @@ const MP_IMPORT_EXAMPLE: &str = r#"{
                 ],
                 "mp_filter": {
                     "and": {
-                        "left": ["ANY"],
-                        "right": {"not": ["AS3344:fltr-filterlist"]}
+                        "left": {"path_attr": "ANY"},
+                        "right": {"not": {"path_attr": "AS3344:fltr-filterlist"}}
                     }
                 }
             }
@@ -78,12 +78,10 @@ fn expected_mp_import() -> Versions {
                         ("pref".into(), Assigned("64535".into())),
                     ]),
                 }],
-                mp_filter: Mixed(And {
-                    left: Box::new(Policies(vec![PathAttr("ANY".into())])),
-                    right: Box::new(Mixed(Not(Box::new(Policies(vec![PathAttr(
-                        "AS3344:fltr-filterlist".into(),
-                    )]))))),
-                }),
+                mp_filter: And {
+                    left: Box::new(PathAttr("ANY".into())),
+                    right: Box::new(Not(Box::new(PathAttr("AS3344:fltr-filterlist".into())))),
+                },
             }],
             multicast: vec![],
         },

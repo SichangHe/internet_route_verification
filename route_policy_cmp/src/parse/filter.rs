@@ -1,36 +1,24 @@
 use serde::{Deserialize, Serialize};
 
-use crate::lex::{
-    community::Call,
-    filter::{self, Base},
-};
+use crate::lex::{community::Call, filter};
 
 pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
+    use filter::Filter::*;
     match mp_filter {
-        filter::Filter::Mixed(base) => parse_filter_base(base),
-        filter::Filter::Policies(policies) => parse_filter_policies(policies),
-    }
-}
-
-pub fn parse_filter_base(base: filter::Base) -> Filter {
-    use Filter::*;
-    match base {
-        Base::And { left, right } => And {
+        And { left, right } => Filter::And {
             left: Box::new(parse_filter(*left)),
             right: Box::new(parse_filter(*right)),
         },
-        Base::Or { left, right } => Or {
+        Or { left, right } => Filter::Or {
             left: Box::new(parse_filter(*left)),
             right: Box::new(parse_filter(*right)),
         },
-        Base::Not(filter) => Not(Box::new(parse_filter(*filter))),
-        Base::Group(group) => Group(Box::new(parse_filter(*group))),
-        Base::Community(call) => Community(call),
+        Not(filter) => Filter::Not(Box::new(parse_filter(*filter))),
+        Group(group) => Filter::Group(Box::new(parse_filter(*group))),
+        Community(call) => Filter::Community(call),
+        PathAttr(_) => todo!(),
+        AddrPrefixSet(_) => todo!(),
     }
-}
-
-pub fn parse_filter_policies(policies: Vec<filter::Policy>) -> Filter {
-    todo!()
 }
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>

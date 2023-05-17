@@ -285,7 +285,8 @@ mp_filter = Forward()
 | not: {...}
 | group: {...}
 | community: {[method]: str, args: list[str]}
-| policy-filter: list[str | list[str]}]
+| policy: str
+| address-prefix-set: list[str]
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
 mp_filter_base = (
@@ -294,7 +295,8 @@ mp_filter_base = (
     | policy_filter
 )
 """-> community: {[method]: str, args: list[str]}
-| policy-filter: list[str | list[str]}]"""
+| policy: str
+| address-prefix-set: list[str]"""
 mp_filter_not = Group(Suppress(not_kw) + mp_filter_base)("not")
 mp_filter_or_not = mp_filter_base | mp_filter_not
 mp_filter_and = Group(

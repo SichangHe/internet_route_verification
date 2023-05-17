@@ -49,15 +49,17 @@ def clean_action(
     return cleaned
 
 
-# Fix me: Match newly changed lexer.
 def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | list[str]]:
     """community -> {community: {[method]: str, args: list[str]}}
-    policy-filter -> list[str | list[str]]
+    policy-filter -> str
+    address-prefix-set -> list[str]
     mp_filter -> ..."""
     if "community" in lexed:
         return lexed
-    if policy_filter := lexed.get("policy-filter"):
-        return policy_filter
+    if policy_filter := lexed.get("filter"):
+        return {"path_attr": policy_filter}
+    if addr_prefix_set := lexed.get("address-prefix-set"):
+        return {"addr_prefix_set": addr_prefix_set}
     raise ValueError(f"{lexed} is not in a valid <mp-filter> base form.")
 
 

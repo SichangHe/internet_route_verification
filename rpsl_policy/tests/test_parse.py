@@ -11,7 +11,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS9002"}}],
-                    "mp_filter": ["ANY"],
+                    "mp_filter": {"path_attr": "ANY"},
                 }
             ]
         }
@@ -24,7 +24,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                         {"mp_peering": {"as_expr": "AS9002"}},
                         {"mp_peering": {"as_expr": "AS2356"}},
                     ],
-                    "mp_filter": ["ANY"],
+                    "mp_filter": {"path_attr": "ANY"},
                 }
             ]
         }
@@ -39,7 +39,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "100"},
                         }
                     ],
-                    "mp_filter": ["ANY"],
+                    "mp_filter": {"path_attr": "ANY"},
                 }
             ]
         }
@@ -54,7 +54,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "100"},
                         }
                     ],
-                    "mp_filter": ["AS-ZSTTK6-SET"],
+                    "mp_filter": {"path_attr": "AS-ZSTTK6-SET"},
                 }
             ]
         }
@@ -69,7 +69,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             "actions": {"pref": "100", "med": "0"},
                         }
                     ],
-                    "mp_filter": ["AS-ZSTTK6-SET"],
+                    "mp_filter": {"path_attr": "AS-ZSTTK6-SET"},
                 }
             ]
         }
@@ -79,7 +79,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "any": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS1213"}}],
-                    "mp_filter": [["::/0"]],
+                    "mp_filter": {"addr_prefix_set": ["::/0"]},
                 }
             ]
         }
@@ -95,7 +95,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                         }
                     ],
                     "mp_filter": {
-                        "and": {"left": ["ANY"], "right": {"not": [["0.0.0.0/0"]]}}
+                        "and": {
+                            "left": {"path_attr": "ANY"},
+                            "right": {"not": {"addr_prefix_set": ["0.0.0.0/0"]}},
+                        }
                     },
                 }
             ]
@@ -121,7 +124,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                         }
                     ],
                     "mp_filter": {
-                        "and": {"left": ["ANY"], "right": [["0.0.0.0/0^0-24"]]}
+                        "and": {
+                            "left": {"path_attr": "ANY"},
+                            "right": {"addr_prefix_set": ["0.0.0.0/0^0-24"]},
+                        }
                     },
                 }
             ]
@@ -140,7 +146,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS174"],
+                    "mp_filter": {"path_attr": "AS174"},
                 },
                 {
                     "mp_peerings": [
@@ -152,7 +158,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-UNIC"],
+                    "mp_filter": {"path_attr": "AS-UNIC"},
                 },
                 {
                     "mp_peerings": [
@@ -164,7 +170,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-NORDUNET"],
+                    "mp_filter": {"path_attr": "AS-NORDUNET"},
                 },
                 {
                     "mp_peerings": [
@@ -176,7 +182,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-IGNEMEA"],
+                    "mp_filter": {"path_attr": "AS-IGNEMEA"},
                 },
                 {
                     "mp_peerings": [
@@ -188,7 +194,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-GLOBALIPNET"],
+                    "mp_filter": {"path_attr": "AS-GLOBALIPNET"},
                 },
                 {
                     "mp_peerings": [
@@ -200,7 +206,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-KMD"],
+                    "mp_filter": {"path_attr": "AS-KMD"},
                 },
                 {
                     "mp_peerings": [
@@ -212,7 +218,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-TELENOR"],
+                    "mp_filter": {"path_attr": "AS-TELENOR"},
                 },
                 {
                     "mp_peerings": [
@@ -224,7 +230,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-COHAESIO"],
+                    "mp_filter": {"path_attr": "AS-COHAESIO"},
                 },
                 {
                     "mp_peerings": [
@@ -236,7 +242,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-WEBPARTNER"],
+                    "mp_filter": {"path_attr": "AS-WEBPARTNER"},
                 },
                 {
                     "mp_peerings": [
@@ -248,7 +254,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-IPO"],
+                    "mp_filter": {"path_attr": "AS-IPO"},
                 },
                 {
                     "mp_peerings": [
@@ -260,7 +266,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-INIT7"],
+                    "mp_filter": {"path_attr": "AS-INIT7"},
                 },
                 {
                     "mp_peerings": [
@@ -272,7 +278,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-DK-ARROWHEAD"],
+                    "mp_filter": {"path_attr": "AS-DK-ARROWHEAD"},
                 },
                 {
                     "mp_peerings": [
@@ -284,7 +290,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-IPX"],
+                    "mp_filter": {"path_attr": "AS-IPX"},
                 },
                 {
                     "mp_peerings": [
@@ -296,7 +302,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-JAYNET"],
+                    "mp_filter": {"path_attr": "AS-JAYNET"},
                 },
                 {
                     "mp_peerings": [
@@ -308,7 +314,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-JAYNET"],
+                    "mp_filter": {"path_attr": "AS-JAYNET"},
                 },
                 {
                     "mp_peerings": [
@@ -320,7 +326,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS16150:AS-CUSTOMERS"],
+                    "mp_filter": {"path_attr": "AS16150:AS-CUSTOMERS"},
                 },
                 {
                     "mp_peerings": [
@@ -332,7 +338,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-NGDC"],
+                    "mp_filter": {"path_attr": "AS-NGDC"},
                 },
                 {
                     "mp_peerings": [
@@ -344,7 +350,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-INFOCONNECT"],
+                    "mp_filter": {"path_attr": "AS-INFOCONNECT"},
                 },
                 {
                     "mp_peerings": [
@@ -356,7 +362,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-INFOCONNECT"],
+                    "mp_filter": {"path_attr": "AS-INFOCONNECT"},
                 },
                 {
                     "mp_peerings": [
@@ -368,7 +374,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-DMDATADK"],
+                    "mp_filter": {"path_attr": "AS-DMDATADK"},
                 },
                 {
                     "mp_peerings": [
@@ -380,7 +386,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-DMDATADK"],
+                    "mp_filter": {"path_attr": "AS-DMDATADK"},
                 },
                 {
                     "mp_peerings": [
@@ -392,7 +398,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-ZENSYSTEMS"],
+                    "mp_filter": {"path_attr": "AS-ZENSYSTEMS"},
                 },
                 {
                     "mp_peerings": [
@@ -404,7 +410,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS29100"],
+                    "mp_filter": {"path_attr": "AS29100"},
                 },
                 {
                     "mp_peerings": [
@@ -416,7 +422,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-DANMARKSRADIO"],
+                    "mp_filter": {"path_attr": "AS-DANMARKSRADIO"},
                 },
                 {
                     "mp_peerings": [
@@ -428,7 +434,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-NIANET"],
+                    "mp_filter": {"path_attr": "AS-NIANET"},
                 },
                 {
                     "mp_peerings": [
@@ -440,7 +446,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-COMX"],
+                    "mp_filter": {"path_attr": "AS-COMX"},
                 },
                 {
                     "mp_peerings": [
@@ -452,7 +458,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS33916"],
+                    "mp_filter": {"path_attr": "AS33916"},
                 },
                 {
                     "mp_peerings": [
@@ -464,7 +470,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-EUROTRANSIT"],
+                    "mp_filter": {"path_attr": "AS-EUROTRANSIT"},
                 },
                 {
                     "mp_peerings": [
@@ -476,7 +482,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS34823"],
+                    "mp_filter": {"path_attr": "AS34823"},
                 },
                 {
                     "mp_peerings": [
@@ -488,7 +494,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-BUTLERNET"],
+                    "mp_filter": {"path_attr": "AS-BUTLERNET"},
                 },
                 {
                     "mp_peerings": [
@@ -500,7 +506,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-GCNET"],
+                    "mp_filter": {"path_attr": "AS-GCNET"},
                 },
                 {
                     "mp_peerings": [
@@ -512,7 +518,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS-VGDC"],
+                    "mp_filter": {"path_attr": "AS-VGDC"},
                 },
             ]
         }
@@ -524,7 +530,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {"mp_peering": {"as_expr": "AS2895"}, "actions": {"pref": "10"}}
                     ],
-                    "mp_filter": ["ANY"],
+                    "mp_filter": {"path_attr": "ANY"},
                 }
             ]
         }
@@ -534,7 +540,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS8365"}}],
-                    "mp_filter": ["AS-MANDA"],
+                    "mp_filter": {"path_attr": "AS-MANDA"},
                 }
             ]
         }
@@ -546,7 +552,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [
                         {"mp_peering": {"as_expr": "AS8928"}, "actions": {"pref": "10"}}
                     ],
-                    "mp_filter": ["ANY"],
+                    "mp_filter": {"path_attr": "ANY"},
                 }
             ]
         }
@@ -575,8 +581,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     ],
                     "mp_filter": {
                         "and": {
-                            "left": ["ANY"],
-                            "right": {"not": ["AS3344:fltr-filterlist"]},
+                            "left": {"path_attr": "ANY"},
+                            "right": {"not": {"path_attr": "AS3344:fltr-filterlist"}},
                         }
                     },
                 }
@@ -592,7 +598,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                         {"mp_peering": {"as_expr": "AS3"}, "actions": {"pref": "3"}}
                     ],
                     "mp_filter": {
-                        "and": {"left": ["AS226"], "right": [["128.9.0.0/16"]]}
+                        "and": {
+                            "left": {"path_attr": "AS226"},
+                            "right": {"addr_prefix_set": ["128.9.0.0/16"]},
+                        }
                     },
                 },
                 {
@@ -601,8 +610,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     ],
                     "mp_filter": {
                         "and": {
-                            "left": ["AS226"],
-                            "right": {"not": [["128.9.0.0/16"]]},
+                            "left": {"path_attr": "AS226"},
+                            "right": {"not": {"addr_prefix_set": ["128.9.0.0/16"]}},
                         }
                     },
                 },
@@ -615,17 +624,17 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
-                    "mp_filter": ["as-foo"],
+                    "mp_filter": {"path_attr": "as-foo"},
                 },
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65003"}}],
                     "mp_filter": {
                         "and": {
-                            "left": ["as-foo"],
+                            "left": {"path_attr": "as-foo"},
                             "right": {
                                 "and": {
-                                    "left": ["AS65226"],
-                                    "right": [["2001:0DB8::/32"]],
+                                    "left": {"path_attr": "AS65226"},
+                                    "right": {"addr_prefix_set": ["2001:0DB8::/32"]},
                                 }
                             },
                         }
@@ -635,12 +644,14 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
                     "mp_filter": {
                         "and": {
-                            "left": ["as-foo"],
+                            "left": {"path_attr": "as-foo"},
                             "right": {
                                 "not": {
                                     "and": {
-                                        "left": ["AS65226"],
-                                        "right": [["2001:0DB8::/32"]],
+                                        "left": {"path_attr": "AS65226"},
+                                        "right": {
+                                            "addr_prefix_set": ["2001:0DB8::/32"]
+                                        },
                                     }
                                 }
                             },
@@ -651,11 +662,13 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65002"}}],
                     "mp_filter": {
                         "and": {
-                            "left": ["as-foo"],
+                            "left": {"path_attr": "as-foo"},
                             "right": {
                                 "and": {
-                                    "left": ["AS65226"],
-                                    "right": {"not": [["2001:0DB8::/32"]]},
+                                    "left": {"path_attr": "AS65226"},
+                                    "right": {
+                                        "not": {"addr_prefix_set": ["2001:0DB8::/32"]}
+                                    },
                                 }
                             },
                         }
@@ -665,12 +678,16 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
                     "mp_filter": {
                         "and": {
-                            "left": ["as-foo"],
+                            "left": {"path_attr": "as-foo"},
                             "right": {
                                 "not": {
                                     "and": {
-                                        "left": ["AS65226"],
-                                        "right": {"not": [["2001:0DB8::/32"]]},
+                                        "left": {"path_attr": "AS65226"},
+                                        "right": {
+                                            "not": {
+                                                "addr_prefix_set": ["2001:0DB8::/32"]
+                                            }
+                                        },
                                     }
                                 }
                             },
@@ -683,17 +700,25 @@ PARSED_MP_IMPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65002"}}],
-                    "mp_filter": {"and": {"left": ["as-foo"], "right": ["AS65226"]}},
-                },
-                {
-                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
                     "mp_filter": {
-                        "and": {"left": ["as-foo"], "right": {"not": ["AS65226"]}}
+                        "and": {
+                            "left": {"path_attr": "as-foo"},
+                            "right": {"path_attr": "AS65226"},
+                        }
                     },
                 },
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
-                    "mp_filter": ["as-foo"],
+                    "mp_filter": {
+                        "and": {
+                            "left": {"path_attr": "as-foo"},
+                            "right": {"not": {"path_attr": "AS65226"}},
+                        }
+                    },
+                },
+                {
+                    "mp_peerings": [{"mp_peering": {"as_expr": "AS65001"}}],
+                    "mp_filter": {"path_attr": "as-foo"},
                 },
             ]
         },
@@ -713,7 +738,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_filter": {
                         "and": {
                             "left": {"community": {"args": ["3560:10"]}},
-                            "right": ["AS1"],
+                            "right": {"path_attr": "AS1"},
                         }
                     },
                 },
@@ -729,7 +754,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_filter": {
                         "and": {
                             "left": {"community": {"args": ["3560:10"]}},
-                            "right": ["AS2"],
+                            "right": {"path_attr": "AS2"},
                         }
                     },
                 },
@@ -745,7 +770,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_filter": {
                         "and": {
                             "left": {"community": {"args": ["3560:10"]}},
-                            "right": ["AS3"],
+                            "right": {"path_attr": "AS3"},
                         }
                     },
                 },
@@ -761,7 +786,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_filter": {
                         "and": {
                             "left": {"community": {"args": ["3560:20"]}},
-                            "right": ["AS1"],
+                            "right": {"path_attr": "AS1"},
                         }
                     },
                 },
@@ -777,7 +802,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_filter": {
                         "and": {
                             "left": {"community": {"args": ["3560:20"]}},
-                            "right": ["AS2"],
+                            "right": {"path_attr": "AS2"},
                         }
                     },
                 },
@@ -793,7 +818,7 @@ PARSED_MP_IMPORT_EXAMPLES = [
                     "mp_filter": {
                         "and": {
                             "left": {"community": {"args": ["3560:20"]}},
-                            "right": ["AS3"],
+                            "right": {"path_attr": "AS3"},
                         }
                     },
                 },
@@ -814,7 +839,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                         }
                     ],
                     "mp_filter": {
-                        "and": {"left": [["0.0.0.0/0^0-18"]], "right": ["AS1"]}
+                        "and": {
+                            "left": {"addr_prefix_set": ["0.0.0.0/0^0-18"]},
+                            "right": {"path_attr": "AS1"},
+                        }
                     },
                 },
                 {
@@ -827,7 +855,10 @@ PARSED_MP_IMPORT_EXAMPLES = [
                         }
                     ],
                     "mp_filter": {
-                        "and": {"left": [["0.0.0.0/0^0-18"]], "right": ["AS1"]}
+                        "and": {
+                            "left": {"addr_prefix_set": ["0.0.0.0/0^0-18"]},
+                            "right": {"path_attr": "AS1"},
+                        }
                     },
                 },
             ]
@@ -881,7 +912,9 @@ PARSED_MP_IMPORT_EXAMPLES = [
                                                     }
                                                 }
                                             },
-                                            "right": {"not": ["fltr-martian"]},
+                                            "right": {
+                                                "not": {"path_attr": "fltr-martian"}
+                                            },
                                         }
                                     },
                                 }
@@ -933,12 +966,14 @@ PARSED_MP_IMPORT_EXAMPLES = [
                                                     }
                                                 }
                                             },
-                                            "right": {"not": ["fltr-martian"]},
+                                            "right": {
+                                                "not": {"path_attr": "fltr-martian"}
+                                            },
                                         }
                                     },
                                 }
                             },
-                            "right": ["ANY"],
+                            "right": {"path_attr": "ANY"},
                         }
                     },
                 },
@@ -1005,7 +1040,7 @@ PARSED_MP_EXPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS1880"}}],
-                    "mp_filter": ["AS1881"],
+                    "mp_filter": {"path_attr": "AS1881"},
                 }
             ]
         }
@@ -1015,7 +1050,7 @@ PARSED_MP_EXPORT_EXAMPLES = [
             "unicast": [
                 {
                     "mp_peerings": [{"mp_peering": {"as_expr": "AS3356"}}],
-                    "mp_filter": ["AS2597:AS-CUSTOMERS-v6"],
+                    "mp_filter": {"path_attr": "AS2597:AS-CUSTOMERS-v6"},
                 }
             ]
         }
@@ -1033,7 +1068,12 @@ PARSED_MP_EXPORT_EXAMPLES = [
                             }
                         }
                     ],
-                    "mp_filter": ["AS5421", "AS112"],
+                    "mp_filter": {
+                        "or": {
+                            "left": {"path_attr": "AS5421"},
+                            "right": {"path_attr": "AS112"},
+                        }
+                    },
                 }
             ]
         }
@@ -1050,7 +1090,7 @@ PARSED_MP_EXPORT_EXAMPLES = [
                             },
                         }
                     ],
-                    "mp_filter": ["AS9150:AS-INTERCONNECT"],
+                    "mp_filter": {"path_attr": "AS9150:AS-INTERCONNECT"},
                 }
             ]
         }
@@ -1068,7 +1108,12 @@ PARSED_MP_EXPORT_EXAMPLES = [
                             "actions": {"med": "0"},
                         }
                     ],
-                    "mp_filter": ["AS8226", "AS8226:AS-CUST"],
+                    "mp_filter": {
+                        "or": {
+                            "left": {"path_attr": "AS8226"},
+                            "right": {"path_attr": "AS8226:AS-CUST"},
+                        }
+                    },
                 }
             ]
         }

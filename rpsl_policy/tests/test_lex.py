@@ -983,7 +983,7 @@ LEXED_MP_FILTER_EXAMPLES = [
                     }
                 }
             },
-            "right": {"filter": "<^PeerAS+PeerAS:AS-TO-AIX*$>"},
+            "right": {"regex": "^PeerAS+PeerAS:AS-TO-AIX*$"},
         }
     },
     {

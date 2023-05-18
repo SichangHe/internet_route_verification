@@ -271,11 +271,11 @@ community_dot_eq = (
 # -----------------------------------------------------------------------------
 policy_filter = (
     ~(and_kw | or_kw | not_kw)
-    + (Combine("<" + field_as_re + ">")("filter") | field_wo_brace("filter"))
+    + (Combine("<" + field_as_re("regex") + ">") | field_wo_brace("filter"))
 ) | address_prefix_set("address-prefix-set")
 """A list of elements that are either <path-attribute>: str or
 <address-prefix-set>: list[str]
--> policy: str | address-prefix-set: list[str]
+-> regex: str | filter: str | address-prefix-set: list[str]
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
 # `mp_filter` and `mp_filter_base` are recursively defined.
 mp_filter = Forward()
@@ -285,7 +285,8 @@ mp_filter = Forward()
 | not: {...}
 | group: {...}
 | community: {[method]: str, args: list[str]}
-| policy: str
+| regex: str
+| filter: str
 | address-prefix-set: list[str]
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5.2>
 <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>"""
@@ -295,7 +296,8 @@ mp_filter_base = (
     | policy_filter
 )
 """-> community: {[method]: str, args: list[str]}
-| policy: str
+| regex: str
+| filter: str
 | address-prefix-set: list[str]"""
 mp_filter_not = Group(Suppress(not_kw) + mp_filter_base)("not")
 mp_filter_or_not = mp_filter_base | mp_filter_not

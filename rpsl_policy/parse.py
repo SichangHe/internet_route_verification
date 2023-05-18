@@ -51,10 +51,10 @@ def clean_action(
 
 def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | list[str]]:
     """community -> {community: {[method]: str, args: list[str]}}
-    policy-filter -> str
-    address-prefix-set -> list[str]
-    mp_filter -> ..."""
-    if "community" in lexed:
+    regex -> {regex: str}
+    policy-filter -> {path_attr: str}
+    address-prefix-set -> {addr_prefix_set: list[str]}"""
+    if "community" in lexed or "regex" in lexed:
         return lexed
     if policy_filter := lexed.get("filter"):
         return {"path_attr": policy_filter}
@@ -66,9 +66,11 @@ def clean_mp_filter_base(lexed: dict) -> dict[str, dict | list] | list[str | lis
 def clean_mp_filter(
     lexed: dict,
 ) -> dict[str, dict | list] | list[str | list[str]]:
-    """-> {(and | or: {left, right}) | not | group}
-    | {community: {[method]: str, args: list[str]}}
-    | list[str | list[str]]"""
+    """-> {
+        (and | or: {left, right}) | not | group
+        | community: {[method]: str, args: list[str]}
+        | regex: str | path_attr: str | addr_prefix_set: list[str]
+       }"""
     if inner := lexed.get("and"):
         return {
             "and": {

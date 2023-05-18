@@ -18,4 +18,5 @@ pub enum Filter {
     Community(Call),
     PathAttr(String),
     AddrPrefixSet(Vec<String>),
+    Regex(String),
 }

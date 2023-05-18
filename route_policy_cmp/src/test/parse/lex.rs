@@ -6,7 +6,10 @@ use crate::{
     lex::action::Action::*,
     parse::{
         aut_num::AutNum,
-        filter::Filter::{self, Any},
+        filter::{
+            Filter::{self, Any},
+            RegexOperator::*,
+        },
         lex::{parse_aut_num_name, parse_lexed},
         mp_import::{Casts, Entry, Versions},
         peering::{AsExpr::*, Peering::*, PeeringAction},
@@ -70,7 +73,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                         },
                         actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
-                    mp_filter: Filter::AsNum(559),
+                    mp_filter: Filter::AsNum(559, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
@@ -81,7 +84,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                         },
                         actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
-                    mp_filter: Filter::AsNum(697),
+                    mp_filter: Filter::AsNum(697, NoOp),
                 },
             ],
             unicast: vec![],
@@ -111,7 +114,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590),
+                    mp_filter: Filter::AsNum(590, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
@@ -122,7 +125,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590),
+                    mp_filter: Filter::AsNum(590, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
@@ -133,7 +136,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590),
+                    mp_filter: Filter::AsNum(590, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
@@ -144,7 +147,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590),
+                    mp_filter: Filter::AsNum(590, NoOp),
                 },
             ],
             unicast: vec![],

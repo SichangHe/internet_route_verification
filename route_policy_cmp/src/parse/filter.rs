@@ -1,12 +1,7 @@
-use lazy_regex::regex_is_match;
+use lazy_regex::{regex_captures, regex_is_match};
 use serde::{Deserialize, Serialize};
 
 use crate::lex::{community::Call, filter};
-
-use super::{
-    lex::parse_aut_num_name,
-    peering::{try_parse_as_set, AsExpr},
-};
 
 pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
     use filter::Filter::*;
@@ -24,6 +19,7 @@ pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
         Community(call) => Filter::Community(call),
         PathAttr(attr) => parse_path_attribute(attr),
         AddrPrefixSet(set) => Filter::AddrPrefixSet(set),
+        Regex(expr) => Filter::AsPathRE(expr),
     }
 }
 
@@ -38,13 +34,26 @@ pub fn parse_path_attribute(attr: String) -> Filter {
         Filter::FilterSetName(attr)
     } else if regex_is_match!(r"^(AS\d+:)?rs-\S+$"i, &attr) {
         Filter::RouteSetName(attr)
-    } else if let Some(name) = try_parse_as_set(&attr) {
-        Filter::AsSet(name.into())
-    } else if let Ok(num) = parse_aut_num_name(&attr) {
-        Filter::AsNum(num)
+    } else if let Some(filter) = try_parse_as_set(&attr) {
+        filter
+    } else if let Some(filter) = try_parse_as_num(&attr) {
+        filter
     } else {
         Filter::AsPathRE(attr)
     }
+}
+
+pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
+    regex_captures!(r"^AS-([^\s\^]+(\^[+-])?)$"i, attr).and_then(|(_, name, operator)| {
+        RegexOperator::parse_str(operator).map(|op| Filter::AsSet(name.into(), op))
+    })
+}
+
+pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
+    regex_captures!(r"^AS(\d+(\^[+-])?)$"i, attr).and_then(|(_, number, operator)| {
+        RegexOperator::parse_str(operator)
+            .and_then(|op| number.parse().ok().map(|num| Filter::AsNum(num, op)))
+    })
 }
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>
@@ -60,8 +69,9 @@ pub enum Filter {
     /// May also be implicitly define route sets
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.3>.
     RouteSetName(String),
-    AsNum(usize),
-    AsSet(String),
+    AsNum(usize, RegexOperator),
+    AsSet(String, RegexOperator),
+    /// Basically, we do not deal with this at present.
     /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
     AsPathRE(String),
     PeerAs,
@@ -76,4 +86,24 @@ pub enum Filter {
     Not(Box<Filter>),
     Group(Box<Filter>),
     Community(Call),
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum RegexOperator {
+    NoOp,
+    /// `^+`
+    Plus,
+    /// `^-`
+    Minus,
+}
+
+impl RegexOperator {
+    pub fn parse_str(s: &str) -> Option<Self> {
+        match s {
+            "" => Some(Self::NoOp),
+            "^+" => Some(Self::Plus),
+            "^-" => Some(Self::Minus),
+            _ => None,
+        }
+    }
 }

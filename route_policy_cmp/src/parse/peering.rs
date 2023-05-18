@@ -54,7 +54,7 @@ pub fn try_parse_peering_set(mp_peering: &peering::Peering) -> Option<Peering> {
             as_expr: peering::AsExpr::Field(field),
             router_expr1: None,
             router_expr2: None,
-        } => regex_captures!(r"^(?i)((?:AS\d+:)?prng-\S+)$", field)
+        } => regex_captures!(r"^((?:AS\d+:)?prng-\S+)$"i, field)
             .map(|(_, name)| Peering::PeeringSet(name.into())),
         _ => None,
     }
@@ -89,7 +89,7 @@ pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
 /// A simple AS field is either a AS number or a AS set.
 /// Otherwise, return `AsExpr::Illegal`.
 pub fn parse_as_expr_field(field: &str) -> AsExpr {
-    if let Some((_, name)) = regex_captures!(r"^(?i)AS-(\S+)$", field) {
+    if let Some((_, name)) = regex_captures!(r"^AS-(\S+)$"i, field) {
         // AS set.
         return AsExpr::AsSet(name.into());
     }

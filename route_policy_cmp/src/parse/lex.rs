@@ -8,7 +8,7 @@ use super::{
     aut_num::AutNum,
     aut_sys::{parse_as_name, try_parse_as_set},
     mp_import::parse_imports,
-    set::{AsSet, RouteSet},
+    set::{is_route_set_name, AsSet, RouteSet},
 };
 use crate::lex::{dump::Dump, rpsl_object};
 
@@ -97,8 +97,24 @@ pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, A
 }
 
 pub fn parse_lexed_route_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {
-    let parsed = BTreeMap::new();
-    // TODO: Implement.
-    println!("{lexed:?}");
-    parsed
+    lexed
+        .into_iter()
+        .filter_map(|l| parse_lexed_route_set(l).map_err(|e| error!("{e:?}")).ok())
+        .collect()
+}
+
+pub fn parse_lexed_route_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, RouteSet)> {
+    if !is_route_set_name(&lexed.name) {
+        bail!(
+            "{} is an illegal route set name—parsing {lexed:?}",
+            lexed.name
+        );
+    }
+    Ok((
+        lexed.name,
+        RouteSet {
+            body: lexed.body,
+            members: lexed.members,
+        },
+    ))
 }

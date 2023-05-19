@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::lex::{community::Call, filter};
 
+use super::set::is_route_set_name;
+
 pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
     use filter::Filter::*;
     match mp_filter {
@@ -32,7 +34,7 @@ pub fn parse_path_attribute(attr: String) -> Filter {
         Filter::AsPathRE(attr)
     } else if regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, &attr) {
         Filter::FilterSetName(attr)
-    } else if regex_is_match!(r"^(AS\d+:)?rs-\S+$"i, &attr) {
+    } else if is_route_set_name(&attr) {
         Filter::RouteSetName(attr)
     } else if let Some(filter) = try_parse_as_set(&attr) {
         filter

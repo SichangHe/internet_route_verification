@@ -1,12 +1,11 @@
-use lazy_regex::{regex_captures, regex_is_match};
-use log::error;
+use lazy_regex::regex_is_match;
 use serde::{Deserialize, Serialize};
 
 use crate::lex::{mp_import, peering};
 
 use super::{
     action::{parse_actions, Actions},
-    lex::parse_aut_num_name,
+    aut_sys::{parse_as_name, AsName},
     router_expr::{parse_router_expr, RouterExpr},
 };
 
@@ -62,7 +61,7 @@ pub fn try_parse_peering_set(mp_peering: &peering::Peering) -> Option<Peering> {
 
 pub fn parse_as_expr(as_expr: peering::AsExpr) -> AsExpr {
     match as_expr {
-        peering::AsExpr::Field(field) => parse_as_expr_field(&field),
+        peering::AsExpr::Field(field) => AsExpr::Single(parse_as_name(&field)),
         peering::AsExpr::AsComp(comp) => parse_complex_as_expr(comp),
     }
 }
@@ -86,26 +85,6 @@ pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
     }
 }
 
-/// A simple AS field is either a AS number or a AS set.
-/// Otherwise, return `AsExpr::Illegal`.
-pub fn parse_as_expr_field(field: &str) -> AsExpr {
-    if let Some(name) = try_parse_as_set(field) {
-        // AS set.
-        return AsExpr::AsSet(name.into());
-    }
-    match parse_aut_num_name(field) {
-        Ok(num) => AsExpr::AsNum(num), // AS number.
-        Err(err) => {
-            error!("{err}");
-            AsExpr::Illegal(err.to_string())
-        }
-    }
-}
-
-pub fn try_parse_as_set(field: &str) -> Option<&str> {
-    regex_captures!(r"^AS-(\S+)$"i, field).map(|(_, name)| name)
-}
-
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Peering {
@@ -125,8 +104,7 @@ pub struct PeeringAction {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum AsExpr {
-    AsNum(usize),
-    AsSet(String),
+    Single(AsName),
     And {
         left: Box<AsExpr>,
         right: Box<AsExpr>,
@@ -140,5 +118,4 @@ pub enum AsExpr {
         right: Box<AsExpr>,
     },
     Group(Box<AsExpr>),
-    Illegal(String),
 }

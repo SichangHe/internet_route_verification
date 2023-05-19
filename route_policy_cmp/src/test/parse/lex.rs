@@ -6,10 +6,8 @@ use crate::{
     lex::action::Action::*,
     parse::{
         aut_num::AutNum,
-        filter::{
-            Filter::{self, Any},
-            RegexOperator::*,
-        },
+        aut_sys::AsName::*,
+        filter::{Filter::*, RegexOperator::*},
         lex::{parse_aut_num_name, parse_lexed},
         mp_import::{Casts, Entry, Versions},
         peering::{AsExpr::*, Peering::*, PeeringAction},
@@ -45,7 +43,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(690),
+                            remote_as: Single(Num(690)),
                             remote_router: None,
                             local_router: None,
                         },
@@ -56,7 +54,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(513),
+                            remote_as: Single(Num(513)),
                             remote_router: None,
                             local_router: None,
                         },
@@ -67,24 +65,24 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(559),
+                            remote_as: Single(Num(559)),
                             remote_router: None,
                             local_router: None,
                         },
                         actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
-                    mp_filter: Filter::AsNum(559, NoOp),
+                    mp_filter: AsNum(559, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(697),
+                            remote_as: Single(Num(697)),
                             remote_router: None,
                             local_router: None,
                         },
                         actions: btreemap! {"pref".into() => Assigned("100".into())},
                     }],
-                    mp_filter: Filter::AsNum(697, NoOp),
+                    mp_filter: AsNum(697, NoOp),
                 },
             ],
             unicast: vec![],
@@ -108,46 +106,46 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(690),
+                            remote_as: Single(Num(690)),
                             remote_router: None,
                             local_router: None,
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590, NoOp),
+                    mp_filter: AsNum(590, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(513),
+                            remote_as: Single(Num(513)),
                             remote_router: None,
                             local_router: None,
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590, NoOp),
+                    mp_filter: AsNum(590, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(559),
+                            remote_as: Single(Num(559)),
                             remote_router: None,
                             local_router: None,
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590, NoOp),
+                    mp_filter: AsNum(590, NoOp),
                 },
                 Entry {
                     mp_peerings: vec![PeeringAction {
                         mp_peering: PeeringSpec {
-                            remote_as: AsNum(697),
+                            remote_as: Single(Num(697)),
                             remote_router: None,
                             local_router: None,
                         },
                         actions: btreemap! {},
                     }],
-                    mp_filter: Filter::AsNum(590, NoOp),
+                    mp_filter: AsNum(590, NoOp),
                 },
             ],
             unicast: vec![],

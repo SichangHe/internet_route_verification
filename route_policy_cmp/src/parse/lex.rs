@@ -43,8 +43,9 @@ pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, 
         let num = match parse_aut_num_name(&name) {
             Ok(num) => num,
             Err(err) => {
+                let err = format!("{err:?}");
                 error!("{err}");
-                errors.push(err.to_string());
+                errors.push(err);
                 continue;
             }
         };

@@ -1,11 +1,6 @@
 use anyhow::Result;
-use lex::dump::Dump;
+use route_policy_cmp::lex::dump::Dump;
 use std::fs::File;
-
-pub mod lex;
-pub mod parse;
-#[cfg(test)]
-mod test;
 
 fn main() -> Result<()> {
     env_logger::init();

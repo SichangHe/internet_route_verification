@@ -28,6 +28,7 @@ pub fn parse_as_name(field: &str) -> AsName {
     }
 }
 
+/// Try parsing `field` as an AS set name and return the name without the `AS-`.
 pub fn try_parse_as_set(field: &str) -> Option<&str> {
     regex_captures!(r"^AS-(\S+)$"i, field).map(|(_, name)| name)
 }

@@ -1,11 +1,12 @@
 use std::collections::BTreeMap;
 
-use anyhow::{bail, Error, Result};
+use anyhow::{anyhow, bail, Error, Result};
 use lazy_regex::regex_captures;
 use log::error;
 
 use super::{
     aut_num::AutNum,
+    aut_sys::{parse_as_name, try_parse_as_set},
     mp_import::parse_imports,
     set::{AsSet, RouteSet},
 };
@@ -74,10 +75,25 @@ pub fn parse_aut_num_name(name: &str) -> Result<usize> {
 }
 
 pub fn parse_lexed_as_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, AsSet> {
-    let parsed = BTreeMap::new();
-    // TODO: Implement.
-    println!("{lexed:?}");
-    parsed
+    lexed
+        .into_iter()
+        .filter_map(|l| parse_lexed_as_set(l).map_err(|e| error!("{e:?}")).ok())
+        .collect()
+}
+
+pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, AsSet)> {
+    let name = try_parse_as_set(&lexed.name)
+        .ok_or_else(|| anyhow!("{} is an illegal AS set name—parsing {lexed:?}", lexed.name))?;
+    let members = lexed
+        .members
+        .into_iter()
+        .map(|f| parse_as_name(&f))
+        .collect();
+    let as_set = AsSet {
+        body: lexed.body,
+        members,
+    };
+    Ok((name.into(), as_set))
 }
 
 pub fn parse_lexed_route_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {

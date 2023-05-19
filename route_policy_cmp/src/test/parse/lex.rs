@@ -167,7 +167,7 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
 }
 
 fn expected_as_sets() -> BTreeMap<String, AsSet> {
-    BTreeMap::from([])
+    btreemap! {"RESTENA".into()=> AsSet { body: "descr: Reseau Teleinformatique de l'Education Nationale\ndescr: Educational and research network for Luxembourg\nmembers: AS2602\nmembers: AS42909\nmembers: AS51966\nmembers: AS-LXP\nmembers: AS-VDL\ntech-c: DUMY-RIPE\nadmin-c: DUMY-RIPE\nnotify: noc@restena.lu\nmnt-by: AS2602-MNT\ncreated: 1970-01-01T00:00:00Z\nlast-modified: 2022-09-08T09:11:41Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), members: vec![Num(2602), Num(42909), Num(51966), Set("LXP".into()), Set("VDL".into())] }}
 }
 
 fn expected_route_sets() -> BTreeMap<String, RouteSet> {

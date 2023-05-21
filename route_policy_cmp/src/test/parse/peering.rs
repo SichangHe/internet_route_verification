@@ -1,5 +1,5 @@
 use crate::lex::peering;
-use crate::parse::peering::{parse_mp_peering, try_parse_peering_set, Peering};
+use crate::parse::peering::{is_peering_set, parse_mp_peering, AsExpr, Peering};
 
 #[test]
 fn peering_set() {
@@ -8,13 +8,17 @@ fn peering_set() {
         "prng-as5408-grix-peers".to_string(),
     ] {
         let parsed = parse_mp_peering(peering_field(name.clone()));
-        let expected = Peering::PeeringSet(name);
+        let expected = Peering {
+            remote_as: AsExpr::PeeringSet(name),
+            remote_router: None,
+            local_router: None,
+        };
         assert_eq!(parsed, expected);
     }
 
-    let name = "AS5408:RS-ROUTES^0-32".into();
-    let parsed = try_parse_peering_set(&peering_field(name));
-    assert_eq!(parsed, None);
+    let name = "AS5408:RS-ROUTES^0-32";
+    let is_set = is_peering_set(name);
+    assert!(!is_set);
 }
 
 fn peering_field(name: String) -> peering::Peering {

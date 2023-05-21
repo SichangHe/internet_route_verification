@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, io::Read};
 
 use anyhow::{bail, Context, Error, Result};
 use lazy_regex::regex_captures;
@@ -129,4 +129,12 @@ pub struct Dump {
     pub aut_nums: BTreeMap<usize, AutNum>,
     pub as_sets: BTreeMap<String, AsSet>,
     pub route_sets: BTreeMap<String, RouteSet>,
+}
+
+impl Dump {
+    pub fn from_reader(reader: impl Read) -> Result<Dump, serde_json::Error> {
+        let mut deserializer = serde_json::Deserializer::from_reader(reader);
+        deserializer.disable_recursion_limit();
+        Dump::deserialize(&mut deserializer)
+    }
 }

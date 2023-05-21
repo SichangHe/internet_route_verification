@@ -1,5 +1,6 @@
 **.DS_Store
 **.db
+**.ipynb_checkpoints
 **.json
 **.txt
 **__pycache__/

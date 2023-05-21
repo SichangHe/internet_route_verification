@@ -18,7 +18,7 @@ pub fn parse_peering_action(peering_action: mp_import::PeeringAction) -> Peering
         mp_peering,
         actions,
     } = peering_action;
-    let mp_peering = parsing_mp_peering(mp_peering);
+    let mp_peering = parse_mp_peering(mp_peering);
     let actions = parse_actions(actions);
     PeeringAction {
         mp_peering,
@@ -26,7 +26,7 @@ pub fn parse_peering_action(peering_action: mp_import::PeeringAction) -> Peering
     }
 }
 
-pub fn parsing_mp_peering(mp_peering: peering::Peering) -> Peering {
+pub fn parse_mp_peering(mp_peering: peering::Peering) -> Peering {
     if let Some(set) = try_parse_peering_set(&mp_peering) {
         // <peering-set>
         return set;
@@ -61,7 +61,7 @@ pub fn try_parse_peering_set(mp_peering: &peering::Peering) -> Option<Peering> {
 
 pub fn parse_as_expr(as_expr: peering::AsExpr) -> AsExpr {
     match as_expr {
-        peering::AsExpr::Field(field) => AsExpr::Single(parse_as_name(&field)),
+        peering::AsExpr::Field(field) => AsExpr::Single(parse_as_name(field)),
         peering::AsExpr::AsComp(comp) => parse_complex_as_expr(comp),
     }
 }

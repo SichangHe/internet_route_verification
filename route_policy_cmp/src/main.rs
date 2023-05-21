@@ -1,12 +1,14 @@
+#![recursion_limit = "1024"]
+
 use anyhow::Result;
-use route_policy_cmp::lex::dump::Dump;
+use route_policy_cmp::{lex::dump::Dump, parse::lex::parse_lexed};
 use std::fs::File;
 
 fn main() -> Result<()> {
     env_logger::init();
     // Test lex dumped.
     let file = File::open("../dump.json")?;
-    let lexed: Dump = serde_json::from_reader(file)?;
+    let lexed = Dump::from_reader(file)?;
     for index in 0..10 {
         if let Some(aut_num) = lexed.aut_nums.get(index) {
             println!("aut_num: {aut_num:#?}");
@@ -18,5 +20,9 @@ fn main() -> Result<()> {
             println!("route_set: {route_set:#?}");
         }
     }
+
+    let parsed = parse_lexed(lexed);
+    let out = File::create("../parsed.json")?;
+    serde_json::to_writer(out, &parsed)?;
     Ok(())
 }

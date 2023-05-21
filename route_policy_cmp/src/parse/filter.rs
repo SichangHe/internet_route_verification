@@ -46,13 +46,15 @@ pub fn parse_path_attribute(attr: String) -> Filter {
 }
 
 pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
-    regex_captures!(r"^AS-([^\s\^]+(\^[+-])?)$"i, attr).and_then(|(_, name, operator)| {
-        RegexOperator::parse_str(operator).map(|op| Filter::AsSet(name.into(), op))
-    })
+    regex_captures!(r"^((?:AS\d+:)?AS-[^\s\^]+)(\^[+-])?$"i, attr).and_then(
+        |(_, name, operator)| {
+            RegexOperator::parse_str(operator).map(|op| Filter::AsSet(name.into(), op))
+        },
+    )
 }
 
 pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
-    regex_captures!(r"^AS(\d+(\^[+-])?)$"i, attr).and_then(|(_, number, operator)| {
+    regex_captures!(r"^AS(\d+)(\^[+-])?$"i, attr).and_then(|(_, number, operator)| {
         RegexOperator::parse_str(operator)
             .and_then(|op| number.parse().ok().map(|num| Filter::AsNum(num, op)))
     })

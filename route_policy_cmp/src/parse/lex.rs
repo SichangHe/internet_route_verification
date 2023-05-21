@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
-use anyhow::{bail, Error, Result};
+use anyhow::{bail, Context, Error, Result};
 use lazy_regex::regex_captures;
-use log::error;
+use log::{error, info};
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -14,51 +15,62 @@ use super::{
 use crate::lex::{dump, rpsl_object};
 
 pub fn parse_lexed(lexed: dump::Dump) -> Dump {
+    info!("Start to parse lexed dump.");
     let dump::Dump {
         aut_nums,
         as_sets,
         route_sets,
     } = lexed;
+    let aut_nums = parse_lexed_aut_nums(aut_nums);
+    info!("Parsed {} Aut Nums.", aut_nums.len());
+    let as_sets = parse_lexed_as_sets(as_sets);
+    info!("Parsed {} As Sets.", aut_nums.len());
+    let route_sets = parse_lexed_route_sets(route_sets);
+    info!("Parsed {} Route Sets.", aut_nums.len());
     Dump {
-        aut_nums: parse_lexed_aut_nums(aut_nums),
-        as_sets: parse_lexed_as_sets(as_sets),
-        route_sets: parse_lexed_route_sets(route_sets),
+        aut_nums,
+        as_sets,
+        route_sets,
     }
 }
 
 pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, AutNum> {
-    let mut parsed = BTreeMap::new();
-    for aut_num in lexed {
-        let rpsl_object::AutNum {
-            name,
+    lexed
+        .into_par_iter()
+        .map(parse_lexed_aut_num)
+        .fold(BTreeMap::new, |mut parsed, result| {
+            match result {
+                Ok((num, aut_num)) => {
+                    parsed.insert(num, aut_num);
+                }
+                Err(err) => error!("{err:#}"),
+            }
+            parsed
+        })
+        .reduce(BTreeMap::new, |mut they, we| {
+            they.extend(we);
+            they
+        })
+}
+
+pub fn parse_lexed_aut_num(aut_num: rpsl_object::AutNum) -> Result<(usize, AutNum)> {
+    let rpsl_object::AutNum {
+        name,
+        body,
+        imports,
+        exports,
+    } = aut_num;
+    let num = parse_aut_num_name(&name).context("parsing {aut_num:?}")?;
+    let imports = parse_imports(imports);
+    let exports = parse_imports(exports);
+    Ok((
+        num,
+        AutNum {
             body,
             imports,
             exports,
-        } = aut_num;
-        let mut errors = Vec::new();
-        let num = match parse_aut_num_name(&name) {
-            Ok(num) => num,
-            Err(err) => {
-                let err = err.context("parsing {aut_num:?}");
-                let err = format!("{err:#}");
-                error!("{err}");
-                errors.push(err);
-                continue;
-            }
-        };
-        let imports = parse_imports(imports);
-        let exports = parse_imports(exports);
-        parsed.insert(
-            num,
-            AutNum {
-                body,
-                errors,
-                imports,
-                exports,
-            },
-        );
-    }
-    parsed
+        },
+    ))
 }
 
 pub fn parse_aut_num_name(name: &str) -> Result<usize> {
@@ -72,7 +84,7 @@ pub fn parse_aut_num_name(name: &str) -> Result<usize> {
 
 pub fn parse_lexed_as_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, AsSet> {
     lexed
-        .into_iter()
+        .into_par_iter()
         .filter_map(|l| parse_lexed_as_set(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
@@ -91,7 +103,7 @@ pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, A
 
 pub fn parse_lexed_route_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {
     lexed
-        .into_iter()
+        .into_par_iter()
         .filter_map(|l| parse_lexed_route_set(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }

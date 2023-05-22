@@ -2,13 +2,14 @@ use std::io::Read;
 
 use serde::{Deserialize, Serialize};
 
-use super::rpsl_object::{AsOrRouteSet, AutNum};
+use super::rpsl_object::{AsOrRouteSet, AutNum, PeeringSet};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Dump {
     pub aut_nums: Vec<AutNum>,
     pub as_sets: Vec<AsOrRouteSet>,
     pub route_sets: Vec<AsOrRouteSet>,
+    pub peering_sets: Vec<PeeringSet>,
 }
 
 impl Dump {

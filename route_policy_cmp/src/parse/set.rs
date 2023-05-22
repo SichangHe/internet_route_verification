@@ -1,7 +1,7 @@
 use lazy_regex::regex_is_match;
 use serde::{Deserialize, Serialize};
 
-use super::aut_sys::AsName;
+use super::{aut_sys::AsName, peering::Peering};
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.1>
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -22,4 +22,10 @@ pub struct RouteSet {
     /// `<route-set-name><range-operator>`.
     // TODO: Parse them.
     pub members: Vec<String>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct PeeringSet {
+    pub body: String,
+    pub peerings: Vec<Peering>,
 }

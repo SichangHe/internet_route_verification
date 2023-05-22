@@ -4,14 +4,15 @@ from io import TextIOWrapper
 
 from pyparsing import ParseException
 
-from .lex import member, mp_import
+from .lex import member, mp_import, mp_peering
 from .lines import expressions, io_wrapper_lines, lines_continued, rpsl_objects
-from .parse import import_export, lex_with
-from .rpsl_object import AsSet, AutNum, RouteSet, RPSLObject
+from .parse import clean_mp_peering, import_export, lex_with
+from .rpsl_object import AsSet, AutNum, PeeringSet, RouteSet, RPSLObject
 
 aut_nums: list[dict] = []
 as_sets: list[dict] = []
 route_sets: list[dict] = []
+peering_sets: list[dict] = []
 
 n = 0
 
@@ -48,9 +49,22 @@ def gather_members(obj: RPSLObject) -> list[str]:
     return members
 
 
+def gather_peerings(obj: RPSLObject) -> list[dict]:
+    peerings = []
+    for key, expr in expressions(lines_continued(obj.body.splitlines())):
+        if key == "peering":
+            try:
+                lexed = lex_with(mp_peering, expr)
+                if parsed := clean_mp_peering(lexed):
+                    peerings.append(parsed)
+            except ParseException as err:
+                print(f"{err} while parsing {expr} in {obj}.", file=sys.stderr)
+    return peerings
+
+
 def print_count():
     print(
-        f"Parsed {len(aut_nums)} aut_nums, {len(as_sets)} as_sets, {len(route_sets)} route_sets.",
+        f"Parsed {len(aut_nums)} aut_nums, {len(as_sets)} as_sets, {len(route_sets)} route_sets, {len(peering_sets)} peering_sets.",
         file=sys.stderr,
     )
 
@@ -67,6 +81,9 @@ def parse_object(obj: RPSLObject):
     if obj.closs == "route-set":
         members = gather_members(obj)
         route_sets.append(RouteSet(obj.name, obj.body, members).__dict__)
+    if obj.closs == "peering-set":
+        peerings = gather_peerings(obj)
+        peering_sets.append(PeeringSet(obj.name, obj.body, peerings).__dict__)
     n += 1
 
 
@@ -75,7 +92,12 @@ def read_db(db: TextIOWrapper):
     for obj in rpsl_objects(db_lines):
         parse_object(obj)
     json.dump(
-        {"aut_nums": aut_nums, "as_sets": as_sets, "route_sets": route_sets},
+        {
+            "aut_nums": aut_nums,
+            "as_sets": as_sets,
+            "route_sets": route_sets,
+            "peering_sets": peering_sets,
+        },
         sys.stdout,
         separators=(",", ":"),
     )

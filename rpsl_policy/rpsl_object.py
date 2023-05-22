@@ -35,3 +35,12 @@ class RouteSet:
     body: str
     members: list[str]
     """members and mp-members."""
+
+
+@dataclass
+class PeeringSet:
+    """peering-set class."""
+
+    name: str
+    body: str
+    peerings: list[dict]

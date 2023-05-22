@@ -11,7 +11,8 @@ use crate::{
         lex::{parse_aut_num_name, parse_lexed, Dump},
         mp_import::{Casts, Entry, Versions},
         peering::{AsExpr::*, Peering, PeeringAction},
-        set::{AsSet, RouteSet},
+        router_expr::RouterExpr::*,
+        set::{AsSet, PeeringSet, RouteSet},
     },
     test::lex::dump::expected_dump,
 };
@@ -33,10 +34,12 @@ fn parse_dump() {
         aut_nums,
         as_sets,
         route_sets,
+        peering_sets,
     } = parse_lexed(lexed);
     assert_eq!(aut_nums, expected_aut_nums());
     assert_eq!(as_sets, expected_as_sets());
     assert_eq!(route_sets, expected_route_sets());
+    assert_eq!(peering_sets, expected_peering_sets());
 }
 
 fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
@@ -163,7 +166,6 @@ fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
         590,
         AutNum {
             body,
-            errors: vec![],
             imports,
             exports,
         },
@@ -176,4 +178,8 @@ fn expected_as_sets() -> BTreeMap<String, AsSet> {
 
 fn expected_route_sets() -> BTreeMap<String, RouteSet> {
     btreemap! {"AS13646:RS-PEERLANS".into()=> RouteSet { body: "descr: Internet Exchange Peering LAN Routes\nmembers: 195.66.224.0/23\nmembers: 194.68.129.0/24\nmembers: 217.29.66.0/23\nmembers: 193.149.1.0/25\nmembers: 193.149.1.128/25\nmembers: 193.148.15.0/24\nmembers: 194.31.232.0/24\nmembers: 194.42.48.0/25\nmembers: 194.53.172.0/26\nmembers: 193.203.0.0/24\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\nmnt-by: ZIGGO-SERVICES-MNT\ncreated: 1970-01-01T00:00:00Z\nlast-modified: 2020-01-21T15:43:54Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), members: vec!["195.66.224.0/23".into(), "194.68.129.0/24".into(), "217.29.66.0/23".into(), "193.149.1.0/25".into(), "193.149.1.128/25".into(), "193.148.15.0/24".into(), "194.31.232.0/24".into(), "194.42.48.0/25".into(), "194.53.172.0/26".into(), "193.203.0.0/24".into()] }}
+}
+
+fn expected_peering_sets() -> BTreeMap<String, PeeringSet> {
+    btreemap! {"AS8785:prng-nyiix".into()=> PeeringSet { body: "descr: NYIIX Peering Partners\npeering: AS2516 at 198.32.160.25\npeering: AS3257 at 198.32.160.29\npeering: AS4323 at 198.32.160.35\npeering: AS4436 at 198.32.160.53\npeering: AS4513 at 198.32.160.32\npeering: AS5496 at 198.32.160.16\npeering: AS6427 at 198.32.160.12\npeering: AS6461 at 198.32.160.22\npeering: AS6660 at 198.32.160.13\npeering: AS6667 at 198.32.160.41\npeering: AS6939 at 198.32.160.61\npeering: AS8001 at 198.32.160.20\npeering: AS8002 at 198.32.160.33\npeering: AS8220 at 198.32.160.34\npeering: AS8647 at 198.32.160.14\npeering: AS8966 at 198.32.160.45\npeering: AS9156 at 198.32.160.24\npeering: AS13768 at 198.32.160.65\npeering: AS13945 at 198.32.160.37\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\nmnt-by: MISTRALNOC\ncreated: 2001-10-20T18:41:03Z\nlast-modified: 2005-10-10T11:47:35Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), peerings: vec![Peering { remote_as: Single(Num(2516)), remote_router: None, local_router: Some(Field("198.32.160.25".into())) }, Peering { remote_as: Single(Num(3257)), remote_router: None, local_router: Some(Field("198.32.160.29".into())) }, Peering { remote_as: Single(Num(4323)), remote_router: None, local_router: Some(Field("198.32.160.35".into())) }, Peering { remote_as: Single(Num(4436)), remote_router: None, local_router: Some(Field("198.32.160.53".into())) }, Peering { remote_as: Single(Num(4513)), remote_router: None, local_router: Some(Field("198.32.160.32".into())) }, Peering { remote_as: Single(Num(5496)), remote_router: None, local_router: Some(Field("198.32.160.16".into())) }, Peering { remote_as: Single(Num(6427)), remote_router: None, local_router: Some(Field("198.32.160.12".into())) }, Peering { remote_as: Single(Num(6461)), remote_router: None, local_router: Some(Field("198.32.160.22".into())) }, Peering { remote_as: Single(Num(6660)), remote_router: None, local_router: Some(Field("198.32.160.13".into())) }, Peering { remote_as: Single(Num(6667)), remote_router: None, local_router: Some(Field("198.32.160.41".into())) }, Peering { remote_as: Single(Num(6939)), remote_router: None, local_router: Some(Field("198.32.160.61".into())) }, Peering { remote_as: Single(Num(8001)), remote_router: None, local_router: Some(Field("198.32.160.20".into())) }, Peering { remote_as: Single(Num(8002)), remote_router: None, local_router: Some(Field("198.32.160.33".into())) }, Peering { remote_as: Single(Num(8220)), remote_router: None, local_router: Some(Field("198.32.160.34".into())) }, Peering { remote_as: Single(Num(8647)), remote_router: None, local_router: Some(Field("198.32.160.14".into())) }, Peering { remote_as: Single(Num(8966)), remote_router: None, local_router: Some(Field("198.32.160.45".into())) }, Peering { remote_as: Single(Num(9156)), remote_router: None, local_router: Some(Field("198.32.160.24".into())) }, Peering { remote_as: Single(Num(13768)), remote_router: None, local_router: Some(Field("198.32.160.65".into())) }, Peering { remote_as: Single(Num(13945)), remote_router: None, local_router: Some(Field("198.32.160.37".into())) }] }}
 }

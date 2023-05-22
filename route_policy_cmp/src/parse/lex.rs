@@ -10,7 +10,8 @@ use super::{
     aut_num::AutNum,
     aut_sys::{is_as_set, parse_as_name},
     mp_import::parse_imports,
-    set::{is_route_set_name, AsSet, RouteSet},
+    peering::{is_peering_set, parse_mp_peering},
+    set::{is_route_set_name, AsSet, PeeringSet, RouteSet},
 };
 use crate::lex::{dump, rpsl_object};
 
@@ -20,17 +21,21 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         aut_nums,
         as_sets,
         route_sets,
+        peering_sets,
     } = lexed;
     let aut_nums = parse_lexed_aut_nums(aut_nums);
     info!("Parsed {} Aut Nums.", aut_nums.len());
     let as_sets = parse_lexed_as_sets(as_sets);
-    info!("Parsed {} As Sets.", as_set.len());
+    info!("Parsed {} As Sets.", as_sets.len());
     let route_sets = parse_lexed_route_sets(route_sets);
     info!("Parsed {} Route Sets.", route_sets.len());
+    let peering_sets = parse_lexed_peering_sets(peering_sets);
+    info!("Parsed {} Peering Sets.", peering_sets.len());
     Dump {
         aut_nums,
         as_sets,
         route_sets,
+        peering_sets,
     }
 }
 
@@ -124,11 +129,37 @@ pub fn parse_lexed_route_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String
     ))
 }
 
+pub fn parse_lexed_peering_sets(
+    lexed: Vec<rpsl_object::PeeringSet>,
+) -> BTreeMap<String, PeeringSet> {
+    lexed
+        .into_par_iter()
+        .filter_map(|l| parse_lexed_peering_set(l).map_err(|e| error!("{e:#}")).ok())
+        .collect()
+}
+
+pub fn parse_lexed_peering_set(lexed: rpsl_object::PeeringSet) -> Result<(String, PeeringSet)> {
+    if !is_peering_set(&lexed.name) {
+        bail!(
+            "{} is an illegal ppeering set name—parsing {lexed:?}",
+            lexed.name
+        );
+    }
+    Ok((
+        lexed.name,
+        PeeringSet {
+            body: lexed.body,
+            peerings: lexed.peerings.into_iter().map(parse_mp_peering).collect(),
+        },
+    ))
+}
+
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Dump {
     pub aut_nums: BTreeMap<usize, AutNum>,
     pub as_sets: BTreeMap<String, AsSet>,
     pub route_sets: BTreeMap<String, RouteSet>,
+    pub peering_sets: BTreeMap<String, PeeringSet>,
 }
 
 impl Dump {

@@ -42,20 +42,8 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
 pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, AutNum> {
     lexed
         .into_par_iter()
-        .map(parse_lexed_aut_num)
-        .fold(BTreeMap::new, |mut parsed, result| {
-            match result {
-                Ok((num, aut_num)) => {
-                    parsed.insert(num, aut_num);
-                }
-                Err(err) => error!("{err:#}"),
-            }
-            parsed
-        })
-        .reduce(BTreeMap::new, |mut they, we| {
-            they.extend(we);
-            they
-        })
+        .filter_map(|l| parse_lexed_aut_num(l).map_err(|e| error!("{e:#}")).ok())
+        .collect()
 }
 
 pub fn parse_lexed_aut_num(aut_num: rpsl_object::AutNum) -> Result<(usize, AutNum)> {

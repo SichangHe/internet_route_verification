@@ -1,5 +1,3 @@
-#![recursion_limit = "1024"]
-
 use anyhow::Result;
 use log::info;
 use route_policy_cmp::{lex::dump::Dump, parse::lex::parse_lexed};

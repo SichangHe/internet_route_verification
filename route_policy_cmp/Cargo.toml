@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.71"
 env_logger = "0.10.0"
+ipnet = { version = "2.7.2", features = ["serde"] }
 lazy-regex = "2.5.0"
 log = "0.4.17"
 maplit = "1.0.2"

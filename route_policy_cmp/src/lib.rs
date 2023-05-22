@@ -1,5 +1,4 @@
-#![recursion_limit = "1024"]
-
+pub mod bgp;
 pub mod lex;
 pub mod parse;
 #[cfg(test)]

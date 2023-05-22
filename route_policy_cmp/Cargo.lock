@@ -157,6 +157,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ipnet"
+version = "2.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12b6ee2129af8d4fb011108c73d99a1b83a85977f23b82460c0ae2e25bb4b57f"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "is-terminal"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -318,6 +327,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "env_logger",
+ "ipnet",
  "lazy-regex",
  "log",
  "maplit",

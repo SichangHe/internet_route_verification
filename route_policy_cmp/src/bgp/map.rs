@@ -2,8 +2,9 @@
 //! <https://github.com/cunha/measurements/blob/9a14123b4c9d47297fa4c284ff8dd0834ba73936/bgp/bgpmap/src/lib.rs>.
 use std::{fmt::Display, net::IpAddr, str::FromStr};
 
-use anyhow::Result;
+use anyhow::{bail, Context, Result};
 use ipnet::IpNet;
+use lazy_regex::regex_captures;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -48,53 +49,41 @@ impl IntoIterator for AsPathEntry {
 }
 
 impl FromStr for AsPathEntry {
-    type Err = String;
+    type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        lazy_static! {
-            static ref RE: Regex = Regex::new(r"\{(\d+(?:,\d+)*)\}").unwrap();
-        }
-        // let ee: Regex = Regex::new(r"\{(\d+(?:,\d+)*)\}").unwrap();
         let asn = s.parse::<u32>();
         if let Ok(n) = asn {
             return Ok(AsPathEntry::Seq(n));
         }
-        let caps = RE.captures(s).ok_or("as-path-entry-no-match")?;
+        let (_, cap) =
+            regex_captures!(r"\{(\d+(?:,\d+)*)\}", s).context("as-path-entry-no-match")?;
         // Regex should guarantee the unwraps never fail:
-        let asset: Vec<u32> = caps
-            .get(1)
-            .unwrap()
-            .as_str()
-            .split(',')
-            .map(|n| n.parse::<u32>().unwrap())
-            .collect();
+        let asset = cap.split(',').map(|n| n.parse().unwrap()).collect();
         Ok(AsPathEntry::Set(asset))
     }
 }
 
-fn parse_bgpdump_table_dump_v2(
-    line: &str,
-) -> Result<(IpNet, Vec<AsPathEntry>, CollectorPeer), String> {
+pub fn parse_bgpdump_table_dump_v2(line: &str) -> Result<(IpNet, Vec<AsPathEntry>, CollectorPeer)> {
     // TABLE_DUMP2|1619481601|B|94.156.252.18|34224|6.132.0.0/14|34224 6939 8003|IGP|94.156.252.18|0|0|34224:333 34224:334 34224:2040|NAG|||
     // TABLE_DUMP2|1661040000|B|94.177.122.251|58057|2001:410::/32|58057 174 1299 1299 1299 2603 2603 2603 6509 {271,7860,8111,10972,53904}|IGP|::ffff:94.177.122.251|0|0|174:21100 58057:65010 174:22005|AG|6509 205.189.32.101|
-    assert!(line.starts_with("TABLE_DUMP2"));
-    let fields: Vec<&str> = line.split('|').collect();
+    if !(line.starts_with("TABLE_DUMP2")) {
+        bail!("{line} does not start with TABLE_DUMP2");
+    }
+    let fields: Vec<_> = line.split('|').collect();
+    if fields.len() < 7 {
+        bail!("{line} breaks down to less than 7 fields");
+    }
     let vp = CollectorPeer {
-        asn: fields[4]
-            .parse::<u32>()
-            .map_err(|_| String::from("bad-vp-asn"))?,
-        ip: fields[3]
-            .parse::<IpAddr>()
-            .map_err(|_| String::from("bad-vp-ip"))?,
+        asn: fields[4].parse::<u32>().context("bad-vp-asn")?,
+        ip: fields[3].parse::<IpAddr>().context("bad-vp-ip")?,
     };
-    let prefix: IpNet = fields[5]
-        .parse::<IpNet>()
-        .map_err(|_| String::from("bad-prefix"))?;
+    let prefix: IpNet = fields[5].parse::<IpNet>().context("bad-prefix")?;
 
     let aspath: Vec<AsPathEntry> = fields[6]
         .split(' ')
-        .map(|e| e.parse::<AsPathEntry>())
-        .collect::<Result<Vec<AsPathEntry>, String>>()?;
+        .map(|e| e.parse())
+        .collect::<Result<_>>()?;
 
     Ok((prefix, aspath, vp))
 }

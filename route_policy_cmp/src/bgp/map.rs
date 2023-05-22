@@ -9,15 +9,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct CollectorPeer {
-    asn: u32,
+    asn: usize,
     ip: IpAddr,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AsPathEntry {
-    Seq(u32),
-    Set(Vec<u32>),
+    Seq(usize),
+    Set(Vec<usize>),
 }
 
 impl Display for AsPathEntry {
@@ -37,7 +37,7 @@ impl Display for AsPathEntry {
 }
 
 impl IntoIterator for AsPathEntry {
-    type Item = u32;
+    type Item = usize;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -52,7 +52,7 @@ impl FromStr for AsPathEntry {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let asn = s.parse::<u32>();
+        let asn = s.parse();
         if let Ok(n) = asn {
             return Ok(AsPathEntry::Seq(n));
         }
@@ -64,6 +64,7 @@ impl FromStr for AsPathEntry {
     }
 }
 
+/// Return (IP prefix, AS-path, BGP collector).
 pub fn parse_bgpdump_table_dump_v2(line: &str) -> Result<(IpNet, Vec<AsPathEntry>, CollectorPeer)> {
     // TABLE_DUMP2|1619481601|B|94.156.252.18|34224|6.132.0.0/14|34224 6939 8003|IGP|94.156.252.18|0|0|34224:333 34224:334 34224:2040|NAG|||
     // TABLE_DUMP2|1661040000|B|94.177.122.251|58057|2001:410::/32|58057 174 1299 1299 1299 2603 2603 2603 6509 {271,7860,8111,10972,53904}|IGP|::ffff:94.177.122.251|0|0|174:21100 58057:65010 174:22005|AG|6509 205.189.32.101|
@@ -75,10 +76,10 @@ pub fn parse_bgpdump_table_dump_v2(line: &str) -> Result<(IpNet, Vec<AsPathEntry
         bail!("{line} breaks down to less than 7 fields");
     }
     let vp = CollectorPeer {
-        asn: fields[4].parse::<u32>().context("bad-vp-asn")?,
-        ip: fields[3].parse::<IpAddr>().context("bad-vp-ip")?,
+        asn: fields[4].parse().context("bad-vp-asn")?,
+        ip: fields[3].parse().context("bad-vp-ip")?,
     };
-    let prefix: IpNet = fields[5].parse::<IpNet>().context("bad-prefix")?;
+    let prefix = fields[5].parse().context("bad-prefix")?;
 
     let aspath: Vec<AsPathEntry> = fields[6]
         .split(' ')

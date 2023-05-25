@@ -65,7 +65,7 @@ impl FromStr for AsPathEntry {
 }
 
 /// Return (IP prefix, AS-path, BGP collector, communities).
-pub fn parse_bgpdump_table_dump_v2(
+pub fn parse_table_dump(
     line: &str,
 ) -> Result<(IpNet, Vec<AsPathEntry>, CollectorPeer, Vec<&str>)> {
     // TABLE_DUMP2|1619481601|B|94.156.252.18|34224|6.132.0.0/14|34224 6939 8003|IGP|94.156.252.18|0|0|34224:333 34224:334 34224:2040|NAG|||

@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct CollectorPeer {
-    asn: usize,
-    ip: IpAddr,
+    pub asn: usize,
+    pub ip: IpAddr,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -64,15 +64,17 @@ impl FromStr for AsPathEntry {
     }
 }
 
-/// Return (IP prefix, AS-path, BGP collector).
-pub fn parse_bgpdump_table_dump_v2(line: &str) -> Result<(IpNet, Vec<AsPathEntry>, CollectorPeer)> {
+/// Return (IP prefix, AS-path, BGP collector, communities).
+pub fn parse_bgpdump_table_dump_v2(
+    line: &str,
+) -> Result<(IpNet, Vec<AsPathEntry>, CollectorPeer, Vec<&str>)> {
     // TABLE_DUMP2|1619481601|B|94.156.252.18|34224|6.132.0.0/14|34224 6939 8003|IGP|94.156.252.18|0|0|34224:333 34224:334 34224:2040|NAG|||
     // TABLE_DUMP2|1661040000|B|94.177.122.251|58057|2001:410::/32|58057 174 1299 1299 1299 2603 2603 2603 6509 {271,7860,8111,10972,53904}|IGP|::ffff:94.177.122.251|0|0|174:21100 58057:65010 174:22005|AG|6509 205.189.32.101|
     if !(line.starts_with("TABLE_DUMP2")) {
         bail!("{line} does not start with TABLE_DUMP2");
     }
     let fields: Vec<_> = line.split('|').collect();
-    if fields.len() < 7 {
+    if fields.len() != 16 {
         bail!("{line} breaks down to less than 7 fields");
     }
     let vp = CollectorPeer {
@@ -86,5 +88,6 @@ pub fn parse_bgpdump_table_dump_v2(line: &str) -> Result<(IpNet, Vec<AsPathEntry
         .map(|e| e.parse())
         .collect::<Result<_>>()?;
 
-    Ok((prefix, aspath, vp))
+    let communities = fields[11].split_whitespace().collect();
+    Ok((prefix, aspath, vp, communities))
 }

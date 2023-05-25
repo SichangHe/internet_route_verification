@@ -1,11 +1,21 @@
+use std::net::IpAddr;
+
 use serde::{Deserialize, Serialize};
 
 use crate::lex::peering::{self, ComplexAsExpr};
 
 pub fn parse_router_expr(router_expr: peering::AsExpr) -> RouterExpr {
     match router_expr {
-        peering::AsExpr::Field(field) => RouterExpr::Field(field),
+        peering::AsExpr::Field(field) => parse_simple_router_expr(field),
         peering::AsExpr::AsComp(comp) => parse_complex_router_expr(comp),
+    }
+}
+
+pub fn parse_simple_router_expr(field: String) -> RouterExpr {
+    if let Ok(ip) = field.parse() {
+        RouterExpr::Ip(ip)
+    } else {
+        RouterExpr::InetRtrOrRtrSet(field)
     }
 }
 
@@ -33,8 +43,9 @@ pub fn parse_complex_router_expr(router_expr: ComplexAsExpr) -> RouterExpr {
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-25>
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum RouterExpr {
-    // TODO: distinguish between IP address, inet-rtr, and rtr-set.
-    Field(String),
+    Ip(IpAddr),
+    // TODO: distinguish between inet-rtr and rtr-set.
+    InetRtrOrRtrSet(String),
     And {
         left: Box<RouterExpr>,
         right: Box<RouterExpr>,

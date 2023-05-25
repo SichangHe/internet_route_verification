@@ -1,11 +1,13 @@
 use std::collections::BTreeMap;
 
+use ipnet::IpNet;
 use maplit::btreemap;
 use net_literals::ip;
 
 use crate::{
     lex::action::Action::*,
     parse::{
+        address_prefix::AddrPfxRange,
         aut_num::AutNum,
         aut_sys::AsName::*,
         filter::{Filter::*, RegexOperator::*},
@@ -13,7 +15,7 @@ use crate::{
         mp_import::{Casts, Entry, Versions},
         peering::{AsExpr::*, Peering, PeeringAction},
         router_expr::RouterExpr::*,
-        set::{AsSet, PeeringSet, RouteSet},
+        set::{AsSet, PeeringSet, RouteSet, RouteSetMember::*},
     },
     test::lex::dump::expected_dump,
 };
@@ -178,7 +180,13 @@ fn expected_as_sets() -> BTreeMap<String, AsSet> {
 }
 
 fn expected_route_sets() -> BTreeMap<String, RouteSet> {
-    btreemap! {"AS13646:RS-PEERLANS".into()=> RouteSet { body: "descr: Internet Exchange Peering LAN Routes\nmembers: 195.66.224.0/23\nmembers: 194.68.129.0/24\nmembers: 217.29.66.0/23\nmembers: 193.149.1.0/25\nmembers: 193.149.1.128/25\nmembers: 193.148.15.0/24\nmembers: 194.31.232.0/24\nmembers: 194.42.48.0/25\nmembers: 194.53.172.0/26\nmembers: 193.203.0.0/24\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\nmnt-by: ZIGGO-SERVICES-MNT\ncreated: 1970-01-01T00:00:00Z\nlast-modified: 2020-01-21T15:43:54Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), members: vec!["195.66.224.0/23".into(), "194.68.129.0/24".into(), "217.29.66.0/23".into(), "193.149.1.0/25".into(), "193.149.1.128/25".into(), "193.148.15.0/24".into(), "194.31.232.0/24".into(), "194.42.48.0/25".into(), "194.53.172.0/26".into(), "193.203.0.0/24".into()] }}
+    use crate::parse::address_prefix::RangeOperator::NoOp;
+
+    btreemap! {"AS13646:RS-PEERLANS".into()=> RouteSet { body: "descr: Internet Exchange Peering LAN Routes\nmembers: 195.66.224.0/23\nmembers: 194.68.129.0/24\nmembers: 217.29.66.0/23\nmembers: 193.149.1.0/25\nmembers: 193.149.1.128/25\nmembers: 193.148.15.0/24\nmembers: 194.31.232.0/24\nmembers: 194.42.48.0/25\nmembers: 194.53.172.0/26\nmembers: 193.203.0.0/24\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\nmnt-by: ZIGGO-SERVICES-MNT\ncreated: 1970-01-01T00:00:00Z\nlast-modified: 2020-01-21T15:43:54Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), members: vec![Range(AddrPfxRange { address_prefix: ipn("195.66.224.0/23"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("194.68.129.0/24"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("217.29.66.0/23"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("193.149.1.0/25"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("193.149.1.128/25"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("193.148.15.0/24"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("194.31.232.0/24"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("194.42.48.0/25"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("194.53.172.0/26"), range_operator: NoOp }), Range(AddrPfxRange { address_prefix: ipn("193.203.0.0/24"), range_operator: NoOp })] }}
+}
+
+fn ipn(s: &str) -> IpNet {
+    s.parse().unwrap()
 }
 
 fn expected_peering_sets() -> BTreeMap<String, PeeringSet> {

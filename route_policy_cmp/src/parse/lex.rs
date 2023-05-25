@@ -108,11 +108,17 @@ pub fn parse_lexed_route_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String
             lexed.name
         );
     }
+    let members = lexed
+        .members
+        .into_iter()
+        .map(|member| member.into())
+        .collect();
+
     Ok((
         lexed.name,
         RouteSet {
             body: lexed.body,
-            members: lexed.members,
+            members,
         },
     ))
 }

@@ -2,8 +2,11 @@ use anyhow::Result;
 use ipnet::IpNet;
 
 use crate::parse::{
+    action::Actions,
+    filter::Filter,
     lex::Dump,
     mp_import::{Casts, Entry, Versions},
+    peering::{Peering, PeeringAction},
 };
 
 use super::map::{parse_table_dump, AsPathEntry};
@@ -48,7 +51,7 @@ impl<'a> Compare<'a> {
         pairs
             .flat_map(|(from, to)| {
                 if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
-                    self.compare_pair_w_dump(*from, *to)
+                    self.pair_pair(*from, *to)
                 } else {
                     vec![Report::Skip(format!(
                         "Skipping BGP pair {from}, {to} with set."
@@ -58,7 +61,7 @@ impl<'a> Compare<'a> {
             .collect()
     }
 
-    pub fn compare_pair_w_dump(&self, from: usize, to: usize) -> Vec<Report> {
+    pub fn pair_pair(&self, from: usize, to: usize) -> Vec<Report> {
         let mut from_report = match self.dump.aut_nums.get(&from) {
             Some(from_an) => self.check_compliant(&from_an.exports, to),
             None => vec![Report::Skip(format!("{from} is not a recorded AutNum"))],
@@ -74,8 +77,8 @@ impl<'a> Compare<'a> {
     pub fn check_compliant(&self, policy: &Versions, accept_num: usize) -> Vec<Report> {
         let mut reports = Vec::new();
         let specific_report = match self.prefix {
-            IpNet::V4(_) => self.check_casts_compliant(&policy.ipv4, accept_num),
-            IpNet::V6(_) => self.check_casts_compliant(&policy.ipv6, accept_num),
+            IpNet::V4(_) => self.check_casts(&policy.ipv4, accept_num),
+            IpNet::V6(_) => self.check_casts(&policy.ipv6, accept_num),
         };
         if let Some(Report::Good) = specific_report.first() {
             // This route is good.
@@ -83,7 +86,7 @@ impl<'a> Compare<'a> {
         }
         reports.extend(specific_report);
 
-        let general_report = self.check_casts_compliant(&policy.any, accept_num);
+        let general_report = self.check_casts(&policy.any, accept_num);
         if let Some(Report::Good) = general_report.first() {
             // This route is good.
             return general_report;
@@ -99,14 +102,14 @@ impl<'a> Compare<'a> {
         reports
     }
 
-    pub fn check_casts_compliant(&self, casts: &Casts, accept_num: usize) -> Vec<Report> {
+    pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> Vec<Report> {
         let mut reports = Vec::new();
         // TODO: How do we know the casts?
         for entry in [&casts.multicast, &casts.unicast, &casts.any]
             .into_iter()
             .flatten()
         {
-            let report = self.check_entry_compliant(entry, accept_num);
+            let report = self.check_entry(entry, accept_num);
             if let Some(Report::Good) = report.first() {
                 // This route is good.
                 return vec![Report::Good];
@@ -116,7 +119,41 @@ impl<'a> Compare<'a> {
         reports
     }
 
-    pub fn check_entry_compliant(&self, entry: &Entry, accept_num: usize) -> Vec<Report> {
+    pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> Vec<Report> {
+        let mut reports = Vec::new();
+        match self.check_filter(&entry.mp_filter, accept_num) {
+            Some(filter_report) => reports.push(filter_report),
+            None => return vec![],
+        }
+        for peering_actions in &entry.mp_peerings {
+            match self.check_peering_actions(peering_actions, accept_num) {
+                Some(Report::Good) => return vec![Report::Good],
+                Some(report) => reports.push(report),
+                None => (),
+            }
+        }
+        reports
+    }
+
+    pub fn check_filter(&self, filter: &Filter, accept_num: usize) -> Option<Report> {
+        todo!()
+    }
+
+    pub fn check_peering_actions(
+        &self,
+        peering_actions: &PeeringAction,
+        accept_num: usize,
+    ) -> Option<Report> {
+        self.check_peering(&peering_actions.mp_peering, accept_num)
+            .filter(|_| self.check_actions(&peering_actions.actions))
+    }
+
+    pub fn check_peering(&self, peering: &Peering, accept_num: usize) -> Option<Report> {
+        todo!()
+    }
+
+    /// Check communities.
+    pub fn check_actions(&self, actions: &Actions) -> bool {
         todo!()
     }
 }

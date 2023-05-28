@@ -51,8 +51,9 @@ impl From<String> for RouteSetMember {
 }
 
 pub fn try_parse_name_operator(s: &str) -> Result<(&str, RangeOperator)> {
-    let (_, name, operator) = get_name_operator(s).context("{s} is not in valid NameOp form")?;
-    let op = operator.parse().context("parsing {s} as NameOp")?;
+    let (_, name, operator) =
+        get_name_operator(s).context(format!("{s} is not in valid NameOp form"))?;
+    let op = operator.parse().context(format!("parsing {s} as NameOp"))?;
     Ok((name, op))
 }
 

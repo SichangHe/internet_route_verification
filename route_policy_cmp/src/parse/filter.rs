@@ -1,11 +1,10 @@
-use ipnet::IpNet;
 use lazy_regex::{regex_captures, regex_is_match};
 use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::lex::{community::Call, filter};
 
-use super::set::is_route_set_name;
+use super::{address_prefix::AddrPfxRange, set::is_route_set_name};
 
 pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
     use filter::Filter::*;
@@ -78,9 +77,8 @@ pub enum Filter {
     FilterSetName(String),
     Any,
     /// An explicit list of address prefixes enclosed in braces '{' and '}'.  The policy filter matches the set of routes whose destination address-prefix is in the set.
-    /// An address prefix can be optionally followed by a range operator,
-    /// but the lexer currently don't handle that rare case.
-    AddrPrefixSet(Vec<IpNet>),
+    /// An address prefix can be optionally followed by a range operator.
+    AddrPrefixSet(Vec<AddrPfxRange>),
     /// `<route-set-name>`: <https://www.rfc-editor.org/rfc/rfc2622#section-5.2>.
     /// A route set name matches the set of routes that are members of the set.
     /// May also be implicitly defined route sets

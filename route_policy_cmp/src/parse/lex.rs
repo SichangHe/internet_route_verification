@@ -47,13 +47,13 @@ pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, 
 }
 
 pub fn parse_lexed_aut_num(aut_num: rpsl_object::AutNum) -> Result<(usize, AutNum)> {
+    let num = parse_aut_num_name(&aut_num.name).context(format!("parsing {aut_num:?}"))?;
     let rpsl_object::AutNum {
-        name,
+        name: _,
         body,
         imports,
         exports,
     } = aut_num;
-    let num = parse_aut_num_name(&name).context("parsing {aut_num:?}")?;
     let imports = parse_imports(imports);
     let exports = parse_imports(exports);
     Ok((
@@ -70,7 +70,7 @@ pub fn parse_aut_num_name(name: &str) -> Result<usize> {
     match regex_captures!(r"^AS(\d+)$"i, name) {
         Some((_, num)) => num
             .parse()
-            .map_err(|err| Error::new(err).context("parsing {name}")),
+            .map_err(|err| Error::new(err).context(format!("parsing {name}"))),
         None => bail!("AS number name {name} does not match pattern"),
     }
 }

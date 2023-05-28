@@ -5,6 +5,8 @@ use ipnet::IpNet;
 use lazy_regex::regex_captures;
 use serde::{Deserialize, Serialize};
 
+/// An address prefix `IpNet` followed by an optional range operator `RangeOperator`.
+/// <https://www.rfc-editor.org/rfc/rfc2622#page-5>.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AddrPfxRange {
     pub address_prefix: IpNet,
@@ -15,21 +17,35 @@ impl FromStr for AddrPfxRange {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        eprintln!("parsing {s}.");
-        let (_, prefix, operator) = get_address_prefix_range_fields(s)
-            .context("{s} does not have valid address prefix range structure")?;
-        eprintln!("parsing {s}'s prefix {prefix}.");
+        let (_, prefix, operator) = get_address_prefix_range_fields(s).context(format!(
+            "{s} does not have valid address prefix range structure"
+        ))?;
         let address_prefix = prefix
             .parse()
-            .context("parsing {s} as address prefix range")?;
-        eprintln!("parsing {s}'s operator {operator}.");
+            .context(format!("parsing {s} as address prefix range"))?;
         let range_operator = operator
             .parse()
-            .context("parsing {s} as address prefix range")?;
+            .context(format!("parsing {s} as address prefix range"))?;
         Ok(Self {
             address_prefix,
             range_operator,
         })
+    }
+}
+
+impl AddrPfxRange {
+    pub fn contains(&self, other: &IpNet) -> bool {
+        // TODO: Verify correctness.
+        match self.range_operator {
+            RangeOperator::NoOp | RangeOperator::Plus => self.address_prefix.contains(other),
+            RangeOperator::Minus => {
+                self.address_prefix.contains(other) && self.address_prefix != *other
+            }
+            RangeOperator::Num(n) => other.prefix_len() == n && self.address_prefix.contains(other),
+            RangeOperator::Range(n, m) => {
+                (n..=m).contains(&other.prefix_len()) && self.address_prefix.contains(other)
+            }
+        }
     }
 }
 
@@ -64,11 +80,20 @@ impl FromStr for RangeOperator {
         }
 
         if let Some((_, num)) = get_range_operator_num(s) {
-            let n = num.parse().context("parsing {s} as range operator")?;
+            let n = num
+                .parse()
+                .context(format!("parsing {s} as range operator"))?;
             Ok(Self::Num(n))
         } else if let Some((_, num, num1)) = get_range_operator_range(s) {
-            let n = num.parse().context("parsing {s} as range operator")?;
-            let m = num1.parse().context("parsing {s} as range operator")?;
+            let n = num
+                .parse()
+                .context(format!("parsing {s} as range operator"))?;
+            let m = num1
+                .parse()
+                .context(format!("parsing {s} as range operator"))?;
+            if n > m {
+                bail!("trivial range operator {s}")
+            }
             Ok(Self::Range(n, m))
         } else {
             bail!("{s} is not a valid range operator")

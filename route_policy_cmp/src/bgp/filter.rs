@@ -1,4 +1,7 @@
-use crate::parse::filter::Filter::{self, *};
+use crate::parse::{
+    address_prefix::AddrPfxRange,
+    filter::Filter::{self, *},
+};
 
 use super::{
     cmp::Compare,
@@ -18,7 +21,7 @@ impl<'a> CheckFilter<'a> {
         match filter {
             FilterSetName(_) => todo!(),
             Any => Some(Good),
-            AddrPrefixSet(_) => todo!(),
+            AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSetName(_) => todo!(),
             AsNum(num, _) => (*num == self.accept_num).then_some(Good), // TODO: what about the operator?
             AsSet(_, _) => todo!(),
@@ -34,6 +37,13 @@ impl<'a> CheckFilter<'a> {
             Group(filter) => self.check(filter),
             Community(_) => todo!(),
         }
+    }
+
+    fn filter_prefixes(&self, prefixes: &[AddrPfxRange]) -> Option<Report> {
+        prefixes
+            .iter()
+            .any(|prefix| prefix.contains(&self.compare.prefix))
+            .then_some(Good)
     }
 
     fn filter_and(&self, left_report: Report, right: &Filter) -> Option<Report> {

@@ -3,13 +3,16 @@ use ipnet::IpNet;
 
 use crate::parse::{
     action::Actions,
-    filter::Filter,
     lex::Dump,
     mp_import::{Casts, Entry, Versions},
     peering::{Peering, PeeringAction},
 };
 
-use super::map::{parse_table_dump, AsPathEntry};
+use super::{
+    filter::CheckFilter,
+    map::{parse_table_dump, AsPathEntry},
+    report::Report,
+};
 
 pub fn compare_line_w_dump(line: &str, dump: &Dump) -> Result<Vec<Report>> {
     let (prefix, as_path, _, communities) = parse_table_dump(line)?;
@@ -18,10 +21,10 @@ pub fn compare_line_w_dump(line: &str, dump: &Dump) -> Result<Vec<Report>> {
 }
 
 pub struct Compare<'a> {
-    dump: &'a Dump,
-    prefix: IpNet,
-    as_path: Vec<AsPathEntry>,
-    communities: Vec<&'a str>,
+    pub dump: &'a Dump,
+    pub prefix: IpNet,
+    pub as_path: Vec<AsPathEntry>,
+    pub communities: Vec<&'a str>,
 }
 
 impl<'a> Compare<'a> {
@@ -121,7 +124,11 @@ impl<'a> Compare<'a> {
 
     pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> Vec<Report> {
         let mut reports = Vec::new();
-        match self.check_filter(&entry.mp_filter, accept_num) {
+        let check_filter = CheckFilter {
+            compare: self,
+            accept_num,
+        };
+        match check_filter.check(&entry.mp_filter) {
             Some(filter_report) => reports.push(filter_report),
             None => return vec![],
         }
@@ -133,10 +140,6 @@ impl<'a> Compare<'a> {
             }
         }
         reports
-    }
-
-    pub fn check_filter(&self, filter: &Filter, accept_num: usize) -> Option<Report> {
-        todo!()
     }
 
     pub fn check_peering_actions(
@@ -156,10 +159,4 @@ impl<'a> Compare<'a> {
     pub fn check_actions(&self, actions: &Actions) -> bool {
         todo!()
     }
-}
-
-pub enum Report {
-    Skip(String),
-    Good,
-    NoMatch(String),
 }

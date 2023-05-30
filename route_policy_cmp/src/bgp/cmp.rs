@@ -11,7 +11,10 @@ use crate::parse::{
 use super::{
     filter::CheckFilter,
     map::{parse_table_dump, AsPathEntry},
-    report::Report,
+    report::{
+        AllReport, AnyReport, AnyReportAggregater, JoinReportItems, Report, ReportItem,
+        ToAllReport, ToAnyReport,
+    },
 };
 
 pub fn compare_line_w_dump(line: &str, dump: &Dump) -> Result<Vec<Report>> {
@@ -56,7 +59,7 @@ impl<'a> Compare<'a> {
                 if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
                     self.pair_pair(*from, *to)
                 } else {
-                    vec![Report::Skip(format!(
+                    vec![Report::skip(format!(
                         "Skipping BGP pair {from}, {to} with set."
                     ))]
                 }
@@ -65,98 +68,88 @@ impl<'a> Compare<'a> {
     }
 
     pub fn pair_pair(&self, from: usize, to: usize) -> Vec<Report> {
-        let mut from_report = match self.dump.aut_nums.get(&from) {
+        let from_report = match self.dump.aut_nums.get(&from) {
             Some(from_an) => self.check_compliant(&from_an.exports, to),
-            None => vec![Report::Skip(format!("{from} is not a recorded AutNum"))],
+            None => Some(Report::skip(format!("{from} is not a recorded AutNum"))),
         };
         let to_report = match self.dump.aut_nums.get(&to) {
             Some(to_an) => self.check_compliant(&to_an.imports, from),
-            None => vec![Report::Skip(format!("{to} is not a recorded AutNum"))],
+            None => Some(Report::skip(format!("{to} is not a recorded AutNum"))),
         };
-        from_report.extend(to_report);
-        from_report
+        [from_report, to_report].into_iter().flatten().collect()
     }
 
-    pub fn check_compliant(&self, policy: &Versions, accept_num: usize) -> Vec<Report> {
-        let mut reports = Vec::new();
-        let specific_report = match self.prefix {
+    pub fn check_compliant(&self, policy: &Versions, accept_num: usize) -> Option<Report> {
+        let mut aggregater: AnyReportAggregater = match self.prefix {
             IpNet::V4(_) => self.check_casts(&policy.ipv4, accept_num),
             IpNet::V6(_) => self.check_casts(&policy.ipv6, accept_num),
-        };
-        if let Some(Report::Good) = specific_report.first() {
-            // This route is good.
-            return specific_report;
-        }
-        reports.extend(specific_report);
-
-        let general_report = self.check_casts(&policy.any, accept_num);
-        if let Some(Report::Good) = general_report.first() {
-            // This route is good.
-            return general_report;
-        }
-        reports.extend(general_report);
-
-        if reports.is_empty() {
-            reports.push(Report::NoMatch(format!(
+        }?
+        .into();
+        aggregater.join(self.check_casts(&policy.any, accept_num)?);
+        Some(if aggregater.all_fail {
+            aggregater.report_items.push(ReportItem::NoMatch(format!(
                 "No policy in {policy:?} matches AS{accept_num} from {}",
                 self.prefix
             )));
-        }
-        reports
+            Report::Bad(aggregater.report_items)
+        } else {
+            Report::Neutral(aggregater.report_items)
+        })
     }
 
-    pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> Vec<Report> {
-        let mut reports = Vec::new();
+    pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> AnyReport {
+        let mut aggregater = AnyReportAggregater::new();
         // TODO: How do we know the casts?
         for entry in [&casts.multicast, &casts.unicast, &casts.any]
             .into_iter()
             .flatten()
         {
-            let report = self.check_entry(entry, accept_num);
-            if let Some(Report::Good) = report.first() {
-                // This route is good.
-                return vec![Report::Good];
-            }
-            reports.extend(report);
+            aggregater.join(self.check_entry(entry, accept_num).to_any()?);
         }
-        reports
+        aggregater.to_some()
     }
 
-    pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> Vec<Report> {
-        let mut reports = Vec::new();
+    pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> AllReport {
         let check_filter = CheckFilter {
             compare: self,
             accept_num,
         };
-        match check_filter.check(&entry.mp_filter) {
-            Some(filter_report) => reports.push(filter_report),
-            None => return vec![],
-        }
-        for peering_actions in &entry.mp_peerings {
-            match self.check_peering_actions(peering_actions, accept_num) {
-                Some(Report::Good) => return vec![Report::Good],
-                Some(report) => reports.push(report),
-                None => (),
-            }
-        }
-        reports
+        Ok(check_filter.check(&entry.mp_filter).to_all()?.join(
+            self.check_peering_actions(&entry.mp_peerings, accept_num)
+                .to_all()?,
+        ))
     }
 
-    pub fn check_peering_actions(
+    pub fn check_peering_actions<I>(&self, peerings: I, accept_num: usize) -> AnyReport
+    where
+        I: IntoIterator<Item = &'a PeeringAction>,
+    {
+        let mut aggregater = AnyReportAggregater::new();
+        for peering_actions in peerings.into_iter() {
+            aggregater.join(
+                self.check_peering_action(peering_actions, accept_num)
+                    .to_any()?,
+            );
+        }
+        aggregater.to_some()
+    }
+
+    pub fn check_peering_action(
         &self,
         peering_actions: &PeeringAction,
         accept_num: usize,
-    ) -> Option<Report> {
-        self.check_peering(&peering_actions.mp_peering, accept_num)
-            .filter(|_| self.check_actions(&peering_actions.actions))
+    ) -> AllReport {
+        Ok(self
+            .check_peering(&peering_actions.mp_peering, accept_num)?
+            .join(self.check_actions(&peering_actions.actions)?))
     }
 
-    pub fn check_peering(&self, peering: &Peering, accept_num: usize) -> Option<Report> {
+    pub fn check_peering(&self, _peering: &Peering, _accept_num: usize) -> AllReport {
         todo!()
     }
 
     /// Check communities.
-    pub fn check_actions(&self, actions: &Actions) -> bool {
+    pub fn check_actions(&self, _actions: &Actions) -> AllReport {
         todo!()
     }
 }

@@ -1,3 +1,4 @@
+use crate::bgp::report::AllReport;
 use crate::parse::{
     address_prefix::AddrPfxRange,
     aut_sys::AsName,
@@ -8,11 +9,12 @@ use crate::parse::{
     set::RouteSetMember,
 };
 
+use super::report::{AnyReportAggregater, JoinReportItems, ToAllReport, ToAnyReport};
 use super::{
     cmp::Compare,
     report::{
-        self,
-        Report::{self, *},
+        AnyReport,
+        ReportItem::{self, *},
     },
 };
 
@@ -22,54 +24,67 @@ pub struct CheckFilter<'a> {
 }
 
 impl<'a> CheckFilter<'a> {
-    pub fn check(&self, filter: &Filter) -> Option<Report> {
+    pub fn check(&self, filter: &Filter) -> AnyReport {
         match filter {
             FilterSetName(_) => todo!(),
-            Any => Some(Good),
+            Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSetName(name) => self.filter_route_set_name(name),
-            AsNum(num, _) => (*num == self.accept_num).then_some(Good), // TODO: what about the operator?
+            AsNum(num, _) => self.filter_as_num(*num),
             AsSet(name, op) => self.filter_as_set_name(name, op),
             AsPathRE(_) => todo!(),
             PeerAs => todo!(),
-            And { left, right } => self.filter_and(self.check(left)?, right),
-            Or { left, right } => self.filter_or(left, right, None),
-            Not(filter) => match self.check(filter) {
-                report @ Some(Skip(_)) => report,
-                Some(_) => None,
-                None => Some(Good),
-            },
+            And { left, right } => self.filter_and(left, right).to_any(),
+            Or { left, right } => self.filter_or(left, right),
+            Not(filter) => self.filter_not(filter),
             Group(filter) => self.check(filter),
             Community(_) => todo!(),
         }
     }
 
-    fn filter_prefixes<I>(&self, prefixes: I) -> Option<Report>
+    fn filter_as_num(&self, num: usize) -> AnyReport {
+        // TODO: what about the operator?
+        (num != self.accept_num).then(|| {
+            let errors = vec![NoMatch(format!(
+                "AS{} does not match {num}",
+                self.accept_num
+            ))];
+            (errors, true)
+        })
+    }
+
+    fn filter_prefixes<I>(&self, prefixes: I) -> AnyReport
     where
         I: IntoIterator<Item = &'a AddrPfxRange>,
     {
         prefixes
             .into_iter()
-            .any(|prefix| prefix.contains(&self.compare.prefix))
-            .then_some(Good)
+            .all(|prefix| !prefix.contains(&self.compare.prefix))
+            .then(|| {
+                let errors = vec![NoMatch(format!(
+                    "{} does not match filter prefixes",
+                    self.compare.prefix
+                ))];
+                (errors, true)
+            })
     }
 
-    fn filter_route_set_name(&self, name: &str) -> Option<Report> {
+    fn filter_route_set_name(&self, name: &str) -> AnyReport {
         let route_set = match self.compare.dump.route_sets.get(name) {
             Some(r) => r,
-            None => return Some(Skip(format!("{name} is not a recorded Route Set"))),
-        };
-        let mut report = None;
-        for member in &route_set.members {
-            match self.filter_route_set_member(member) {
-                Some(Good) => return Some(Good),
-                new_report => report = report::or(report, new_report),
+            None => {
+                let errors = vec![Skip(format!("{name} is not a recorded Route Set"))];
+                return Some((errors, false));
             }
+        };
+        let mut aggregater = AnyReportAggregater::new();
+        for member in &route_set.members {
+            aggregater.join(self.filter_route_set_member(member)?);
         }
-        report
+        aggregater.to_some()
     }
 
-    fn filter_route_set_member(&self, member: &RouteSetMember) -> Option<Report> {
+    fn filter_route_set_member(&self, member: &RouteSetMember) -> AnyReport {
         match member {
             RouteSetMember::Range(prefix) => self.filter_prefixes([prefix]),
             RouteSetMember::Name(name) => self.filter_route_set_name(name),
@@ -77,22 +92,22 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_as_set_name(&self, name: &str, op: &RegexOperator) -> Option<Report> {
+    fn filter_as_set_name(&self, name: &str, op: &RegexOperator) -> AnyReport {
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
-            None => return Some(Skip(format!("{name} is not a recorded AS Set"))),
-        };
-        let mut report = None;
-        for as_name in &as_set.members {
-            match self.filter_as_name(as_name, op) {
-                Some(Good) => return Some(Good),
-                new_report => report = report::or(report, new_report),
+            None => {
+                let errors = vec![Skip(format!("{name} is not a recorded AS Set"))];
+                return Some((errors, true));
             }
+        };
+        let mut aggregater = AnyReportAggregater::new();
+        for as_name in &as_set.members {
+            aggregater.join(self.filter_as_name(as_name, op)?);
         }
-        report
+        aggregater.to_some()
     }
 
-    fn filter_as_name(&self, as_name: &AsName, op: &RegexOperator) -> Option<Report> {
+    fn filter_as_name(&self, as_name: &AsName, _op: &RegexOperator) -> AnyReport {
         match as_name {
             AsName::Num(_) => todo!(),
             AsName::Set(_) => todo!(),
@@ -100,26 +115,43 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_and(&self, left_report: Report, right: &Filter) -> Option<Report> {
+    fn filter_and(&self, left: &Filter, right: &Filter) -> AllReport {
+        // Assume `left` cannot be "And" or "Or".
+        let report = self.check(left).to_all()?;
         match right {
-            And { left, right } => self.filter_and(left_report & self.check(left)?, right),
-            Or { left, right } => self.filter_or(left, right, Some(left_report)),
-            right => Some(left_report & self.check(right)?),
+            And { left, right } => Ok(report.join(self.filter_and(left, right)?)),
+            Or { left, right } => Ok(report.join(self.filter_or(left, right).to_all()?)),
+            right => Ok(report.join(self.check(right).to_all()?)),
         }
     }
 
-    fn filter_or(&self, left: &Filter, right: &Filter, report: Option<Report>) -> Option<Report> {
-        let left_report = self.check(left);
-        if let Some(Good) = left_report {
-            return Some(Good);
-        }
-        let report = report::or(report, left_report);
+    fn filter_or(&self, left: &Filter, right: &Filter) -> AnyReport {
+        // Assume `left` cannot be "And" or "Or".
+        let mut aggregater: AnyReportAggregater = self.check(left)?.into();
         match right {
-            And { left, right } => {
-                self.filter_and(report::or_known(report, self.check(left)?), right)
+            And { left, right } => aggregater.join(self.filter_and(left, right).to_any()?),
+            Or { left, right } => aggregater.join(self.filter_or(left, right)?),
+            right => aggregater.join(self.check(right)?),
+        }
+        aggregater.to_some()
+    }
+
+    fn filter_not(&self, filter: &Filter) -> AnyReport {
+        match self.check(filter) {
+            Some((_errors, true)) => None,
+            Some((mut skips, false)) => {
+                skips.push(ReportItem::Skip(format!(
+                    "Skipping NOT filter {filter:?} due to skipped results"
+                )));
+                Some((skips, false))
             }
-            Or { left, right } => self.filter_or(left, right, report),
-            right => report::or(report, self.check(right)),
+            None => Some((
+                vec![ReportItem::NoMatch(format!(
+                    "AS{} from {} matches NOT filter {filter:?}",
+                    self.accept_num, self.compare.prefix
+                ))],
+                true,
+            )),
         }
     }
 }

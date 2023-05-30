@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::lex::{community::Call, filter};
 
-use super::{address_prefix::AddrPfxRange, set::is_route_set_name};
+use super::address_prefix::{AddrPfxRange, RangeOperator};
 
 pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
     use filter::Filter::*;
@@ -43,8 +43,8 @@ pub fn parse_path_attribute(attr: String) -> Filter {
         Filter::AsPathRE(attr)
     } else if regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, &attr) {
         Filter::FilterSetName(attr)
-    } else if is_route_set_name(&attr) {
-        Filter::RouteSetName(attr)
+    } else if let Some(filter) = try_parse_route_set(&attr) {
+        filter
     } else if let Some(filter) = try_parse_as_set(&attr) {
         filter
     } else if let Some(filter) = try_parse_as_num(&attr) {
@@ -54,23 +54,41 @@ pub fn parse_path_attribute(attr: String) -> Filter {
     }
 }
 
+pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
+    regex_captures!(r"^((?:AS\d+:)?rs-[^\s\^]+)(\^[+-])?$"i, attr).and_then(
+        |(_, name, operator)| {
+            operator
+                .parse()
+                .ok()
+                .map(|op| Filter::RouteSet(name.into(), op))
+        },
+    )
+}
+
 pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
     regex_captures!(r"^((?:AS\d+:)?AS-[^\s\^]+)(\^[+-])?$"i, attr).and_then(
         |(_, name, operator)| {
-            RegexOperator::parse_str(operator).map(|op| Filter::AsSet(name.into(), op))
+            operator
+                .parse()
+                .ok()
+                .map(|op| Filter::AsSet(name.into(), op))
         },
     )
 }
 
 pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
     regex_captures!(r"^AS(\d+)(\^[+-])?$"i, attr).and_then(|(_, number, operator)| {
-        RegexOperator::parse_str(operator)
+        operator
+            .parse()
+            .ok()
             .and_then(|op| number.parse().ok().map(|num| Filter::AsNum(num, op)))
     })
 }
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-18>
+/// Note: although `RouteSet`, `AsNum`, and `AsSet` here use `RangeOperator`,
+/// the RFC only allows `^-` and `^+`.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Filter {
     /// `<filter-set-name>`: An RPSL name that starts with `fltr-`.
@@ -83,11 +101,11 @@ pub enum Filter {
     /// A route set name matches the set of routes that are members of the set.
     /// May also be implicitly defined route sets
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.3>.
-    RouteSetName(String),
+    RouteSet(String, RangeOperator),
     /// An AS number.
-    AsNum(usize, RegexOperator),
+    AsNum(usize, RangeOperator),
     /// A name of an as-set object.
-    AsSet(String, RegexOperator),
+    AsSet(String, RangeOperator),
     /// An AS-path regular expression can be used as a policy filter by enclosing the expression in `<' and `>'.
     /// Basically, we do not deal with this at present.
     /// We also throw unrecognized filters under this.
@@ -106,24 +124,4 @@ pub enum Filter {
     Not(Box<Filter>),
     Group(Box<Filter>),
     Community(Call),
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum RegexOperator {
-    NoOp,
-    /// `^+`
-    Plus,
-    /// `^-`
-    Minus,
-}
-
-impl RegexOperator {
-    pub fn parse_str(s: &str) -> Option<Self> {
-        match s {
-            "" => Some(Self::NoOp),
-            "^+" => Some(Self::Plus),
-            "^-" => Some(Self::Minus),
-            _ => None,
-        }
-    }
 }

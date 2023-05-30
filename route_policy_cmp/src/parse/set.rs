@@ -32,8 +32,6 @@ pub struct RouteSet {
 pub enum RouteSetMember {
     /// `<address-prefix-range>`
     Range(AddrPfxRange),
-    /// `<route-set-name>`
-    Name(String),
     /// `<route-set-name><range-operator>`
     NameOp(String, RangeOperator),
 }
@@ -45,7 +43,7 @@ impl From<String> for RouteSetMember {
         } else if let Ok((name, op)) = try_parse_name_operator(&value) {
             Self::NameOp(name.into(), op)
         } else {
-            Self::Name(value)
+            Self::NameOp(value, RangeOperator::NoOp)
         }
     }
 }

@@ -1,11 +1,9 @@
 use crate::bgp::report::AllReport;
+use crate::parse::address_prefix::RangeOperator;
 use crate::parse::{
     address_prefix::AddrPfxRange,
     aut_sys::AsName,
-    filter::{
-        Filter::{self, *},
-        RegexOperator,
-    },
+    filter::Filter::{self, *},
     set::RouteSetMember,
 };
 
@@ -29,8 +27,8 @@ impl<'a> CheckFilter<'a> {
             FilterSetName(_) => todo!(),
             Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
-            RouteSetName(name) => self.filter_route_set_name(name),
-            AsNum(num, _) => self.filter_as_num(*num),
+            RouteSet(name, op) => self.filter_route_set_name(name, op), // TODO: Handle operator.
+            AsNum(num, op) => self.filter_as_num(*num, op),
             AsSet(name, op) => self.filter_as_set_name(name, op),
             AsPathRE(_) => todo!(),
             PeerAs => todo!(),
@@ -42,15 +40,16 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_as_num(&self, num: usize) -> AnyReport {
-        // TODO: what about the operator?
-        (num != self.accept_num).then(|| {
-            let errors = vec![NoMatch(format!(
-                "AS{} does not match {num}",
-                self.accept_num
-            ))];
-            (errors, true)
-        })
+    fn filter_as_num(&self, _num: usize, _op: &RangeOperator) -> AnyReport {
+        todo!()
+        // TODO: Below is incorrect.
+        // (num != self.accept_num).then(|| {
+        //     let errors = vec![NoMatch(format!(
+        //         "AS{} does not match {num}",
+        //         self.accept_num
+        //     ))];
+        //     (errors, true)
+        // })
     }
 
     fn filter_prefixes<I>(&self, prefixes: I) -> AnyReport
@@ -69,7 +68,7 @@ impl<'a> CheckFilter<'a> {
             })
     }
 
-    fn filter_route_set_name(&self, name: &str) -> AnyReport {
+    fn filter_route_set_name(&self, name: &str, op: &RangeOperator) -> AnyReport {
         let route_set = match self.compare.dump.route_sets.get(name) {
             Some(r) => r,
             None => {
@@ -79,20 +78,26 @@ impl<'a> CheckFilter<'a> {
         };
         let mut aggregater = AnyReportAggregater::new();
         for member in &route_set.members {
-            aggregater.join(self.filter_route_set_member(member)?);
+            aggregater.join(self.filter_route_set_member(member, op)?);
         }
         aggregater.to_some()
     }
 
-    fn filter_route_set_member(&self, member: &RouteSetMember) -> AnyReport {
+    fn filter_route_set_member(&self, member: &RouteSetMember, op: &RangeOperator) -> AnyReport {
         match member {
-            RouteSetMember::Range(prefix) => self.filter_prefixes([prefix]),
-            RouteSetMember::Name(name) => self.filter_route_set_name(name),
-            RouteSetMember::NameOp(_, _) => todo!(),
+            RouteSetMember::Range(prefix) => match (prefix.range_operator, op) {
+                (RangeOperator::NoOp, RangeOperator::NoOp) => self.filter_prefixes([prefix]),
+                (RangeOperator::NoOp, op) => self.filter_prefixes([&AddrPfxRange {
+                    range_operator: *op,
+                    ..prefix.clone()
+                }]),
+                _ => self.filter_prefixes([prefix]),
+            },
+            RouteSetMember::NameOp(name, op) => self.filter_route_set_name(name, op),
         }
     }
 
-    fn filter_as_set_name(&self, name: &str, op: &RegexOperator) -> AnyReport {
+    fn filter_as_set_name(&self, name: &str, op: &RangeOperator) -> AnyReport {
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
             None => {
@@ -107,7 +112,7 @@ impl<'a> CheckFilter<'a> {
         aggregater.to_some()
     }
 
-    fn filter_as_name(&self, as_name: &AsName, _op: &RegexOperator) -> AnyReport {
+    fn filter_as_name(&self, as_name: &AsName, _op: &RangeOperator) -> AnyReport {
         match as_name {
             AsName::Num(_) => todo!(),
             AsName::Set(_) => todo!(),

@@ -35,9 +35,9 @@ impl FromStr for AddrPfxRange {
 
 impl AddrPfxRange {
     pub fn contains(&self, other: &IpNet) -> bool {
-        // TODO: Verify correctness.
         match self.range_operator {
-            RangeOperator::NoOp | RangeOperator::Plus => self.address_prefix.contains(other),
+            RangeOperator::NoOp => self.address_prefix == *other,
+            RangeOperator::Plus => self.address_prefix.contains(other),
             RangeOperator::Minus => {
                 self.address_prefix.contains(other) && self.address_prefix != *other
             }
@@ -53,7 +53,7 @@ pub fn get_address_prefix_range_fields(s: &str) -> Option<(&str, &str, &str)> {
     regex_captures!(r"([\d\.:/]+)(\^[-+\d]+)?", s)
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum RangeOperator {
     NoOp,
     /// `^-` is the exclusive more specifics operator; it stands for the more specifics of the address prefix excluding the address prefix itself.  For example, 128.9.0.0/16^- contains all the more specifics of 128.9.0.0/16 excluding 128.9.0.0/16.

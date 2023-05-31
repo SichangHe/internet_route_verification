@@ -1,5 +1,7 @@
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 use anyhow::Result;
-use ipnet::IpNet;
+use ipnet::{IpNet, Ipv4Net, Ipv6Net, PrefixLenError};
 
 use crate::parse::{
     action::Actions,
@@ -99,12 +101,12 @@ impl<'a> Compare<'a> {
 
     pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> AnyReport {
         let mut aggregater = AnyReportAggregater::new();
-        // TODO: How do we know the casts?
-        // Check prefix. 224/4
-        for entry in [&casts.multicast, &casts.unicast, &casts.any]
-            .into_iter()
-            .flatten()
-        {
+        let specific_cast = if is_multicast(&self.prefix) {
+            &casts.multicast
+        } else {
+            &casts.unicast
+        };
+        for entry in [specific_cast, &casts.any].into_iter().flatten() {
             aggregater.join(self.check_entry(entry, accept_num).to_any()?);
         }
         aggregater.to_some()
@@ -152,5 +154,21 @@ impl<'a> Compare<'a> {
     /// Check communities.
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
         todo!()
+    }
+}
+
+pub const MULTICAST_V4: Result<Ipv4Net, PrefixLenError> =
+    Ipv4Net::new(Ipv4Addr::new(224, 0, 0, 0), 4);
+pub const MULTICAST_V6: Result<Ipv6Net, PrefixLenError> =
+    Ipv6Net::new(Ipv6Addr::new(0xff00, 0, 0, 0, 0, 0, 0, 0), 8);
+
+pub fn is_multicast(prefix: &IpNet) -> bool {
+    match prefix {
+        IpNet::V4(prefix) => MULTICAST_V4
+            .expect("MULTICAST_V4 is for sure Ok")
+            .contains(prefix),
+        IpNet::V6(prefix) => MULTICAST_V6
+            .expect("MULTICAST_V6 is for sure Ok")
+            .contains(prefix),
     }
 }

@@ -1,18 +1,15 @@
-use crate::bgp::report::AllReport;
-use crate::parse::address_prefix::RangeOperator;
 use crate::parse::{
-    address_prefix::AddrPfxRange,
+    address_prefix::{AddrPfxRange, RangeOperator},
     aut_sys::AsName,
     filter::Filter::{self, *},
     set::RouteSetMember,
 };
 
-use super::report::{AnyReportAggregater, JoinReportItems, ToAllReport, ToAnyReport};
 use super::{
     cmp::Compare,
     report::{
-        AnyReport,
-        ReportItem::{self, *},
+        AllReport, AnyReport, AnyReportAggregater, JoinReportItems, ReportItem::*, ToAllReport,
+        ToAnyReport,
     },
 };
 
@@ -27,7 +24,7 @@ impl<'a> CheckFilter<'a> {
             FilterSetName(_) => todo!(),
             Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
-            RouteSet(name, op) => self.filter_route_set_name(name, op), // TODO: Handle operator.
+            RouteSet(name, op) => self.filter_route_set_name(name, op),
             AsNum(num, op) => self.filter_as_num(*num, op),
             AsSet(name, op) => self.filter_as_set_name(name, op),
             AsPathRE(_) => todo!(),
@@ -145,13 +142,13 @@ impl<'a> CheckFilter<'a> {
         match self.check(filter) {
             Some((_errors, true)) => None,
             Some((mut skips, false)) => {
-                skips.push(ReportItem::Skip(format!(
+                skips.push(Skip(format!(
                     "Skipping NOT filter {filter:?} due to skipped results"
                 )));
                 Some((skips, false))
             }
             None => Some((
-                vec![ReportItem::NoMatch(format!(
+                vec![NoMatch(format!(
                     "AS{} from {} matches NOT filter {filter:?}",
                     self.accept_num, self.compare.prefix
                 ))],

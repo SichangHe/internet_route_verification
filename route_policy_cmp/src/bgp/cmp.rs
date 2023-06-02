@@ -7,12 +7,13 @@ use crate::parse::{
     action::Actions,
     lex::Dump,
     mp_import::{Casts, Entry, Versions},
-    peering::{Peering, PeeringAction},
+    peering::PeeringAction,
 };
 
 use super::{
     filter::CheckFilter,
     map::{parse_table_dump, AsPathEntry},
+    peering::CheckPeering,
     report::{
         AllReport, AnyReport, AnyReportAggregater, JoinReportItems, Report, ReportItem,
         ToAllReport, ToAnyReport,
@@ -113,18 +114,17 @@ impl<'a> Compare<'a> {
     }
 
     pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> AllReport {
-        let check_filter = CheckFilter {
+        CheckFilter {
             compare: self,
             accept_num,
-        };
-        check_filter
-            .check(&entry.mp_filter)
-            .to_all()?
-            .join(
-                self.check_peering_actions(&entry.mp_peerings, accept_num)
-                    .to_all()?,
-            )
-            .to_all()
+        }
+        .check(&entry.mp_filter)
+        .to_all()?
+        .join(
+            self.check_peering_actions(&entry.mp_peerings, accept_num)
+                .to_all()?,
+        )
+        .to_all()
     }
 
     pub fn check_peering_actions<I>(&self, peerings: I, accept_num: usize) -> AnyReport
@@ -146,18 +146,20 @@ impl<'a> Compare<'a> {
         peering_actions: &PeeringAction,
         accept_num: usize,
     ) -> AllReport {
-        self.check_peering(&peering_actions.mp_peering, accept_num)?
-            .join(self.check_actions(&peering_actions.actions)?)
-            .to_all()
-    }
-
-    pub fn check_peering(&self, _peering: &Peering, _accept_num: usize) -> AllReport {
-        todo!()
+        CheckPeering {
+            compare: self,
+            peering: &peering_actions.mp_peering,
+            accept_num,
+        }
+        .check()?
+        .join(self.check_actions(&peering_actions.actions)?)
+        .to_all()
     }
 
     /// Check communities.
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
-        todo!()
+        // TODO: We currently do not check actions.
+        Ok(None)
     }
 }
 

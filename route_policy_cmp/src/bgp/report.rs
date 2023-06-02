@@ -8,10 +8,6 @@ pub enum Report {
 }
 
 impl Report {
-    pub fn no_match(reason: String) -> Self {
-        Bad(vec![NoMatch(reason)])
-    }
-
     pub fn skip(reason: String) -> Self {
         Neutral(vec![Skip(reason)])
     }
@@ -20,6 +16,7 @@ impl Report {
 pub enum ReportItem {
     Skip(String),
     NoMatch(String),
+    BadRpsl(String),
 }
 
 pub type ReportItems = Vec<ReportItem>;
@@ -54,6 +51,16 @@ pub type AllReport = Result<Option<ReportItems>, ReportItems>;
 /// - `Some((skips, false))` indicates skip.
 /// - `None` indicates success.
 pub type AnyReport = Option<(ReportItems, bool)>;
+
+pub fn skip_any_report(reason: String) -> AnyReport {
+    let skips = vec![Skip(reason)];
+    Some((skips, false))
+}
+
+pub fn bad_rpsl_any_report(reason: String) -> AnyReport {
+    let errors = vec![BadRpsl(reason)];
+    Some((errors, true))
+}
 
 pub trait ToAnyReport {
     fn to_any(self) -> AnyReport;

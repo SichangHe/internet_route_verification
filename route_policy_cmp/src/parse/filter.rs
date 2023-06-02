@@ -4,23 +4,30 @@ use serde::{Deserialize, Serialize};
 
 use crate::lex::{community::Call, filter};
 
-use super::address_prefix::{AddrPfxRange, RangeOperator};
+use super::{
+    address_prefix::{
+        AddrPfxRange,
+        RangeOperator::{self, NoOp},
+    },
+    aut_sys::AsName,
+    peering::{AsExpr, Peering, PeeringAction},
+};
 
-pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
+pub fn parse_filter(mp_filter: filter::Filter, mp_peerings: &[PeeringAction]) -> Filter {
     use filter::Filter::*;
     match mp_filter {
         And { left, right } => Filter::And {
-            left: Box::new(parse_filter(*left)),
-            right: Box::new(parse_filter(*right)),
+            left: Box::new(parse_filter(*left, mp_peerings)),
+            right: Box::new(parse_filter(*right, mp_peerings)),
         },
         Or { left, right } => Filter::Or {
-            left: Box::new(parse_filter(*left)),
-            right: Box::new(parse_filter(*right)),
+            left: Box::new(parse_filter(*left, mp_peerings)),
+            right: Box::new(parse_filter(*right, mp_peerings)),
         },
-        Not(filter) => Filter::Not(Box::new(parse_filter(*filter))),
-        Group(group) => Filter::Group(Box::new(parse_filter(*group))),
+        Not(filter) => Filter::Not(Box::new(parse_filter(*filter, mp_peerings))),
+        Group(group) => Filter::Group(Box::new(parse_filter(*group, mp_peerings))),
         Community(call) => Filter::Community(call),
-        PathAttr(attr) => parse_path_attribute(attr),
+        PathAttr(attr) => parse_path_attribute(attr, mp_peerings),
         AddrPrefixSet(set) => Filter::AddrPrefixSet(
             set.into_iter()
                 .filter_map(|s| {
@@ -34,11 +41,11 @@ pub fn parse_filter(mp_filter: filter::Filter) -> Filter {
     }
 }
 
-pub fn parse_path_attribute(attr: String) -> Filter {
+pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filter {
     if regex_is_match!(r"^any$"i, &attr) {
         Filter::Any
     } else if regex_is_match!(r"^peeras$"i, &attr) {
-        Filter::PeerAs
+        peer_as_filter(mp_peerings)
     } else if attr.ends_with("^-") || attr.ends_with("^+") {
         Filter::AsPathRE(attr)
     } else if regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, &attr) {
@@ -51,6 +58,37 @@ pub fn parse_path_attribute(attr: String) -> Filter {
         filter
     } else {
         Filter::AsPathRE(attr)
+    }
+}
+
+/// PeerAS can be used instead of the AS number of the peer AS.
+/// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
+pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
+    match (mp_peerings.len(), mp_peerings.first()) {
+        (
+            1,
+            Some(PeeringAction {
+                mp_peering:
+                    Peering {
+                        remote_as: AsExpr::Single(as_name),
+                        remote_router: _,
+                        local_router: _,
+                    },
+                actions: _,
+            }),
+        ) => match as_name {
+            // TODO: Do we want to allow AutNum?
+            AsName::Num(num) => Filter::AsNum(*num, NoOp),
+            AsName::Set(name) => Filter::AsSet(name.into(), NoOp),
+            AsName::Illegal(reason) => {
+                let err = format!("PeerAs point to illegal AS name: {reason}.");
+                error!("{err}");
+                Filter::Illegal(err)
+            }
+        },
+        _ => Filter::Illegal(format!(
+            "using PeerAs but mp-peerings {mp_peerings:?} are not a single AS expression"
+        )),
     }
 }
 
@@ -111,8 +149,6 @@ pub enum Filter {
     /// We also throw unrecognized filters under this.
     /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
     AsPathRE(String),
-    /// Can be used instead of the AS number of the peer AS.
-    PeerAs,
     And {
         left: Box<Filter>,
         right: Box<Filter>,
@@ -124,4 +160,5 @@ pub enum Filter {
     Not(Box<Filter>),
     Group(Box<Filter>),
     Community(Call),
+    Illegal(String),
 }

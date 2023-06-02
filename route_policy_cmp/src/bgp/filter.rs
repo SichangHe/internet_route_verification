@@ -1,15 +1,18 @@
-use crate::parse::{
-    address_prefix::{AddrPfxRange, RangeOperator},
-    aut_sys::AsName,
-    filter::Filter::{self, *},
-    set::RouteSetMember,
+use crate::{
+    lex::community::Call,
+    parse::{
+        address_prefix::{AddrPfxRange, RangeOperator},
+        aut_sys::AsName,
+        filter::Filter::{self, *},
+        set::RouteSetMember,
+    },
 };
 
 use super::{
     cmp::Compare,
     report::{
-        AllReport, AnyReport, AnyReportAggregater, JoinReportItems, ReportItem::*, ToAllReport,
-        ToAnyReport,
+        bad_rpsl_any_report, skip_any_report, AllReport, AnyReport, AnyReportAggregater,
+        JoinReportItems, ReportItem::*, ToAllReport, ToAnyReport,
     },
 };
 
@@ -21,24 +24,30 @@ pub struct CheckFilter<'a> {
 impl<'a> CheckFilter<'a> {
     pub fn check(&self, filter: &Filter) -> AnyReport {
         match filter {
-            FilterSetName(_) => todo!(),
+            FilterSetName(name) => self.filter_set_name(name),
             Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
-            RouteSet(name, op) => self.filter_route_set_name(name, op),
+            RouteSet(name, op) => self.filter_route_set(name, op),
             AsNum(num, op) => self.filter_as_num(*num, op),
-            AsSet(name, op) => self.filter_as_set_name(name, op),
-            AsPathRE(_) => todo!(),
-            PeerAs => todo!(),
+            AsSet(name, op) => self.filter_as_set(name, op),
+            AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right).to_any(),
             Or { left, right } => self.filter_or(left, right),
             Not(filter) => self.filter_not(filter),
             Group(filter) => self.check(filter),
-            Community(_) => todo!(),
+            Community(community) => self.filter_community(community),
+            Illegal(reason) => self.illegal_filter(reason),
         }
     }
 
-    fn filter_as_num(&self, _num: usize, _op: &RangeOperator) -> AnyReport {
-        todo!()
+    fn filter_set_name(&self, name: &str) -> AnyReport {
+        // TODO: Implement.
+        skip_any_report(format!("Filter set {name} check is not implemented"))
+    }
+
+    fn filter_as_num(&self, num: usize, _op: &RangeOperator) -> AnyReport {
+        // TODO: Implement.
+        skip_any_report(format!("AS number {num} check is not implemented"))
         // TODO: Below is incorrect.
         // (num != self.accept_num).then(|| {
         //     let errors = vec![NoMatch(format!(
@@ -65,7 +74,7 @@ impl<'a> CheckFilter<'a> {
             })
     }
 
-    fn filter_route_set_name(&self, name: &str, op: &RangeOperator) -> AnyReport {
+    fn filter_route_set(&self, name: &str, op: &RangeOperator) -> AnyReport {
         let route_set = match self.compare.dump.route_sets.get(name) {
             Some(r) => r,
             None => {
@@ -90,11 +99,11 @@ impl<'a> CheckFilter<'a> {
                 }]),
                 _ => self.filter_prefixes([prefix]),
             },
-            RouteSetMember::NameOp(name, op) => self.filter_route_set_name(name, op),
+            RouteSetMember::NameOp(name, op) => self.filter_route_set(name, op),
         }
     }
 
-    fn filter_as_set_name(&self, name: &str, op: &RangeOperator) -> AnyReport {
+    fn filter_as_set(&self, name: &str, op: &RangeOperator) -> AnyReport {
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
             None => {
@@ -109,11 +118,18 @@ impl<'a> CheckFilter<'a> {
         aggregater.to_some()
     }
 
-    fn filter_as_name(&self, as_name: &AsName, _op: &RangeOperator) -> AnyReport {
+    fn filter_as_regex(&self, expr: &str) -> AnyReport {
+        // TODO: Implement.
+        skip_any_report(format!("AS regex {expr} check is not implemented"))
+    }
+
+    fn filter_as_name(&self, as_name: &AsName, op: &RangeOperator) -> AnyReport {
         match as_name {
-            AsName::Num(_) => todo!(),
-            AsName::Set(_) => todo!(),
-            AsName::Illegal(_) => todo!(),
+            AsName::Num(num) => self.filter_as_num(*num, op),
+            AsName::Set(name) => self.filter_as_set(name, op),
+            AsName::Illegal(reason) => {
+                bad_rpsl_any_report(format!("Illegal AS name in filter: {reason}"))
+            }
         }
     }
 
@@ -155,5 +171,14 @@ impl<'a> CheckFilter<'a> {
                 true,
             )),
         }
+    }
+
+    fn filter_community(&self, community: &Call) -> AnyReport {
+        // TODO: Implement.
+        skip_any_report(format!("Community {community:?} check is not implemented"))
+    }
+
+    fn illegal_filter(&self, reason: &str) -> AnyReport {
+        bad_rpsl_any_report(format!("Illegal filter: {reason}"))
     }
 }

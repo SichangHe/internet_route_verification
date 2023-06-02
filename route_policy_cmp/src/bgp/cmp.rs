@@ -109,7 +109,7 @@ impl<'a> Compare<'a> {
         for entry in [specific_cast, &casts.any].into_iter().flatten() {
             aggregater.join(self.check_entry(entry, accept_num).to_any()?);
         }
-        aggregater.to_some()
+        aggregater.to_any()
     }
 
     pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> AllReport {
@@ -117,10 +117,14 @@ impl<'a> Compare<'a> {
             compare: self,
             accept_num,
         };
-        Ok(check_filter.check(&entry.mp_filter).to_all()?.join(
-            self.check_peering_actions(&entry.mp_peerings, accept_num)
-                .to_all()?,
-        ))
+        check_filter
+            .check(&entry.mp_filter)
+            .to_all()?
+            .join(
+                self.check_peering_actions(&entry.mp_peerings, accept_num)
+                    .to_all()?,
+            )
+            .to_all()
     }
 
     pub fn check_peering_actions<I>(&self, peerings: I, accept_num: usize) -> AnyReport
@@ -134,7 +138,7 @@ impl<'a> Compare<'a> {
                     .to_any()?,
             );
         }
-        aggregater.to_some()
+        aggregater.to_any()
     }
 
     pub fn check_peering_action(
@@ -142,9 +146,9 @@ impl<'a> Compare<'a> {
         peering_actions: &PeeringAction,
         accept_num: usize,
     ) -> AllReport {
-        Ok(self
-            .check_peering(&peering_actions.mp_peering, accept_num)?
-            .join(self.check_actions(&peering_actions.actions)?))
+        self.check_peering(&peering_actions.mp_peering, accept_num)?
+            .join(self.check_actions(&peering_actions.actions)?)
+            .to_all()
     }
 
     pub fn check_peering(&self, _peering: &Peering, _accept_num: usize) -> AllReport {

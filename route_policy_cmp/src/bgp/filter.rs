@@ -86,7 +86,7 @@ impl<'a> CheckFilter<'a> {
         for member in &route_set.members {
             aggregater.join(self.filter_route_set_member(member, op)?);
         }
-        aggregater.to_some()
+        aggregater.to_any()
     }
 
     fn filter_route_set_member(&self, member: &RouteSetMember, op: &RangeOperator) -> AnyReport {
@@ -115,7 +115,7 @@ impl<'a> CheckFilter<'a> {
         for as_name in &as_set.members {
             aggregater.join(self.filter_as_name(as_name, op)?);
         }
-        aggregater.to_some()
+        aggregater.to_any()
     }
 
     fn filter_as_regex(&self, expr: &str) -> AnyReport {
@@ -137,9 +137,9 @@ impl<'a> CheckFilter<'a> {
         // Assume `left` cannot be "And" or "Or".
         let report = self.check(left).to_all()?;
         match right {
-            And { left, right } => Ok(report.join(self.filter_and(left, right)?)),
-            Or { left, right } => Ok(report.join(self.filter_or(left, right).to_all()?)),
-            right => Ok(report.join(self.check(right).to_all()?)),
+            And { left, right } => report.join(self.filter_and(left, right)?).to_all(),
+            Or { left, right } => report.join(self.filter_or(left, right).to_all()?).to_all(),
+            right => report.join(self.check(right).to_all()?).to_all(),
         }
     }
 
@@ -151,7 +151,7 @@ impl<'a> CheckFilter<'a> {
             Or { left, right } => aggregater.join(self.filter_or(left, right)?),
             right => aggregater.join(self.check(right)?),
         }
-        aggregater.to_some()
+        aggregater.to_any()
     }
 
     fn filter_not(&self, filter: &Filter) -> AnyReport {

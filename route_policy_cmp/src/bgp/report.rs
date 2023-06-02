@@ -90,6 +90,12 @@ impl ToAllReport for AnyReport {
     }
 }
 
+impl ToAllReport for Option<ReportItems> {
+    fn to_all(self) -> AllReport {
+        Ok(self)
+    }
+}
+
 pub struct AnyReportAggregater {
     pub report_items: ReportItems,
     pub all_fail: bool,
@@ -107,8 +113,10 @@ impl AnyReportAggregater {
         self.report_items.extend(report_items);
         self.all_fail = self.all_fail || fail;
     }
+}
 
-    pub fn to_some(self) -> AnyReport {
+impl ToAnyReport for AnyReportAggregater {
+    fn to_any(self) -> AnyReport {
         Some((self.report_items, self.all_fail))
     }
 }

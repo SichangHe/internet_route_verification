@@ -148,10 +148,9 @@ impl<'a> Compare<'a> {
     ) -> AllReport {
         CheckPeering {
             compare: self,
-            peering: &peering_actions.mp_peering,
             accept_num,
         }
-        .check()?
+        .check(&peering_actions.mp_peering)?
         .join(self.check_actions(&peering_actions.actions)?)
         .to_all()
     }

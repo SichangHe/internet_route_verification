@@ -46,6 +46,16 @@ impl JoinReportItems for Option<ReportItems> {
 /// - `Err(errors)` indicates failure.
 pub type AllReport = Result<Option<ReportItems>, ReportItems>;
 
+pub fn skip_all_report(reason: String) -> AllReport {
+    let skips = vec![Skip(reason)];
+    Ok(Some(skips))
+}
+
+pub fn no_match_all_report(reason: String) -> AllReport {
+    let errors = vec![NoMatch(reason)];
+    Err(errors)
+}
+
 /// Useful if any of the reports succeeding is enough.
 /// - `Some((errors, true))` indicates failure.
 /// - `Some((skips, false))` indicates skip.
@@ -55,6 +65,11 @@ pub type AnyReport = Option<(ReportItems, bool)>;
 pub fn skip_any_report(reason: String) -> AnyReport {
     let skips = vec![Skip(reason)];
     Some((skips, false))
+}
+
+pub fn no_match_any_report(reason: String) -> AnyReport {
+    let errors = vec![NoMatch(reason)];
+    Some((errors, true))
 }
 
 pub fn bad_rpsl_any_report(reason: String) -> AnyReport {

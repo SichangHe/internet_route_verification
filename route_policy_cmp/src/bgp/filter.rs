@@ -106,10 +106,7 @@ impl<'a> CheckFilter<'a> {
     fn filter_as_set(&self, name: &str, op: &RangeOperator) -> AnyReport {
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
-            None => {
-                let errors = vec![Skip(format!("{name} is not a recorded AS Set"))];
-                return Some((errors, true));
-            }
+            None => return skip_any_report(format!("{name} is not a recorded AS Set")),
         };
         let mut aggregater = AnyReportAggregater::new();
         for as_name in &as_set.members {
@@ -135,23 +132,17 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_and(&self, left: &Filter, right: &Filter) -> AllReport {
         // Assume `left` cannot be "And" or "Or".
-        let report = self.check(left).to_all()?;
-        match right {
-            And { left, right } => report.join(self.filter_and(left, right)?).to_all(),
-            Or { left, right } => report.join(self.filter_or(left, right).to_all()?).to_all(),
-            right => report.join(self.check(right).to_all()?).to_all(),
-        }
+        self.check(left)
+            .to_all()?
+            .join(self.check(right).to_all()?)
+            .to_all()
     }
 
     fn filter_or(&self, left: &Filter, right: &Filter) -> AnyReport {
         // Assume `left` cannot be "And" or "Or".
-        let mut aggregater: AnyReportAggregater = self.check(left)?.into();
-        match right {
-            And { left, right } => aggregater.join(self.filter_and(left, right).to_any()?),
-            Or { left, right } => aggregater.join(self.filter_or(left, right)?),
-            right => aggregater.join(self.check(right)?),
-        }
-        aggregater.to_any()
+        let mut report: AnyReportAggregater = self.check(left)?.into();
+        report.join(self.check(right)?);
+        report.to_any()
     }
 
     fn filter_not(&self, filter: &Filter) -> AnyReport {

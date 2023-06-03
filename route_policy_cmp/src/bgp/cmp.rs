@@ -91,7 +91,7 @@ impl<'a> Compare<'a> {
         aggregater.join(self.check_casts(&policy.any, accept_num)?);
         Some(if aggregater.all_fail {
             aggregater.report_items.push(ReportItem::NoMatch(format!(
-                "No policy in {policy:?} matches AS{accept_num} from {}",
+                "No policy matches AS{accept_num} from {}",
                 self.prefix
             )));
             Report::Bad(aggregater.report_items)

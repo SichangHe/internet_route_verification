@@ -1,7 +1,9 @@
+use serde::{Deserialize, Serialize};
 use Report::*;
 use ReportItem::*;
 
 /// Use this in an `Option`, and use `None` to indicate "good."
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
     Neutral(Vec<ReportItem>),
     Bad(Vec<ReportItem>),
@@ -13,6 +15,7 @@ impl Report {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
     Skip(String),
     NoMatch(String),

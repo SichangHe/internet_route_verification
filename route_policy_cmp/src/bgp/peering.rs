@@ -5,7 +5,7 @@ use crate::parse::{
 };
 
 use super::{
-    cmp::Compare,
+    cmp::{Compare, RECURSION_ERROR, RECURSION_LIMIT},
     report::{
         bad_rpsl_any_report, no_match_all_report, no_match_any_report, skip_any_report, AllReport,
         AnyReport, AnyReportAggregater, JoinReportItems, ReportItem::*, ToAllReport, ToAnyReport,
@@ -15,11 +15,12 @@ use super::{
 pub struct CheckPeering<'a> {
     pub compare: &'a Compare<'a>,
     pub accept_num: usize,
+    pub call_depth: usize,
 }
 
 impl<'a> CheckPeering<'a> {
     pub fn check(
-        &self,
+        &mut self,
         Peering {
             remote_as,
             remote_router,
@@ -31,6 +32,11 @@ impl<'a> CheckPeering<'a> {
             .join(self.check_local_route(local_router.as_ref()).to_all()?)
             .join(self.check_remote_as(remote_as).to_all()?)
             .to_all()
+    }
+
+    fn check_recursion(&mut self) -> bool {
+        self.call_depth += 1;
+        self.call_depth >= RECURSION_LIMIT
     }
 
     fn check_remote_route(&self, remote_router: Option<&RouterExpr>) -> AnyReport {
@@ -45,7 +51,7 @@ impl<'a> CheckPeering<'a> {
         None
     }
 
-    fn check_remote_as(&self, remote_as: &AsExpr) -> AnyReport {
+    fn check_remote_as(&mut self, remote_as: &AsExpr) -> AnyReport {
         match remote_as {
             AsExpr::Single(as_name) => self.check_remote_as_name(as_name),
             AsExpr::PeeringSet(name) => self.check_remote_peering_set(name),
@@ -56,7 +62,10 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_name(&self, as_name: &AsName) -> AnyReport {
+    fn check_remote_as_name(&mut self, as_name: &AsName) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("check_remote_as_name: {RECURSION_ERROR}"));
+        }
         match as_name {
             AsName::Num(num) => self.check_remote_as_num(*num),
             AsName::Set(name) => self.check_remote_as_set(name),
@@ -77,7 +86,10 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_set(&self, name: &str) -> AnyReport {
+    fn check_remote_as_set(&mut self, name: &str) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("check_remote_as_set: {RECURSION_ERROR}"));
+        }
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
             None => return skip_any_report(format!("{name} is not a recorded AS Set")),
@@ -89,7 +101,10 @@ impl<'a> CheckPeering<'a> {
         aggregater.to_any()
     }
 
-    fn check_remote_peering_set(&self, name: &str) -> AnyReport {
+    fn check_remote_peering_set(&mut self, name: &str) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("check_remote_peering_set: {RECURSION_ERROR}"));
+        }
         let peering_set = match self.compare.dump.peering_sets.get(name) {
             Some(r) => r,
             None => return skip_any_report(format!("{name} is not a recorded Peering Set")),
@@ -101,20 +116,29 @@ impl<'a> CheckPeering<'a> {
         aggregater.to_any()
     }
 
-    fn check_and(&self, left: &AsExpr, right: &AsExpr) -> AllReport {
+    fn check_and(&mut self, left: &AsExpr, right: &AsExpr) -> AllReport {
+        if self.check_recursion() {
+            return no_match_all_report(format!("check_and: {RECURSION_ERROR}"));
+        }
         self.check_remote_as(left)
             .to_all()?
             .join(self.check_remote_as(right).to_all()?)
             .to_all()
     }
 
-    fn check_or(&self, left: &AsExpr, right: &AsExpr) -> AnyReport {
+    fn check_or(&mut self, left: &AsExpr, right: &AsExpr) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("check_or: {RECURSION_ERROR}"));
+        }
         let mut report: AnyReportAggregater = self.check_remote_as(left)?.into();
         report.join(self.check_remote_as(right)?);
         report.to_any()
     }
 
-    fn check_except(&self, left: &AsExpr, right: &AsExpr) -> AllReport {
+    fn check_except(&mut self, left: &AsExpr, right: &AsExpr) -> AllReport {
+        if self.check_recursion() {
+            return no_match_all_report(format!("check_except: {RECURSION_ERROR}"));
+        }
         let left_report = self.check_remote_as(left).to_all()?;
         let right_report = match self.check_remote_as(right) {
             Some((_, true)) => Ok(None),

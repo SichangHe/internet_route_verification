@@ -9,20 +9,21 @@ use crate::{
 };
 
 use super::{
-    cmp::Compare,
+    cmp::{Compare, RECURSION_ERROR, RECURSION_LIMIT},
     report::{
-        bad_rpsl_any_report, skip_any_report, AllReport, AnyReport, AnyReportAggregater,
-        JoinReportItems, ReportItem::*, ToAllReport, ToAnyReport,
+        bad_rpsl_any_report, no_match_all_report, no_match_any_report, skip_any_report, AllReport,
+        AnyReport, AnyReportAggregater, JoinReportItems, ReportItem::*, ToAllReport, ToAnyReport,
     },
 };
 
 pub struct CheckFilter<'a> {
     pub compare: &'a Compare<'a>,
     pub accept_num: usize,
+    pub call_depth: usize,
 }
 
 impl<'a> CheckFilter<'a> {
-    pub fn check(&self, filter: &Filter) -> AnyReport {
+    pub fn check(&mut self, filter: &Filter) -> AnyReport {
         match filter {
             FilterSetName(name) => self.filter_set_name(name),
             Any => None,
@@ -38,6 +39,11 @@ impl<'a> CheckFilter<'a> {
             Community(community) => self.filter_community(community),
             Illegal(reason) => self.illegal_filter(reason),
         }
+    }
+
+    fn check_recursion(&mut self) -> bool {
+        self.call_depth += 1;
+        self.call_depth >= RECURSION_LIMIT
     }
 
     fn filter_set_name(&self, name: &str) -> AnyReport {
@@ -74,13 +80,13 @@ impl<'a> CheckFilter<'a> {
             })
     }
 
-    fn filter_route_set(&self, name: &str, op: &RangeOperator) -> AnyReport {
+    fn filter_route_set(&mut self, name: &str, op: &RangeOperator) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("filter_route_set: {RECURSION_ERROR}"));
+        }
         let route_set = match self.compare.dump.route_sets.get(name) {
             Some(r) => r,
-            None => {
-                let errors = vec![Skip(format!("{name} is not a recorded Route Set"))];
-                return Some((errors, false));
-            }
+            None => return skip_any_report(format!("{name} is not a recorded Route Set")),
         };
         let mut aggregater = AnyReportAggregater::new();
         for member in &route_set.members {
@@ -89,7 +95,14 @@ impl<'a> CheckFilter<'a> {
         aggregater.to_any()
     }
 
-    fn filter_route_set_member(&self, member: &RouteSetMember, op: &RangeOperator) -> AnyReport {
+    fn filter_route_set_member(
+        &mut self,
+        member: &RouteSetMember,
+        op: &RangeOperator,
+    ) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("filter_route_set_member: {RECURSION_ERROR}"));
+        }
         match member {
             RouteSetMember::Range(prefix) => match (prefix.range_operator, op) {
                 (RangeOperator::NoOp, RangeOperator::NoOp) => self.filter_prefixes([prefix]),
@@ -103,7 +116,10 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_as_set(&self, name: &str, op: &RangeOperator) -> AnyReport {
+    fn filter_as_set(&mut self, name: &str, op: &RangeOperator) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("filter_as_set: {RECURSION_ERROR}"));
+        }
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
             None => return skip_any_report(format!("{name} is not a recorded AS Set")),
@@ -120,7 +136,10 @@ impl<'a> CheckFilter<'a> {
         skip_any_report(format!("AS regex {expr} check is not implemented"))
     }
 
-    fn filter_as_name(&self, as_name: &AsName, op: &RangeOperator) -> AnyReport {
+    fn filter_as_name(&mut self, as_name: &AsName, op: &RangeOperator) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("filter_as_name: {RECURSION_ERROR}"));
+        }
         match as_name {
             AsName::Num(num) => self.filter_as_num(*num, op),
             AsName::Set(name) => self.filter_as_set(name, op),
@@ -130,22 +149,29 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_and(&self, left: &Filter, right: &Filter) -> AllReport {
-        // Assume `left` cannot be "And" or "Or".
+    fn filter_and(&mut self, left: &Filter, right: &Filter) -> AllReport {
+        if self.check_recursion() {
+            return no_match_all_report(format!("filter_and: {RECURSION_ERROR}"));
+        }
         self.check(left)
             .to_all()?
             .join(self.check(right).to_all()?)
             .to_all()
     }
 
-    fn filter_or(&self, left: &Filter, right: &Filter) -> AnyReport {
-        // Assume `left` cannot be "And" or "Or".
+    fn filter_or(&mut self, left: &Filter, right: &Filter) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("filter_or: {RECURSION_ERROR}"));
+        }
         let mut report: AnyReportAggregater = self.check(left)?.into();
         report.join(self.check(right)?);
         report.to_any()
     }
 
-    fn filter_not(&self, filter: &Filter) -> AnyReport {
+    fn filter_not(&mut self, filter: &Filter) -> AnyReport {
+        if self.check_recursion() {
+            return no_match_any_report(format!("filter_not: {RECURSION_ERROR}"));
+        }
         match self.check(filter) {
             Some((_errors, true)) => None,
             Some((mut skips, false)) => {

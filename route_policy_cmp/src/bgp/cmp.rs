@@ -20,6 +20,10 @@ use super::{
     },
 };
 
+pub const RECURSION_LIMIT: usize = 0x100;
+
+pub const RECURSION_ERROR: &str = "Recursion limit exceeded";
+
 pub fn compare_line_w_dump(line: &str, dump: &Dump) -> Result<Vec<Report>> {
     let (prefix, as_path, _, communities) = parse_table_dump(line)?;
     let cmp = Compare::new(dump, prefix, as_path, communities);
@@ -117,6 +121,7 @@ impl<'a> Compare<'a> {
         CheckFilter {
             compare: self,
             accept_num,
+            call_depth: 0,
         }
         .check(&entry.mp_filter)
         .to_all()?
@@ -149,6 +154,7 @@ impl<'a> Compare<'a> {
         CheckPeering {
             compare: self,
             accept_num,
+            call_depth: 0,
         }
         .check(&peering_actions.mp_peering)?
         .join(self.check_actions(&peering_actions.actions)?)

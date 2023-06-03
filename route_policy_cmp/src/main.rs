@@ -1,21 +1,25 @@
 use anyhow::Result;
-use log::info;
-use route_policy_cmp::{lex::dump::Dump, parse::lex::parse_lexed};
-use std::fs::File;
+use route_policy_cmp::{
+    bgp::{cmp::compare_line_w_dump, map::parse_table_dump, report::Report},
+    parse::lex::Dump,
+};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
 
 fn main() -> Result<()> {
-    env_logger::init();
-    // Test lex dumped.
-    info!("Loading lexed dump.");
-    let file = File::open("../dump.json")?;
-    let lexed = Dump::from_reader(file)?;
-    info!("Loaded lexed dump.");
+env_logger::init();
+let file = File::open("parsed.json")?;
+let parsed = Dump::from_reader(file)?;
 
-    // Test parse dumped.
-    let parsed = parse_lexed(lexed);
-    let out = File::create("../parsed.json")?;
-    info!("Writing parsed dump.");
-    serde_json::to_writer(out, &parsed)?;
-    info!("Wrote parsed dump.");
+    let bgp_file: Vec<_> = BufReader::new(File::open("../data/bgp_routes_eg.txt")?)
+        .lines()
+        .map(|l| l.unwrap())
+        .collect();
+
+    let report7 = compare_line_w_dump(&bgp_file[7], &parsed)?;
+    println!("{report7:#?}");
+
     Ok(())
 }

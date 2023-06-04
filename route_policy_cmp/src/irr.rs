@@ -1,9 +1,10 @@
 use std::{
     io::{BufReader, Read, Write},
-    process::{ChildStdin, ChildStdout, Command, Stdio},
+    process::{ChildStdout, Command},
 };
 
 use crate::{
+    cmd::PipedChild,
     lex::{
         dump::Dump,
         lines::{
@@ -42,14 +43,13 @@ pub fn read_line_wait(reader: &mut BufReader<ChildStdout>) -> Result<String> {
 pub fn parse_object(
     obj: RPSLObject,
     dump: &mut Dump,
-    aut_num_in: &mut ChildStdin,
-    aut_num_out: &mut BufReader<ChildStdout>,
+    aut_num_child: &mut PipedChild,
 ) -> Result<()> {
     if obj.class == "aut-num" {
         let mut msg = serde_json::to_string(&obj)?;
         msg += "\n";
-        aut_num_in.write_all(msg.as_bytes())?;
-        let line = read_line_wait(aut_num_out)?;
+        aut_num_child.stdin.write_all(msg.as_bytes())?;
+        let line = read_line_wait(&mut aut_num_child.stdout)?;
         let aut_num: AutNum = from_str(&line)?;
         dump.aut_nums.push(aut_num);
     } else if obj.class == "as-set" {
@@ -70,21 +70,16 @@ pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
 where
     R: Read,
 {
-    let mut py_parse_aut_num = Command::new("pypy3");
-    let mut aut_num_child = py_parse_aut_num
-        .args(["-m", "rpsl_policy.aut_num"])
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()?;
-    let mut aut_num_in = aut_num_child.stdin.take().unwrap();
-    let mut aut_num_out = BufReader::new(aut_num_child.stdout.take().unwrap());
+    let mut py_cmd = Command::new("pypy3");
+    py_cmd.args(["-m", "rpsl_policy.aut_num"]);
+    let mut aut_num_child = PipedChild::new(&mut py_cmd)?;
 
     let mut dump = Dump::default();
     for (count, obj) in rpsl_objects(io_wrapper_lines(db)).enumerate() {
         if count % 0x1000 == 0 {
             dump.log_count();
         }
-        parse_object(obj, &mut dump, &mut aut_num_in, &mut aut_num_out)?;
+        parse_object(obj, &mut dump, &mut aut_num_child)?;
     }
 
     dump.log_count();

@@ -1,21 +1,21 @@
+pub mod worker;
+
 use std::{
     io::{BufReader, Read},
-    process::{ChildStdout, Command},
+    process::ChildStdout,
+    sync::mpsc::Sender,
 };
 
-use crate::{
-    cmd::PipedChild,
-    lex::{
-        dump::Dump,
-        lines::{
-            expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr,
-        },
-        rpsl_object::{AsOrRouteSet, AutNum, PeeringSet},
-    },
-    serde::from_str,
+use crate::lex::{
+    dump::Dump,
+    lines::{expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr},
+    rpsl_object::AsOrRouteSet,
 };
 
 use anyhow::Result;
+use log::debug;
+
+use self::worker::{spawn_aut_num_worker, spawn_peering_set_worker};
 
 pub fn gather_members(body: &str) -> Vec<String> {
     let mut members = Vec::new();
@@ -42,30 +42,29 @@ pub fn read_line_wait(reader: &mut BufReader<ChildStdout>) -> Result<String> {
 
 pub fn parse_object(
     obj: RPSLObject,
-    dump: &mut Dump,
-    aut_num_child: &mut PipedChild,
-    peering_set_child: &mut PipedChild,
+    as_sets: &mut Vec<AsOrRouteSet>,
+    route_sets: &mut Vec<AsOrRouteSet>,
+    send_aut_num: &mut Sender<RPSLObject>,
+    send_peering_set: &mut Sender<RPSLObject>,
 ) -> Result<()> {
     if obj.class == "aut-num" {
-        obj.write_to(&mut aut_num_child.stdin)?;
-        let line = read_line_wait(&mut aut_num_child.stdout)?;
-        let mut aut_num: AutNum = from_str(&line)?;
-        (aut_num.name, aut_num.body) = (obj.name, obj.body);
-        dump.aut_nums.push(aut_num);
+        send_aut_num.send(obj)?;
     } else if obj.class == "as-set" {
         let members = gather_members(&obj.body);
-        dump.as_sets
-            .push(AsOrRouteSet::new(obj.name, obj.body, members));
+        as_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
+        match as_sets.len() {
+            l if l % 0xFF == 0 => debug!("Parsed {l} as_sets."),
+            _ => (),
+        }
     } else if obj.class == "route-set" {
         let members = gather_members(&obj.body);
-        dump.route_sets
-            .push(AsOrRouteSet::new(obj.name, obj.body, members));
+        route_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
+        match route_sets.len() {
+            l if l % 0xFF == 0 => debug!("Parsed {l} route_sets."),
+            _ => (),
+        }
     } else if obj.class == "peering-set" {
-        obj.write_to(&mut peering_set_child.stdin)?;
-        let line = read_line_wait(&mut peering_set_child.stdout)?;
-        let mut peering_set: PeeringSet = from_str(&line)?;
-        (peering_set.name, peering_set.body) = (obj.name, obj.body);
-        dump.peering_sets.push(peering_set);
+        send_peering_set.send(obj)?;
     }
     Ok(())
 }
@@ -74,19 +73,28 @@ pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
 where
     R: Read,
 {
-    let mut aut_num_child =
-        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_policy.aut_num"]))?;
-    let mut peering_set_child =
-        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_policy.peering_set"]))?;
+    let (mut as_sets, mut route_sets) = (Vec::new(), Vec::new());
+    let (mut send_aut_num, aut_num_worker) = spawn_aut_num_worker()?;
+    let (mut send_peering_set, peering_set_worker) = spawn_peering_set_worker()?;
 
-    let mut dump = Dump::default();
-    for (count, obj) in rpsl_objects(io_wrapper_lines(db)).enumerate() {
-        if count % 0x1000 == 0 {
-            dump.log_count();
-        }
-        parse_object(obj, &mut dump, &mut aut_num_child, &mut peering_set_child)?;
+    for obj in rpsl_objects(io_wrapper_lines(db)) {
+        parse_object(
+            obj,
+            &mut as_sets,
+            &mut route_sets,
+            &mut send_aut_num,
+            &mut send_peering_set,
+        )?;
     }
 
-    dump.log_count();
-    Ok(dump)
+    drop((send_aut_num, send_peering_set));
+    let aut_nums = aut_num_worker.join().unwrap()?;
+    let peering_sets = peering_set_worker.join().unwrap()?;
+
+    Ok(Dump {
+        aut_nums,
+        as_sets,
+        route_sets,
+        peering_sets,
+    })
 }

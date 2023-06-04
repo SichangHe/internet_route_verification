@@ -25,7 +25,7 @@ fn main() -> Result<()> {
             .encoding(encoding)
             .build(File::open(filename)?),
     );
-    let dump = read_db(reader);
+    let dump = read_db(reader)?;
 
     debug!("Starting to write the dump.");
     serde_json::to_writer(stdout(), &dump)?;

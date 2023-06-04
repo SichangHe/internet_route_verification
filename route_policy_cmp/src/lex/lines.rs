@@ -4,6 +4,7 @@ use std::mem;
 
 use lazy_regex::regex_replace_all;
 use log::error;
+use serde::Serialize;
 
 const CONTINUATION_CHARS: [&str; 3] = [" ", "+", "\t"];
 
@@ -78,7 +79,7 @@ pub fn cleanup_whitespace(string: &str) -> Cow<str> {
     dedup_whitespace(string.trim())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct RPSLObject {
     pub class: String,
     pub name: String,

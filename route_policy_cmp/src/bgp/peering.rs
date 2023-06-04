@@ -40,13 +40,13 @@ impl<'a> CheckPeering<'a> {
     }
 
     fn check_remote_route(&self, remote_router: Option<&RouterExpr>) -> AnyReport {
-        let remote_router = remote_router?;
+        let _remote_router = remote_router?;
         // TODO: How to check this?
         None
     }
 
     fn check_local_route(&self, local_router: Option<&RouterExpr>) -> AnyReport {
-        let local_router = local_router?;
+        let _local_router = local_router?;
         // TODO: How to check this?
         None
     }

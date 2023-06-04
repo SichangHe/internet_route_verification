@@ -1,5 +1,6 @@
 use std::io::Read;
 
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 use super::rpsl_object::{AsOrRouteSet, AutNum, PeeringSet};
@@ -17,5 +18,15 @@ impl Dump {
         let mut deserializer = serde_json::Deserializer::from_reader(reader);
         deserializer.disable_recursion_limit();
         Dump::deserialize(&mut deserializer)
+    }
+
+    pub fn log_count(&self) {
+        debug!(
+            "Parsed {} aut_nums, {} as_sets, {} route_sets, {} peering_sets.",
+            self.aut_nums.len(),
+            self.as_sets.len(),
+            self.route_sets.len(),
+            self.peering_sets.len()
+        )
     }
 }

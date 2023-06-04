@@ -1,6 +1,5 @@
 use std::borrow::Cow;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read};
 use std::mem;
 
 use lazy_regex::regex_replace_all;
@@ -8,36 +7,46 @@ use log::error;
 
 const CONTINUATION_CHARS: [&str; 3] = [" ", "+", "\t"];
 
-pub fn io_wrapper_lines(reader: BufReader<File>) -> impl Iterator<Item = String> {
-    reader.lines().map_while(Result::ok)
+pub fn io_wrapper_lines<R>(reader: BufReader<R>) -> impl Iterator<Item = String>
+where
+    R: Read,
+{
+    reader
+        .lines()
+        .filter_map(|r| r.map_err(|e| error!("{e}")).ok())
 }
 
-pub struct LinesContinued<I>
+pub struct LinesContinued<I, S>
 where
-    I: Iterator<Item = String>,
+    I: Iterator<Item = S>,
+    S: AsRef<str>,
 {
     lines: I,
     last_line: String,
 }
 
-impl<I> Iterator for LinesContinued<I>
+impl<I, S> Iterator for LinesContinued<I, S>
 where
-    I: Iterator<Item = String>,
+    I: Iterator<Item = S>,
+    S: AsRef<str>,
 {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
         for line in self.lines.by_ref() {
             // Remove comments.
-            let line = line.split('#').next().unwrap().trim();
+            let line = line.as_ref().split('#').next().unwrap();
             // Handle continuation lines.
             if CONTINUATION_CHARS.iter().any(|&ch| line.starts_with(ch)) {
                 self.last_line.push(' ');
                 self.last_line.push_str(line[1..].trim());
-            } else {
-                // Not a continuation line.
-                return Some(mem::replace(&mut self.last_line, line.into()));
+                continue;
             }
+            // Not a continuation line.
+            if !self.last_line.is_empty() {
+                return Some(mem::replace(&mut self.last_line, line.trim().into()));
+            }
+            self.last_line = line.trim().into();
         }
         (!self.last_line.is_empty()).then(|| mem::take(&mut self.last_line))
     }
@@ -46,9 +55,11 @@ where
 /// Merge continued RPSL lines in `raw_lines` into single lines according to
 /// prefix continuation characters and yield them one by one.
 /// Strip and ignore comments. Ignore empty lines."""
-pub fn lines_continued(
-    raw_lines: impl IntoIterator<Item = String>,
-) -> impl Iterator<Item = String> {
+pub fn lines_continued<I, S>(raw_lines: I) -> impl Iterator<Item = String>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     LinesContinued {
         lines: raw_lines.into_iter(),
         last_line: String::new(),
@@ -133,6 +144,7 @@ where
             None
         } else {
             // The last line is not empty.
+            self.new = true;
             Some(RPSLObject::new(
                 mem::take(&mut self.class),
                 mem::take(&mut self.name),

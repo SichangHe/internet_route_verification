@@ -1,10 +1,9 @@
 use std::borrow::Cow;
-use std::io::{BufRead, BufReader, Read};
+use std::io::{BufRead, BufReader, Read, Result, Write};
 use std::mem;
 
 use lazy_regex::regex_replace_all;
 use log::error;
-use serde::Serialize;
 
 const CONTINUATION_CHARS: [&str; 3] = [" ", "+", "\t"];
 
@@ -79,7 +78,7 @@ pub fn cleanup_whitespace(string: &str) -> Cow<str> {
     dedup_whitespace(string.trim())
 }
 
-#[derive(Debug, Serialize)]
+/// Objects generated using `RpslObjects` have body ending with `\n`.
 pub struct RPSLObject {
     pub class: String,
     pub name: String,
@@ -89,6 +88,14 @@ pub struct RPSLObject {
 impl RPSLObject {
     fn new(class: String, name: String, body: String) -> Self {
         Self { class, name, body }
+    }
+
+    pub fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
+        writer.write_all(self.name.as_bytes())?;
+        writer.write_all(b"\n")?;
+        writer.write_all(self.body.as_bytes())?;
+        writer.write_all(b"\n")?;
+        Ok(())
     }
 }
 

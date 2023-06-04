@@ -1,5 +1,5 @@
 use std::{
-    io::{BufReader, Read, Write},
+    io::{BufReader, Read},
     process::{ChildStdout, Command},
 };
 
@@ -46,11 +46,10 @@ pub fn parse_object(
     aut_num_child: &mut PipedChild,
 ) -> Result<()> {
     if obj.class == "aut-num" {
-        let mut msg = serde_json::to_string(&obj)?;
-        msg += "\n";
-        aut_num_child.stdin.write_all(msg.as_bytes())?;
+        obj.write_to(&mut aut_num_child.stdin)?;
         let line = read_line_wait(&mut aut_num_child.stdout)?;
-        let aut_num: AutNum = from_str(&line)?;
+        let mut aut_num: AutNum = from_str(&line)?;
+        aut_num.body = obj.body;
         dump.aut_nums.push(aut_num);
     } else if obj.class == "as-set" {
         let members = gather_members(&obj.body);

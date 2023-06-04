@@ -4,18 +4,20 @@ from pyparsing import sys
 
 from .dump import parse_mp_import
 from .lines import expressions, lines_continued
-from .rpsl_object import AutNum, RPSLObject
+from .rpsl_object import AutNum
 
 
-def parse_aut_num(obj: RPSLObject):
+def parse_aut_num():
     imports: dict[str, dict[str, list[dict]]] = {}
     exports: dict[str, dict[str, list[dict]]] = {}
-    for key, expr in expressions(lines_continued(obj.body.splitlines())):
+    lines = stdin_lines()
+    name = next(lines)
+    for key, expr in expressions(lines_continued(lines)):
         if key == "import" or key == "mp-import":
             parse_mp_import(expr, imports)
         elif key == "export" or key == "mp-export":
             parse_mp_import(expr, exports)
-    return AutNum(obj.name, obj.body, imports, exports).__dict__
+    return AutNum(name, "", imports, exports).__dict__
 
 
 def stdin_lines():
@@ -23,18 +25,18 @@ def stdin_lines():
     while True:
         line += sys.stdin.read(1)
         if line.endswith("\n"):
-            yield line
+            if len(line) == 1:
+                break
+            yield line[:-1]
             line = ""
 
 
 def main():
     print("Launching aut_num lexer.", file=sys.stderr)
 
-    for line in stdin_lines():
-        line = line.strip()
-        raw = json.loads(line)
-        obj = RPSLObject(raw["class"], raw["name"], raw["body"])
-        json.dump(parse_aut_num(obj), sys.stdout)
+    while True:
+        aut_num = parse_aut_num()
+        json.dump(aut_num, sys.stdout)
         print()
         sys.stdout.flush()
 

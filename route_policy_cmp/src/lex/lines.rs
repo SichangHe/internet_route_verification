@@ -91,8 +91,6 @@ impl RPSLObject {
     }
 
     pub fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
-        writer.write_all(self.name.as_bytes())?;
-        writer.write_all(b"\n")?;
         writer.write_all(self.body.as_bytes())?;
         writer.write_all(b"\n")?;
         Ok(())

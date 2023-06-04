@@ -1,34 +1,20 @@
-import json
-
-from pyparsing import sys
+import sys
 
 from .dump import parse_mp_import
 from .lines import expressions, lines_continued
+from .piped import stdin_lines, write_obj
 from .rpsl_object import AutNum
 
 
 def parse_aut_num():
     imports: dict[str, dict[str, list[dict]]] = {}
     exports: dict[str, dict[str, list[dict]]] = {}
-    lines = stdin_lines()
-    name = next(lines)
-    for key, expr in expressions(lines_continued(lines)):
+    for key, expr in expressions(lines_continued(stdin_lines())):
         if key == "import" or key == "mp-import":
             parse_mp_import(expr, imports)
         elif key == "export" or key == "mp-export":
             parse_mp_import(expr, exports)
-    return AutNum(name, "", imports, exports).__dict__
-
-
-def stdin_lines():
-    line = ""
-    while True:
-        line += sys.stdin.read(1)
-        if line.endswith("\n"):
-            if len(line) == 1:
-                break
-            yield line[:-1]
-            line = ""
+    return AutNum("", "", imports, exports).__dict__
 
 
 def main():
@@ -36,9 +22,7 @@ def main():
 
     while True:
         aut_num = parse_aut_num()
-        json.dump(aut_num, sys.stdout)
-        print()
-        sys.stdout.flush()
+        write_obj(aut_num)
 
 
 main() if __name__ == "__main__" else None

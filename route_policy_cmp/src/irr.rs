@@ -10,7 +10,7 @@ use crate::{
         lines::{
             expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr,
         },
-        rpsl_object::{AsOrRouteSet, AutNum},
+        rpsl_object::{AsOrRouteSet, AutNum, PeeringSet},
     },
     serde::from_str,
 };
@@ -44,12 +44,13 @@ pub fn parse_object(
     obj: RPSLObject,
     dump: &mut Dump,
     aut_num_child: &mut PipedChild,
+    peering_set_child: &mut PipedChild,
 ) -> Result<()> {
     if obj.class == "aut-num" {
         obj.write_to(&mut aut_num_child.stdin)?;
         let line = read_line_wait(&mut aut_num_child.stdout)?;
         let mut aut_num: AutNum = from_str(&line)?;
-        aut_num.body = obj.body;
+        (aut_num.name, aut_num.body) = (obj.name, obj.body);
         dump.aut_nums.push(aut_num);
     } else if obj.class == "as-set" {
         let members = gather_members(&obj.body);
@@ -60,7 +61,11 @@ pub fn parse_object(
         dump.route_sets
             .push(AsOrRouteSet::new(obj.name, obj.body, members));
     } else if obj.class == "peering-set" {
-        // TODO: Pipe to Python.
+        obj.write_to(&mut peering_set_child.stdin)?;
+        let line = read_line_wait(&mut peering_set_child.stdout)?;
+        let mut peering_set: PeeringSet = from_str(&line)?;
+        (peering_set.name, peering_set.body) = (obj.name, obj.body);
+        dump.peering_sets.push(peering_set);
     }
     Ok(())
 }
@@ -69,16 +74,17 @@ pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
 where
     R: Read,
 {
-    let mut py_cmd = Command::new("pypy3");
-    py_cmd.args(["-m", "rpsl_policy.aut_num"]);
-    let mut aut_num_child = PipedChild::new(&mut py_cmd)?;
+    let mut aut_num_child =
+        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_policy.aut_num"]))?;
+    let mut peering_set_child =
+        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_policy.peering_set"]))?;
 
     let mut dump = Dump::default();
     for (count, obj) in rpsl_objects(io_wrapper_lines(db)).enumerate() {
         if count % 0x1000 == 0 {
             dump.log_count();
         }
-        parse_object(obj, &mut dump, &mut aut_num_child)?;
+        parse_object(obj, &mut dump, &mut aut_num_child, &mut peering_set_child)?;
     }
 
     dump.log_count();

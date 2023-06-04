@@ -1,6 +1,26 @@
 # Parse RPSL Policy
 
-## Produce a dump using lexer
+WIP
+
+## Produce a parsed dump using both lexer and parser
+
+- Put the database file at `data/ripe.db`.
+- Make sure `pypy3` is in the `PATH`.
+- Make sure you have `pyparsing` installed.
+- Prepend this directory to your `PYTHONPATH`.
+- Maybe you want to enable logging:
+
+    ```sh
+    export RUST_LOG=route_policy_cmp=trace
+    ```
+
+- Run at `route_policy_cmp/`:
+
+    ```sh
+    cargo r --release -- ../data/ripe.db > rust_dump.json
+    ```
+
+## Produce a lexed dump using lexer
 
 If the database file is at `data/ripe.db`, for example:
 

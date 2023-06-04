@@ -1,5 +1,6 @@
 use lazy_regex::regex_is_match;
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use crate::lex::{mp_import, peering};
 
@@ -81,6 +82,7 @@ pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
 }
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
+#[skip_serializing_none]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Peering {
     pub remote_as: AsExpr,

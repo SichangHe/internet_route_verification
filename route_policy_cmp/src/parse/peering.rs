@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use lazy_regex::regex_is_match;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -93,6 +95,8 @@ pub struct Peering {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PeeringAction {
     pub mp_peering: Peering,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub actions: Actions,
 }
 

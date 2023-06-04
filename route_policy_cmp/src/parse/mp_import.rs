@@ -49,21 +49,37 @@ pub fn parse_entry(entry: mp_import::Entry) -> Entry {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(default)]
 pub struct Versions {
+    #[serde(skip_serializing_if = "Casts::is_default")]
     pub any: Casts,
+    #[serde(skip_serializing_if = "Casts::is_default")]
     pub ipv4: Casts,
+    #[serde(skip_serializing_if = "Casts::is_default")]
     pub ipv6: Casts,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(default)]
 pub struct Casts {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub any: Vec<Entry>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub unicast: Vec<Entry>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub multicast: Vec<Entry>,
+}
+
+impl Casts {
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Entry {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub mp_peerings: Vec<PeeringAction>,
     pub mp_filter: Filter,
 }

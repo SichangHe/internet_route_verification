@@ -3,7 +3,7 @@ use anyhow::{bail, Result};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::debug;
-use route_policy_cmp::irr::read_db;
+use route_policy_cmp::{irr::read_db, parse::lex::parse_lexed};
 use std::{
     env::args,
     fs::File,
@@ -26,9 +26,11 @@ fn main() -> Result<()> {
             .build(File::open(filename)?),
     );
     let dump = read_db(reader)?;
+    dump.log_count();
 
-    debug!("Starting to write the dump.");
-    serde_json::to_writer(stdout(), &dump)?;
+    let parsed = parse_lexed(dump);
+    debug!("Starting to write the lexed dump.");
+    serde_json::to_writer(stdout(), &parsed)?;
 
     Ok(())
 }

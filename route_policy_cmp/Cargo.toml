@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.71"
+encoding_rs = "0.8.32"
+encoding_rs_io = "0.1.7"
 env_logger = "0.10.0"
 ipnet = { version = "2.7.2", features = ["serde"] }
 lazy-regex = "2.5.0"

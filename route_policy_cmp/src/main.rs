@@ -1,5 +1,7 @@
 use anyhow::{bail, Result};
 
+use encoding_rs::Encoding;
+use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::debug;
 use route_policy_cmp::irr::read_db;
 use std::{
@@ -17,7 +19,12 @@ fn main() -> Result<()> {
 
     let filename = &args[1];
     debug!("Will read from {filename}.");
-    let reader = BufReader::new(File::open(filename)?);
+    let encoding = Encoding::for_label(b"latin1");
+    let reader = BufReader::new(
+        DecodeReaderBytesBuilder::new()
+            .encoding(encoding)
+            .build(File::open(filename)?),
+    );
     let dump = read_db(reader);
 
     debug!("Starting to write the dump.");

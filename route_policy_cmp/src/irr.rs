@@ -1,6 +1,4 @@
-use std::{
-    io::{BufReader, Read},
-};
+use std::io::{BufReader, Read};
 
 use crate::lex::{
     dump::Dump,

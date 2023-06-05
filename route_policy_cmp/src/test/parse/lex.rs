@@ -39,6 +39,7 @@ fn parse_dump() {
         route_sets,
         peering_sets,
         filter_sets,
+        as_routes: _,
     } = parse_lexed(lexed);
     assert_eq!(aut_nums, expected_aut_nums());
     assert_eq!(as_sets, expected_as_sets());

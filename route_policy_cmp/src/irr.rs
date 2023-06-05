@@ -1,6 +1,7 @@
 pub mod worker;
 
 use std::{
+    collections::BTreeMap,
     io::{BufReader, Read},
     process::ChildStdout,
     sync::mpsc::Sender,
@@ -13,7 +14,7 @@ use crate::lex::{
 };
 
 use anyhow::Result;
-use log::{debug, warn};
+use log::{debug, error, warn};
 
 use self::worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
@@ -47,29 +48,53 @@ pub fn parse_object(
     send_aut_num: &mut Sender<RPSLObject>,
     send_peering_set: &mut Sender<RPSLObject>,
     send_filter_set: &mut Sender<RPSLObject>,
+    as_routes: &mut BTreeMap<String, Vec<String>>,
 ) -> Result<()> {
-    if obj.class == "aut-num" {
-        send_aut_num.send(obj)?;
-    } else if obj.class == "as-set" {
-        let members = gather_members(&obj.body);
-        as_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
-        match as_sets.len() {
-            l if l % 0xFF == 0 => debug!("Parsed {l} as_sets."),
-            _ => (),
-        }
-    } else if obj.class == "route-set" {
-        let members = gather_members(&obj.body);
-        route_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
-        match route_sets.len() {
-            l if l % 0xFF == 0 => debug!("Parsed {l} route_sets."),
-            _ => (),
-        }
-    } else if obj.class == "filter-set" {
-        send_filter_set.send(obj)?;
-    } else if obj.class == "peering-set" {
-        send_peering_set.send(obj)?;
+    match obj.class.as_str() {
+        "aut-num" => send_aut_num.send(obj)?,
+        "as-set" => parse_as_set(obj, as_sets),
+        "route" => parse_route(obj, as_routes),
+        "route-set" => parse_route_set(obj, route_sets),
+        "filter-set" => send_filter_set.send(obj)?,
+        "peering-set" => send_peering_set.send(obj)?,
+        _ => (),
     }
     Ok(())
+}
+
+fn parse_as_set(obj: RPSLObject, as_sets: &mut Vec<AsOrRouteSet>) {
+    let members = gather_members(&obj.body);
+    as_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
+    match as_sets.len() {
+        l if l % 0xFF == 0 => debug!("Parsed {l} as_sets."),
+        _ => (),
+    }
+}
+
+fn parse_route(obj: RPSLObject, as_routes: &mut BTreeMap<String, Vec<String>>) {
+    for RpslExpr {
+        key,
+        expr, /*AS*/
+    } in expressions(lines_continued(obj.body.lines()))
+    {
+        if key == "origin" {
+            as_routes
+                .entry(expr)
+                .or_default()
+                .push(obj.name /*The route*/);
+            return;
+        }
+    }
+    error!("Route object {} does not have an `origin` field.", obj.name);
+}
+
+fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
+    let members = gather_members(&obj.body);
+    route_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
+    match route_sets.len() {
+        l if l % 0xFF == 0 => debug!("Parsed {l} route_sets."),
+        _ => (),
+    }
 }
 
 const ONE_MEBIBYTE: usize = 1024 * 1024;
@@ -78,7 +103,7 @@ pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
 where
     R: Read,
 {
-    let (mut as_sets, mut route_sets) = (Vec::new(), Vec::new());
+    let (mut as_sets, mut route_sets, mut as_routes) = (Vec::new(), Vec::new(), BTreeMap::new());
     let (mut send_aut_num, aut_num_worker) = spawn_aut_num_worker()?;
     let (mut send_peering_set, peering_set_worker) = spawn_peering_set_worker()?;
     let (mut send_filter_set, filter_set_worker) = spawn_filter_set_worker()?;
@@ -100,6 +125,7 @@ where
             &mut send_aut_num,
             &mut send_peering_set,
             &mut send_filter_set,
+            &mut as_routes,
         )?;
     }
 
@@ -114,5 +140,6 @@ where
         route_sets,
         peering_sets,
         filter_sets,
+        as_routes,
     })
 }

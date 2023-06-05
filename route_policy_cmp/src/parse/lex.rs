@@ -26,6 +26,7 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         route_sets,
         peering_sets,
         filter_sets,
+        as_routes,
     } = lexed;
     let aut_nums = parse_lexed_aut_nums(aut_nums);
     debug!("Parsed {} Aut Nums.", aut_nums.len());
@@ -43,6 +44,7 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         route_sets,
         peering_sets,
         filter_sets,
+        as_routes,
     }
 }
 
@@ -187,4 +189,6 @@ pub struct Dump {
     pub route_sets: BTreeMap<String, RouteSet>,
     pub peering_sets: BTreeMap<String, PeeringSet>,
     pub filter_sets: BTreeMap<String, FilterSet>,
+    /// The AS with Vec of their routes.
+    pub as_routes: BTreeMap<String, Vec<String>>,
 }

@@ -22,6 +22,7 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         as_sets,
         route_sets,
         peering_sets,
+        filter_sets,
     } = lexed;
     let aut_nums = parse_lexed_aut_nums(aut_nums);
     info!("Parsed {} Aut Nums.", aut_nums.len());

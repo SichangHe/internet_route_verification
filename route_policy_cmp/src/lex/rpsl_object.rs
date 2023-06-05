@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{mp_import::Versions, peering::Peering};
+use super::{filter::Filter, mp_import::Versions, peering::Peering};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AutNum {
@@ -34,12 +34,9 @@ pub struct PeeringSet {
     pub peerings: Vec<Peering>,
 }
 
-impl PeeringSet {
-    pub fn new(name: String, body: String, peerings: Vec<Peering>) -> Self {
-        Self {
-            name,
-            body,
-            peerings,
-        }
-    }
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct FilterSet {
+    pub name: String,
+    pub body: String,
+    pub filters: Vec<Filter>,
 }

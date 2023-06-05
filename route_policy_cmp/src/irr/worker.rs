@@ -7,13 +7,13 @@ use std::{
 };
 
 use anyhow::Result;
-use log::debug;
+use log::{debug, error, warn};
 
 use crate::{
     cmd::PipedChild,
     lex::{
         lines::RPSLObject,
-        rpsl_object::{AutNum, PeeringSet},
+        rpsl_object::{AutNum, FilterSet, PeeringSet},
     },
     serde::from_str,
 };
@@ -22,7 +22,12 @@ use super::read_line_wait;
 
 pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<Vec<AutNum>>>)> {
     let (send, recv) = channel();
-    let worker = spawn(|| aut_num_worker(recv));
+    let worker = spawn(|| {
+        aut_num_worker(recv).map_err(|e| {
+            error!("aut_num_worker: {e:#}.");
+            e
+        })
+    });
     Ok((send, worker))
 }
 
@@ -42,13 +47,19 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<Vec<AutNum>> {
             _ => (),
         }
     }
+    warn!("aut_num_worker exiting normally.");
     Ok(aut_nums)
 }
 
 pub fn spawn_peering_set_worker(
 ) -> Result<(Sender<RPSLObject>, JoinHandle<Result<Vec<PeeringSet>>>)> {
     let (send, recv) = channel();
-    let worker = spawn(|| peering_set_worker(recv));
+    let worker = spawn(|| {
+        peering_set_worker(recv).map_err(|e| {
+            error!("peering_set_worker: {e:#}.");
+            e
+        })
+    });
     Ok((send, worker))
 }
 
@@ -68,5 +79,38 @@ fn peering_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<PeeringSet>> {
             _ => (),
         }
     }
+    warn!("peering_set_worker exiting normally.");
     Ok(peering_sets)
+}
+
+pub fn spawn_filter_set_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<Vec<FilterSet>>>)>
+{
+    let (send, recv) = channel();
+    let worker = spawn(|| {
+        filter_set_worker(recv).map_err(|e| {
+            error!("filter_set_worker: {e:#}.");
+            e
+        })
+    });
+    Ok((send, worker))
+}
+
+fn filter_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<FilterSet>> {
+    let mut filter_set_child =
+        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_policy.filter_set"]))?;
+
+    let mut filter_sets = Vec::new();
+    while let Ok(obj) = recv.recv() {
+        obj.write_to(&mut filter_set_child.stdin)?;
+        let line = read_line_wait(&mut filter_set_child.stdout)?;
+        let mut filter_set: FilterSet = from_str(&line)?;
+        (filter_set.name, filter_set.body) = (obj.name, obj.body);
+        filter_sets.push(filter_set);
+        match filter_sets.len() {
+            l if l % 0xF == 0 => debug!("Parsed {l} filter_sets."),
+            _ => (),
+        }
+    }
+    warn!("filter_set_worker exiting normally.");
+    Ok(filter_sets)
 }

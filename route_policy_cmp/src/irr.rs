@@ -15,7 +15,7 @@ use crate::lex::{
 use anyhow::Result;
 use log::debug;
 
-use self::worker::{spawn_aut_num_worker, spawn_peering_set_worker};
+use self::worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
 pub fn gather_members(body: &str) -> Vec<String> {
     let mut members = Vec::new();
@@ -46,6 +46,7 @@ pub fn parse_object(
     route_sets: &mut Vec<AsOrRouteSet>,
     send_aut_num: &mut Sender<RPSLObject>,
     send_peering_set: &mut Sender<RPSLObject>,
+    send_filter_set: &mut Sender<RPSLObject>,
 ) -> Result<()> {
     if obj.class == "aut-num" {
         send_aut_num.send(obj)?;
@@ -64,7 +65,7 @@ pub fn parse_object(
             _ => (),
         }
     } else if obj.class == "filter-set" {
-        // TODO: Parse filter set.
+        send_filter_set.send(obj)?;
     } else if obj.class == "peering-set" {
         send_peering_set.send(obj)?;
     }
@@ -78,6 +79,7 @@ where
     let (mut as_sets, mut route_sets) = (Vec::new(), Vec::new());
     let (mut send_aut_num, aut_num_worker) = spawn_aut_num_worker()?;
     let (mut send_peering_set, peering_set_worker) = spawn_peering_set_worker()?;
+    let (mut send_filter_set, filter_set_worker) = spawn_filter_set_worker()?;
 
     for obj in rpsl_objects(io_wrapper_lines(db)) {
         parse_object(
@@ -86,17 +88,20 @@ where
             &mut route_sets,
             &mut send_aut_num,
             &mut send_peering_set,
+            &mut send_filter_set,
         )?;
     }
 
-    drop((send_aut_num, send_peering_set));
+    drop((send_aut_num, send_peering_set, send_filter_set));
     let aut_nums = aut_num_worker.join().unwrap()?;
     let peering_sets = peering_set_worker.join().unwrap()?;
+    let filter_sets = filter_set_worker.join().unwrap()?;
 
     Ok(Dump {
         aut_nums,
         as_sets,
         route_sets,
         peering_sets,
+        filter_sets,
     })
 }

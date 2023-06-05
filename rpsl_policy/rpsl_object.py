@@ -44,3 +44,12 @@ class PeeringSet:
     name: str
     body: str
     peerings: list[dict]
+
+
+@dataclass
+class FilterSet:
+    """filter-set class."""
+
+    name: str
+    body: str
+    filters: list[dict]

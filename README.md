@@ -17,7 +17,7 @@ WIP
 - Run at `route_policy_cmp/`:
 
     ```sh
-    cargo r --release -- ../data/ripe.db > rust_dump.json
+    cargo r --release -- ../data/ripe.db > ../parsed.json
     ```
 
 ## Produce a lexed dump using lexer

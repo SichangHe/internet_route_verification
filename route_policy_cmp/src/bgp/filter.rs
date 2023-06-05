@@ -61,7 +61,7 @@ impl<'a> CheckFilter<'a> {
     fn filter_as_num(&self, num: usize, _op: &RangeOperator) -> AnyReport {
         // TODO: Implement.
         skip_any_report(format!("AS number {num} check is not implemented"))
-        // TODO: Below is incorrect.
+        // Below is incorrect.
         // (num != self.accept_num).then(|| {
         //     let errors = vec![NoMatch(format!(
         //         "AS{} does not match {num}",

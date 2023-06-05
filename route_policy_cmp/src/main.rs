@@ -29,8 +29,9 @@ fn main() -> Result<()> {
     dump.log_count();
 
     let parsed = parse_lexed(dump);
-    debug!("Starting to write the lexed dump.");
+    debug!("Starting to write the parsed dump.");
     serde_json::to_writer(stdout(), &parsed)?;
+    debug!("Wrote the parsed dump.");
 
     Ok(())
 }

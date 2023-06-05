@@ -15,7 +15,7 @@ use crate::{
         mp_import::{Casts, Entry, Versions},
         peering::{AsExpr::*, Peering, PeeringAction},
         router_expr::RouterExpr::*,
-        set::{AsSet, PeeringSet, RouteSet, RouteSetMember::*},
+        set::{AsSet, FilterSet, PeeringSet, RouteSet, RouteSetMember::*},
     },
     test::lex::dump::expected_dump,
 };
@@ -44,7 +44,7 @@ fn parse_dump() {
     assert_eq!(as_sets, expected_as_sets());
     assert_eq!(route_sets, expected_route_sets());
     assert_eq!(peering_sets, expected_peering_sets());
-    // TODO: Test filter_sets.
+    assert_eq!(filter_sets, expected_filter_sets());
 }
 
 fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
@@ -191,4 +191,10 @@ fn ipn(s: &str) -> IpNet {
 
 fn expected_peering_sets() -> BTreeMap<String, PeeringSet> {
     btreemap! {"AS8785:prng-nyiix".into()=> PeeringSet { body: "descr: NYIIX Peering Partners\npeering: AS2516 at 198.32.160.25\npeering: AS3257 at 198.32.160.29\npeering: AS4323 at 198.32.160.35\npeering: AS4436 at 198.32.160.53\npeering: AS4513 at 198.32.160.32\npeering: AS5496 at 198.32.160.16\npeering: AS6427 at 198.32.160.12\npeering: AS6461 at 198.32.160.22\npeering: AS6660 at 198.32.160.13\npeering: AS6667 at 198.32.160.41\npeering: AS6939 at 198.32.160.61\npeering: AS8001 at 198.32.160.20\npeering: AS8002 at 198.32.160.33\npeering: AS8220 at 198.32.160.34\npeering: AS8647 at 198.32.160.14\npeering: AS8966 at 198.32.160.45\npeering: AS9156 at 198.32.160.24\npeering: AS13768 at 198.32.160.65\npeering: AS13945 at 198.32.160.37\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\nmnt-by: MISTRALNOC\ncreated: 2001-10-20T18:41:03Z\nlast-modified: 2005-10-10T11:47:35Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), peerings: vec![Peering { remote_as: Single(Num(2516)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.25"))) }, Peering { remote_as: Single(Num(3257)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.29"))) }, Peering { remote_as: Single(Num(4323)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.35"))) }, Peering { remote_as: Single(Num(4436)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.53"))) }, Peering { remote_as: Single(Num(4513)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.32"))) }, Peering { remote_as: Single(Num(5496)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.16"))) }, Peering { remote_as: Single(Num(6427)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.12"))) }, Peering { remote_as: Single(Num(6461)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.22"))) }, Peering { remote_as: Single(Num(6660)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.13"))) }, Peering { remote_as: Single(Num(6667)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.41"))) }, Peering { remote_as: Single(Num(6939)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.61"))) }, Peering { remote_as: Single(Num(8001)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.20"))) }, Peering { remote_as: Single(Num(8002)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.33"))) }, Peering { remote_as: Single(Num(8220)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.34"))) }, Peering { remote_as: Single(Num(8647)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.14"))) }, Peering { remote_as: Single(Num(8966)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.45"))) }, Peering { remote_as: Single(Num(9156)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.24"))) }, Peering { remote_as: Single(Num(13768)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.65"))) }, Peering { remote_as: Single(Num(13945)), remote_router: None, local_router: Some(Ip(ip!("198.32.160.37"))) }] }}
+}
+
+fn expected_filter_sets() -> BTreeMap<String, FilterSet> {
+    use crate::parse::{filter::Filter::*, set::FilterSet};
+
+    btreemap! {"FLTR-EUX".into()=> FilterSet { body: "filter: AS8785 AND AS13285\ndescr: test filter set 1\nmnt-by: MISTRALNOC\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\ncreated: 2002-08-23T22:50:47Z\nlast-modified: 2005-10-10T11:47:30Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), filters: vec![And { left: Box::new(AsNum(8785, NoOp)), right: Box::new(AsNum(13285, NoOp)) }] }}
 }

@@ -22,10 +22,10 @@ impl FromStr for AddrPfxRange {
         ))?;
         let address_prefix = prefix
             .parse()
-            .context(format!("parsing {s} as address prefix range"))?;
+            .context(format!("parsing {prefix} as address prefix"))?;
         let range_operator = operator
             .parse()
-            .context(format!("parsing {s} as address prefix range"))?;
+            .context(format!("parsing {operator} as range operator"))?;
         Ok(Self {
             address_prefix,
             range_operator,
@@ -50,7 +50,7 @@ impl AddrPfxRange {
 }
 
 pub fn get_address_prefix_range_fields(s: &str) -> Option<(&str, &str, &str)> {
-    regex_captures!(r"([\d\.:/]+)(\^[-+\d]+)?", s)
+    regex_captures!(r"^([[[:xdigit:]]\.:/]+)(\^[-+\d]+)?$", s)
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

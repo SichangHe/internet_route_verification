@@ -73,7 +73,7 @@ pub fn parse_table_dump(line: &str) -> Result<(IpNet, Vec<AsPathEntry>, Collecto
     }
     let fields: Vec<_> = line.split('|').collect();
     let n_fields = fields.len();
-    if n_fields != 15 {
+    if n_fields < 15 {
         bail!("{line} breaks down to {n_fields} fields instead of 15");
     }
     let vp = CollectorPeer {

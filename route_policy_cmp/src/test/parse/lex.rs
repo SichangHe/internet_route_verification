@@ -201,6 +201,6 @@ fn expected_filter_sets() -> BTreeMap<String, FilterSet> {
     btreemap! {"FLTR-EUX".into()=> FilterSet { body: "filter: AS8785 AND AS13285\ndescr: test filter set 1\nmnt-by: MISTRALNOC\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\ncreated: 2002-08-23T22:50:47Z\nlast-modified: 2005-10-10T11:47:30Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), filters: vec![And { left: Box::new(AsNum(8785, NoOp)), right: Box::new(AsNum(13285, NoOp)) }] }}
 }
 
-fn expected_as_routes() -> BTreeMap<String, Vec<IpNet>> {
-    btreemap! {"AS10".into()=> vec![ipn("45.143.208.0/22")]}
+fn expected_as_routes() -> BTreeMap<usize, Vec<IpNet>> {
+    btreemap! {10=> vec![ipn("45.143.208.0/22")]}
 }

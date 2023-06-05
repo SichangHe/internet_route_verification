@@ -58,17 +58,19 @@ impl<'a> CheckFilter<'a> {
         aggregater.to_any()
     }
 
-    fn filter_as_num(&self, num: usize, _op: &RangeOperator) -> AnyReport {
-        // TODO: Implement.
-        skip_any_report(format!("AS number {num} check is not implemented"))
-        // Below is incorrect.
-        // (num != self.accept_num).then(|| {
-        //     let errors = vec![NoMatch(format!(
-        //         "AS{} does not match {num}",
-        //         self.accept_num
-        //     ))];
-        //     (errors, true)
-        // })
+    fn filter_as_num(&self, num: usize, &range_operator: &RangeOperator) -> AnyReport {
+        let routes = match self.compare.dump.as_routes.get(&num) {
+            Some(r) => r,
+            None => return skip_any_report(format!("AS{num} has no recorded routes")),
+        };
+        let ranges: Vec<_> = routes
+            .iter()
+            .map(|&address_prefix| AddrPfxRange {
+                address_prefix,
+                range_operator,
+            })
+            .collect();
+        self.filter_prefixes(&ranges)
     }
 
     fn filter_prefixes<I>(&self, prefixes: I) -> AnyReport

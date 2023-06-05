@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use anyhow::{bail, Context, Error, Result};
+use anyhow::{bail, Context, Error, Ok, Result};
 use ipnet::IpNet;
 use lazy_regex::regex_captures;
 use log::{debug, error};
@@ -187,21 +187,21 @@ pub fn parse_lexed_filter_set(lexed: rpsl_object::FilterSet) -> Result<(String, 
 
 pub fn parse_lexed_as_routes(
     as_routes: BTreeMap<String, Vec<String>>,
-) -> BTreeMap<String, Vec<IpNet>> {
+) -> BTreeMap<usize, Vec<IpNet>> {
     as_routes
         .into_iter()
-        .map(|(an, routes)| {
-            let routes = routes
-                .into_iter()
-                .filter_map(|r| {
-                    r.parse::<IpNet>()
-                        .map_err(|e| error!("Parsing routes for {an}: {e}."))
-                        .ok()
-                })
-                .collect();
-            (an, routes)
+        .filter_map(|as_route| {
+            parse_lexed_as_route(&as_route)
+                .map_err(|e| error!("Parsing routes for {as_route:?}: {e}."))
+                .ok()
         })
         .collect()
+}
+
+pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(usize, Vec<IpNet>)> {
+    let num = parse_aut_num_name(name)?;
+    let routes: Result<_> = routes.iter().map(|r| Ok(r.parse()?)).collect();
+    Ok((num, routes?))
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -211,7 +211,7 @@ pub struct Dump {
     pub route_sets: BTreeMap<String, RouteSet>,
     pub peering_sets: BTreeMap<String, PeeringSet>,
     pub filter_sets: BTreeMap<String, FilterSet>,
-    /// The AS in uppercase with Vec of their routes.
+    /// The AS numbers with Vec of their routes.
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-4>.
-    pub as_routes: BTreeMap<String, Vec<IpNet>>,
+    pub as_routes: BTreeMap<usize, Vec<IpNet>>,
 }

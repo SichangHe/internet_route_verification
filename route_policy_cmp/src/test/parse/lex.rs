@@ -39,13 +39,14 @@ fn parse_dump() {
         route_sets,
         peering_sets,
         filter_sets,
-        as_routes: _,
+        as_routes,
     } = parse_lexed(lexed);
     assert_eq!(aut_nums, expected_aut_nums());
     assert_eq!(as_sets, expected_as_sets());
     assert_eq!(route_sets, expected_route_sets());
     assert_eq!(peering_sets, expected_peering_sets());
     assert_eq!(filter_sets, expected_filter_sets());
+    assert_eq!(as_routes, expected_as_routes());
 }
 
 fn expected_aut_nums() -> BTreeMap<usize, AutNum> {
@@ -198,4 +199,8 @@ fn expected_filter_sets() -> BTreeMap<String, FilterSet> {
     use crate::parse::{filter::Filter::*, set::FilterSet};
 
     btreemap! {"FLTR-EUX".into()=> FilterSet { body: "filter: AS8785 AND AS13285\ndescr: test filter set 1\nmnt-by: MISTRALNOC\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\ncreated: 2002-08-23T22:50:47Z\nlast-modified: 2005-10-10T11:47:30Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), filters: vec![And { left: Box::new(AsNum(8785, NoOp)), right: Box::new(AsNum(13285, NoOp)) }] }}
+}
+
+fn expected_as_routes() -> BTreeMap<String, Vec<IpNet>> {
+    btreemap! {"AS10".into()=> vec![ipn("45.143.208.0/22")]}
 }

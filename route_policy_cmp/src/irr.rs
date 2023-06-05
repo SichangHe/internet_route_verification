@@ -79,7 +79,7 @@ fn parse_route(obj: RPSLObject, as_routes: &mut BTreeMap<String, Vec<String>>) {
     {
         if key == "origin" {
             as_routes
-                .entry(expr)
+                .entry(expr.to_uppercase())
                 .or_default()
                 .push(obj.name /*The route*/);
             return;

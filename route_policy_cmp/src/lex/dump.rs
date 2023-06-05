@@ -12,7 +12,7 @@ pub struct Dump {
     pub route_sets: Vec<AsOrRouteSet>,
     pub peering_sets: Vec<PeeringSet>,
     pub filter_sets: Vec<FilterSet>,
-    /// The AS with Vec of their routes.
+    /// The AS in uppercase with Vec of their routes.
     pub as_routes: BTreeMap<String, Vec<String>>,
 }
 

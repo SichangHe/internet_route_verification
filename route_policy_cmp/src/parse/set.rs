@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     address_prefix::{AddrPfxRange, RangeOperator},
     aut_sys::AsName,
+    filter::Filter,
     peering::Peering,
 };
 
@@ -63,4 +64,10 @@ pub fn get_name_operator(s: &str) -> Option<(&str, &str, &str)> {
 pub struct PeeringSet {
     pub body: String,
     pub peerings: Vec<Peering>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct FilterSet {
+    pub body: String,
+    pub filters: Vec<Filter>,
 }

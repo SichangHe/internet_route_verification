@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::{bail, Context, Error, Result};
 use lazy_regex::regex_captures;
-use log::{error, info};
+use log::{debug, error};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
@@ -11,12 +11,15 @@ use super::{
     aut_sys::{is_as_set, parse_as_name},
     mp_import::parse_imports,
     peering::{is_peering_set, parse_mp_peering},
-    set::{is_route_set_name, AsSet, PeeringSet, RouteSet},
+    set::{is_route_set_name, AsSet, FilterSet, PeeringSet, RouteSet},
 };
-use crate::lex::{dump, rpsl_object};
+use crate::{
+    lex::{dump, rpsl_object},
+    parse::filter::{is_filter_set, parse_filter},
+};
 
 pub fn parse_lexed(lexed: dump::Dump) -> Dump {
-    info!("Start to parse lexed dump.");
+    debug!("Start to parse lexed dump.");
     let dump::Dump {
         aut_nums,
         as_sets,
@@ -25,13 +28,15 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         filter_sets,
     } = lexed;
     let aut_nums = parse_lexed_aut_nums(aut_nums);
-    info!("Parsed {} Aut Nums.", aut_nums.len());
+    debug!("Parsed {} Aut Nums.", aut_nums.len());
     let as_sets = parse_lexed_as_sets(as_sets);
-    info!("Parsed {} As Sets.", as_sets.len());
+    debug!("Parsed {} As Sets.", as_sets.len());
     let route_sets = parse_lexed_route_sets(route_sets);
-    info!("Parsed {} Route Sets.", route_sets.len());
+    debug!("Parsed {} Route Sets.", route_sets.len());
     let peering_sets = parse_lexed_peering_sets(peering_sets);
-    info!("Parsed {} Peering Sets.", peering_sets.len());
+    debug!("Parsed {} Peering Sets.", peering_sets.len());
+    let filter_sets = parse_lexed_filter_sets(filter_sets);
+    debug!("Parsed {} Filter Sets.", filter_sets.len());
     Dump {
         aut_nums,
         as_sets,
@@ -85,7 +90,7 @@ pub fn parse_lexed_as_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<St
 
 pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, AsSet)> {
     if !is_as_set(&lexed.name) {
-        bail!("illegal AS set name in {lexed:?}");
+        bail!("invalid AS set name in {lexed:?}");
     }
     let members = lexed.members.into_iter().map(parse_as_name).collect();
     let as_set = AsSet {
@@ -105,7 +110,7 @@ pub fn parse_lexed_route_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap
 pub fn parse_lexed_route_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, RouteSet)> {
     if !is_route_set_name(&lexed.name) {
         bail!(
-            "{} is an illegal route set name—parsing {lexed:?}",
+            "{} is an invalid route set name—parsing {lexed:?}",
             lexed.name
         );
     }
@@ -136,7 +141,7 @@ pub fn parse_lexed_peering_sets(
 pub fn parse_lexed_peering_set(lexed: rpsl_object::PeeringSet) -> Result<(String, PeeringSet)> {
     if !is_peering_set(&lexed.name) {
         bail!(
-            "{} is an illegal ppeering set name—parsing {lexed:?}",
+            "{} is an invalid peering set name—parsing {lexed:?}",
             lexed.name
         );
     }
@@ -147,6 +152,31 @@ pub fn parse_lexed_peering_set(lexed: rpsl_object::PeeringSet) -> Result<(String
             peerings: lexed.peerings.into_iter().map(parse_mp_peering).collect(),
         },
     ))
+}
+
+pub fn parse_lexed_filter_sets(lexed: Vec<rpsl_object::FilterSet>) -> BTreeMap<String, FilterSet> {
+    lexed
+        .into_par_iter()
+        .filter_map(|l| parse_lexed_filter_set(l).map_err(|e| error!("{e:#}")).ok())
+        .collect()
+}
+
+pub fn parse_lexed_filter_set(lexed: rpsl_object::FilterSet) -> Result<(String, FilterSet)> {
+    if !is_filter_set(&lexed.name) {
+        bail!(
+            "{} is an invalid filter set name—parsing {lexed:?}",
+            lexed.name
+        );
+    }
+    let filter_set = FilterSet {
+        body: lexed.body,
+        filters: lexed
+            .filters
+            .into_iter()
+            .map(|f| parse_filter(f, &[]))
+            .collect(),
+    };
+    Ok((lexed.name, filter_set))
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

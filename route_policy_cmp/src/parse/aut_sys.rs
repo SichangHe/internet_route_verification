@@ -8,11 +8,11 @@ use super::lex::parse_aut_num_name;
 pub enum AsName {
     Num(usize),
     Set(String),
-    Illegal(String),
+    Invalid(String),
 }
 
 /// A simple AS field is either a AS number or a AS set.
-/// Otherwise, return `AsExpr::Illegal`.
+/// Otherwise, return `AsExpr::Invalid`.
 pub fn parse_as_name(field: String) -> AsName {
     if is_as_set(&field) {
         // AS set.
@@ -24,7 +24,7 @@ pub fn parse_as_name(field: String) -> AsName {
             let err = err.context("parsing as name");
             let err = format!("{err:#}");
             error!("{err}");
-            AsName::Illegal(err)
+            AsName::Invalid(err)
         }
     }
 }

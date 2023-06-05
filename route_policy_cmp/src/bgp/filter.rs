@@ -25,7 +25,7 @@ pub struct CheckFilter<'a> {
 impl<'a> CheckFilter<'a> {
     pub fn check(&mut self, filter: &'a Filter) -> AnyReport {
         match filter {
-            FilterSetName(name) => self.filter_set_name(name),
+            FilterSet(name) => self.filter_set(name),
             Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSet(name, op) => self.filter_route_set(name, op),
@@ -37,7 +37,7 @@ impl<'a> CheckFilter<'a> {
             Not(filter) => self.filter_not(filter),
             Group(filter) => self.check(filter),
             Community(community) => self.filter_community(community),
-            Illegal(reason) => self.illegal_filter(reason),
+            Invalid(reason) => self.invalid_filter(reason),
         }
     }
 
@@ -46,7 +46,7 @@ impl<'a> CheckFilter<'a> {
         self.call_depth >= RECURSION_LIMIT
     }
 
-    fn filter_set_name(&self, name: &str) -> AnyReport {
+    fn filter_set(&self, name: &str) -> AnyReport {
         // TODO: Implement.
         skip_any_report(format!("Filter set {name} check is not implemented"))
     }
@@ -169,8 +169,8 @@ impl<'a> CheckFilter<'a> {
         let report = match as_name {
             AsName::Num(num) => self.filter_as_num(*num, op),
             AsName::Set(name) => self.filter_as_set(name, op, visited),
-            AsName::Illegal(reason) => {
-                bad_rpsl_any_report(format!("Illegal AS name in filter: {reason}"))
+            AsName::Invalid(reason) => {
+                bad_rpsl_any_report(format!("Invalid AS name in filter: {reason}"))
             }
         };
         (report, false)
@@ -222,7 +222,7 @@ impl<'a> CheckFilter<'a> {
         skip_any_report(format!("Community {community:?} check is not implemented"))
     }
 
-    fn illegal_filter(&self, reason: &str) -> AnyReport {
-        bad_rpsl_any_report(format!("Illegal filter: {reason}"))
+    fn invalid_filter(&self, reason: &str) -> AnyReport {
+        bad_rpsl_any_report(format!("Invalid filter: {reason}"))
     }
 }

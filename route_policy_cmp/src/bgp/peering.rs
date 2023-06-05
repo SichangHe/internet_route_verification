@@ -69,7 +69,7 @@ impl<'a> CheckPeering<'a> {
         match as_name {
             AsName::Num(num) => self.check_remote_as_num(*num),
             AsName::Set(name) => self.check_remote_as_set(name),
-            AsName::Illegal(reason) => {
+            AsName::Invalid(reason) => {
                 bad_rpsl_any_report(format!("{reason} when checking peering"))
             }
         }

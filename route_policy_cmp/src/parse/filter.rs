@@ -48,8 +48,8 @@ pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filt
         peer_as_filter(mp_peerings)
     } else if attr.ends_with("^-") || attr.ends_with("^+") {
         Filter::AsPathRE(attr)
-    } else if regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, &attr) {
-        Filter::FilterSetName(attr)
+    } else if is_filter_set(&attr) {
+        Filter::FilterSet(attr)
     } else if let Some(filter) = try_parse_route_set(&attr) {
         filter
     } else if let Some(filter) = try_parse_as_set(&attr) {
@@ -59,6 +59,10 @@ pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filt
     } else {
         Filter::AsPathRE(attr)
     }
+}
+
+pub fn is_filter_set(attr: &str) -> bool {
+    regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, attr)
 }
 
 /// PeerAS can be used instead of the AS number of the peer AS.
@@ -80,13 +84,13 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
             // TODO: Do we want to allow AutNum?
             AsName::Num(num) => Filter::AsNum(*num, NoOp),
             AsName::Set(name) => Filter::AsSet(name.into(), NoOp),
-            AsName::Illegal(reason) => {
-                let err = format!("PeerAs point to illegal AS name: {reason}.");
+            AsName::Invalid(reason) => {
+                let err = format!("PeerAs point to invalid AS name: {reason}.");
                 error!("{err}");
-                Filter::Illegal(err)
+                Filter::Invalid(err)
             }
         },
-        _ => Filter::Illegal(format!(
+        _ => Filter::Invalid(format!(
             "using PeerAs but mp-peerings {mp_peerings:?} are not a single AS expression"
         )),
     }
@@ -130,7 +134,7 @@ pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Filter {
     /// `<filter-set-name>`: An RPSL name that starts with `fltr-`.
-    FilterSetName(String),
+    FilterSet(String),
     Any,
     /// An explicit list of address prefixes enclosed in braces '{' and '}'.  The policy filter matches the set of routes whose destination address-prefix is in the set.
     /// An address prefix can be optionally followed by a range operator.
@@ -160,5 +164,5 @@ pub enum Filter {
     Not(Box<Filter>),
     Group(Box<Filter>),
     Community(Call),
-    Illegal(String),
+    Invalid(String),
 }

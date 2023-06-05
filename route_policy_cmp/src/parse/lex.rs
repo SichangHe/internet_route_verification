@@ -42,6 +42,7 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         as_sets,
         route_sets,
         peering_sets,
+        filter_sets,
     }
 }
 
@@ -185,4 +186,5 @@ pub struct Dump {
     pub as_sets: BTreeMap<String, AsSet>,
     pub route_sets: BTreeMap<String, RouteSet>,
     pub peering_sets: BTreeMap<String, PeeringSet>,
+    pub filter_sets: BTreeMap<String, FilterSet>,
 }

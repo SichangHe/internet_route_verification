@@ -46,9 +46,16 @@ impl<'a> CheckFilter<'a> {
         self.call_depth >= RECURSION_LIMIT
     }
 
-    fn filter_set(&self, name: &str) -> AnyReport {
-        // TODO: Implement.
-        skip_any_report(format!("Filter set {name} check is not implemented"))
+    fn filter_set(&mut self, name: &str) -> AnyReport {
+        let filter_set = match self.compare.dump.filter_sets.get(name) {
+            Some(f) => f,
+            None => return skip_any_report(format!("{name} is not a recorded Filter Set")),
+        };
+        let mut aggregater = AnyReportAggregater::new();
+        for filter in &filter_set.filters {
+            aggregater.join(self.check(filter)?);
+        }
+        aggregater.to_any()
     }
 
     fn filter_as_num(&self, num: usize, _op: &RangeOperator) -> AnyReport {

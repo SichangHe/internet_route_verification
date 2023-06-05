@@ -38,11 +38,13 @@ fn parse_dump() {
         as_sets,
         route_sets,
         peering_sets,
+        filter_sets,
     } = parse_lexed(lexed);
     assert_eq!(aut_nums, expected_aut_nums());
     assert_eq!(as_sets, expected_as_sets());
     assert_eq!(route_sets, expected_route_sets());
     assert_eq!(peering_sets, expected_peering_sets());
+    // TODO: Test filter_sets.
 }
 
 fn expected_aut_nums() -> BTreeMap<usize, AutNum> {

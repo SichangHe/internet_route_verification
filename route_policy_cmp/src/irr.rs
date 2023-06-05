@@ -63,6 +63,8 @@ pub fn parse_object(
             l if l % 0xFF == 0 => debug!("Parsed {l} route_sets."),
             _ => (),
         }
+    } else if obj.class == "filter-set" {
+        // TODO: Parse filter set.
     } else if obj.class == "peering-set" {
         send_peering_set.send(obj)?;
     }

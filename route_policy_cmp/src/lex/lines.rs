@@ -91,7 +91,9 @@ impl RPSLObject {
     }
 
     pub fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
-        writer.write_all(self.body.as_bytes())?;
+        for line in lines_continued(self.body.lines()) {
+            writer.write_all(line.as_bytes())?;
+        }
         writer.write_all(b"\n")?;
         Ok(())
     }
@@ -179,11 +181,13 @@ pub struct RpslExpr {
     pub expr: String,
 }
 
-pub fn expressions<I>(lines: I) -> impl Iterator<Item = RpslExpr>
+pub fn expressions<I, S>(lines: I) -> impl Iterator<Item = RpslExpr>
 where
-    I: IntoIterator<Item = String>,
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
 {
     lines.into_iter().filter_map(move |line| {
+        let line = line.as_ref();
         if !line.contains(':') {
             error!("Invalid expression line: `{line}`.");
             return None;

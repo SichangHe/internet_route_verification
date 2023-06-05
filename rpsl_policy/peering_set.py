@@ -3,7 +3,7 @@ import sys
 from pyparsing import ParseException
 
 from .lex import mp_peering
-from .lines import expressions, lines_continued
+from .lines import expressions
 from .parse import clean_mp_peering, lex_with
 from .piped import stdin_lines, write_obj
 from .rpsl_object import PeeringSet
@@ -11,7 +11,7 @@ from .rpsl_object import PeeringSet
 
 def parse_peering_set():
     peerings = []
-    for key, expr in expressions(lines_continued(stdin_lines())):
+    for key, expr in expressions(stdin_lines()):
         if key == "peering":
             try:
                 lexed = lex_with(mp_peering, expr)

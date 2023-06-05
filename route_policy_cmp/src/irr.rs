@@ -13,7 +13,7 @@ use crate::lex::{
 };
 
 use anyhow::Result;
-use log::debug;
+use log::{debug, warn};
 
 use self::worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
@@ -72,6 +72,8 @@ pub fn parse_object(
     Ok(())
 }
 
+const ONE_MEBIBYTE: usize = 1024 * 1024;
+
 pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
 where
     R: Read,
@@ -82,6 +84,15 @@ where
     let (mut send_filter_set, filter_set_worker) = spawn_filter_set_worker()?;
 
     for obj in rpsl_objects(io_wrapper_lines(db)) {
+        if obj.body.len() > ONE_MEBIBYTE {
+            // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
+            warn!(
+                "Skipping {} object `{}` with body larger than 1MiB.",
+                obj.class, obj.name
+            );
+            continue;
+        }
+
         parse_object(
             obj,
             &mut as_sets,

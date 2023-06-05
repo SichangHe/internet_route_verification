@@ -54,7 +54,8 @@ where
 
 /// Merge continued RPSL lines in `raw_lines` into single lines according to
 /// prefix continuation characters and yield them one by one.
-/// Strip and ignore comments. Ignore empty lines."""
+/// Strip and ignore comments. Ignore empty lines.
+/// Lines produced are *not* followed by `\n`.
 pub fn lines_continued<I, S>(raw_lines: I) -> impl Iterator<Item = String>
 where
     I: IntoIterator<Item = S>,
@@ -91,10 +92,18 @@ impl RPSLObject {
     }
 
     pub fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
+        let limit = self.body.len() >> 3;
+        let mut buf = String::with_capacity(limit << 1);
         for line in lines_continued(self.body.lines()) {
-            writer.write_all(line.as_bytes())?;
+            buf.push_str(&line);
+            buf.push('\n');
+            if buf.len() >= limit {
+                writer.write_all(buf.as_bytes())?;
+                buf.clear();
+            }
         }
-        writer.write_all(b"\n")?;
+        buf.push('\n');
+        writer.write_all(buf.as_bytes())?;
         Ok(())
     }
 }

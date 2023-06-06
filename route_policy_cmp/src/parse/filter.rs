@@ -81,7 +81,6 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
                 actions: _,
             }),
         ) => match as_name {
-            // TODO: Do we want to allow AutNum?
             AsName::Num(num) => Filter::AsNum(*num, NoOp),
             AsName::Set(name) => Filter::AsSet(name.into(), NoOp),
             AsName::Invalid(reason) => {

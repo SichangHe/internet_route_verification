@@ -70,7 +70,15 @@ impl<'a> CheckFilter<'a> {
                 range_operator,
             })
             .collect();
-        self.filter_prefixes(&ranges)
+        let (reports, all_fail) = self.filter_prefixes(&ranges)?;
+        if all_fail {
+            no_match_any_report(format!(
+                "{} does not match filter AS{num}{range_operator}",
+                self.compare.prefix
+            ))
+        } else {
+            Some((reports, all_fail))
+        }
     }
 
     fn filter_prefixes<I>(&self, prefixes: I) -> AnyReport
@@ -103,7 +111,14 @@ impl<'a> CheckFilter<'a> {
         for member in &route_set.members {
             aggregater.join(self.filter_route_set_member(member, op)?);
         }
-        aggregater.to_any()
+        if aggregater.all_fail {
+            no_match_any_report(format!(
+                "{} does no match filter route set {name}",
+                self.compare.prefix
+            ))
+        } else {
+            aggregater.to_any()
+        }
     }
 
     fn filter_route_set_member(

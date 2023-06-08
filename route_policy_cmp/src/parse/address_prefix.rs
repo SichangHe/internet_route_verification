@@ -77,6 +77,19 @@ pub enum RangeOperator {
     Range(u8, u8),
 }
 
+impl std::fmt::Display for RangeOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use RangeOperator::*;
+        match self {
+            NoOp => write!(f, ""),
+            Minus => write!(f, "^-"),
+            Plus => write!(f, "^+"),
+            Num(n) => write!(f, "^{n}"),
+            Range(n, m) => write!(f, "^{n}-{m}"),
+        }
+    }
+}
+
 impl FromStr for RangeOperator {
     type Err = anyhow::Error;
 

@@ -11,6 +11,7 @@ use std::{
 };
 
 fn main() -> Result<()> {
+    // TODO: Make a shell.
     env_logger::init();
     let args: Vec<_> = args().collect();
     if args.len() < 2 {

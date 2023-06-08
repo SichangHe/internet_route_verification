@@ -35,6 +35,7 @@ pub struct Compare<'a> {
     pub prefix: IpNet,
     pub as_path: Vec<AsPathEntry>,
     pub communities: Vec<&'a str>,
+    // TODO: Verbosity.
 }
 
 impl<'a> Compare<'a> {
@@ -55,6 +56,8 @@ impl<'a> Compare<'a> {
 
 impl<'a> Compare<'a> {
     pub fn check(&self) -> Vec<Report> {
+        // TODO: check origin and address.
+
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         let pairs = self
             .as_path

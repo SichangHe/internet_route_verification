@@ -59,6 +59,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_as_num(&self, num: usize, &range_operator: &RangeOperator) -> AnyReport {
+        // TODO: Only report when `num` is on AS path.
         let routes = match self.compare.dump.as_routes.get(&num) {
             Some(r) => r,
             None => return skip_any_report(format!("AS{num} has no recorded routes")),
@@ -127,6 +128,7 @@ impl<'a> CheckFilter<'a> {
         op: &RangeOperator,
     ) -> AnyReport {
         if self.check_recursion() {
+            // TODO: Allow cycle.
             return no_match_any_report(format!("filter_route_set_member: {RECURSION_ERROR}"));
         }
         match member {

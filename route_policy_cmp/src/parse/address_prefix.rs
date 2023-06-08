@@ -7,10 +7,21 @@ use serde::{Deserialize, Serialize};
 
 /// An address prefix `IpNet` followed by an optional range operator `RangeOperator`.
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-5>.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AddrPfxRange {
     pub address_prefix: IpNet,
     pub range_operator: RangeOperator,
+}
+
+impl std::fmt::Debug for AddrPfxRange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut r = f.debug_struct("AddrPfxRange");
+        r.field("address_prefix", &self.address_prefix);
+        if self.range_operator != RangeOperator::NoOp {
+            r.field("range_operator", &self.range_operator);
+        }
+        r.finish()
+    }
 }
 
 impl FromStr for AddrPfxRange {

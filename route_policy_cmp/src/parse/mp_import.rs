@@ -48,7 +48,7 @@ pub fn parse_entry(entry: mp_import::Entry) -> Entry {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(default)]
 pub struct Versions {
     #[serde(skip_serializing_if = "Casts::is_default")]
@@ -59,7 +59,29 @@ pub struct Versions {
     pub ipv6: Casts,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+impl Versions {
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
+impl std::fmt::Debug for Versions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut r = f.debug_struct("Versions");
+        for (name, field) in [
+            ("any", &self.any),
+            ("ipv4", &self.ipv4),
+            ("ipv6", &self.ipv6),
+        ] {
+            if !field.is_default() {
+                r.field(name, field);
+            }
+        }
+        r.finish()
+    }
+}
+
+#[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(default)]
 pub struct Casts {
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -68,6 +90,22 @@ pub struct Casts {
     pub unicast: Vec<Entry>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub multicast: Vec<Entry>,
+}
+
+impl std::fmt::Debug for Casts {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut r = f.debug_struct("Casts");
+        for (name, field) in [
+            ("any", &self.any),
+            ("unicast", &self.unicast),
+            ("multicast", &self.multicast),
+        ] {
+            if !field.is_empty() {
+                r.field(name, field);
+            }
+        }
+        r.finish()
+    }
 }
 
 impl Casts {

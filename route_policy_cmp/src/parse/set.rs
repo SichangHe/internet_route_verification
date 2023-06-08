@@ -29,12 +29,29 @@ pub struct RouteSet {
     pub members: Vec<RouteSetMember>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum RouteSetMember {
     /// `<address-prefix-range>`
     Range(AddrPfxRange),
     /// `<route-set-name><range-operator>`
     NameOp(String, RangeOperator),
+}
+
+impl std::fmt::Debug for RouteSetMember {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use RouteSetMember::*;
+        match self {
+            Range(arg0) => f.debug_tuple("Range").field(arg0).finish(),
+            NameOp(arg0, arg1) => {
+                let mut r = f.debug_tuple("NameOp");
+                r.field(arg0);
+                if *arg1 != RangeOperator::NoOp {
+                    r.field(arg1);
+                }
+                r.finish()
+            }
+        }
+    }
 }
 
 impl From<String> for RouteSetMember {

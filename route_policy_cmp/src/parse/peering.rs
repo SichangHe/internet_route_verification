@@ -85,19 +85,46 @@ pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
 #[skip_serializing_none]
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Peering {
     pub remote_as: AsExpr,
     pub remote_router: Option<RouterExpr>,
     pub local_router: Option<RouterExpr>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+impl std::fmt::Debug for Peering {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut r = f.debug_struct("Peering");
+        r.field("remote_as", &self.remote_as);
+        for (name, field) in [
+            ("remote_router", &self.remote_router),
+            ("local_router", &self.local_router),
+        ] {
+            if let Some(field) = field {
+                r.field(name, field);
+            }
+        }
+        r.finish()
+    }
+}
+
+#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PeeringAction {
     pub mp_peering: Peering,
     #[serde(default)]
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub actions: Actions,
+}
+
+impl std::fmt::Debug for PeeringAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut r = f.debug_struct("PeeringAction");
+        r.field("mp_peering", &self.mp_peering);
+        if !self.actions.is_empty() {
+            r.field("actions", &self.actions);
+        }
+        r.finish()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

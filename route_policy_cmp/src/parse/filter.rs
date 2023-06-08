@@ -130,7 +130,7 @@ pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-18>
 /// Note: although `RouteSet`, `AsNum`, and `AsSet` here use `RangeOperator`,
 /// the RFC only allows `^-` and `^+`.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Filter {
     /// `<filter-set-name>`: An RPSL name that starts with `fltr-`.
     FilterSet(String),
@@ -164,4 +164,54 @@ pub enum Filter {
     Group(Box<Filter>),
     Community(Call),
     Invalid(String),
+}
+
+impl std::fmt::Debug for Filter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use Filter::*;
+        match self {
+            FilterSet(arg0) => f.debug_tuple("FilterSet").field(arg0).finish(),
+            Any => write!(f, "Any"),
+            AddrPrefixSet(arg0) => f.debug_tuple("AddrPrefixSet").field(arg0).finish(),
+            RouteSet(arg0, arg1) => {
+                let mut r = f.debug_tuple("RouteSet");
+                r.field(arg0);
+                if *arg1 != RangeOperator::NoOp {
+                    r.field(arg1);
+                }
+                r.finish()
+            }
+            AsNum(arg0, arg1) => {
+                let mut r = f.debug_tuple("AsNum");
+                r.field(arg0);
+                if *arg1 != RangeOperator::NoOp {
+                    r.field(arg1);
+                }
+                r.finish()
+            }
+            AsSet(arg0, arg1) => {
+                let mut r = f.debug_tuple("AsSet");
+                r.field(arg0);
+                if *arg1 != RangeOperator::NoOp {
+                    r.field(arg1);
+                }
+                r.finish()
+            }
+            AsPathRE(arg0) => f.debug_tuple("AsPathRE").field(arg0).finish(),
+            And { left, right } => f
+                .debug_struct("And")
+                .field("left", left)
+                .field("right", right)
+                .finish(),
+            Or { left, right } => f
+                .debug_struct("Or")
+                .field("left", left)
+                .field("right", right)
+                .finish(),
+            Not(arg0) => f.debug_tuple("Not").field(arg0).finish(),
+            Group(arg0) => f.debug_tuple("Group").field(arg0).finish(),
+            Community(arg0) => f.debug_tuple("Community").field(arg0).finish(),
+            Invalid(arg0) => f.debug_tuple("Invalid").field(arg0).finish(),
+        }
+    }
 }

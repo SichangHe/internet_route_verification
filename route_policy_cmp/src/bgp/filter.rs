@@ -43,7 +43,7 @@ impl<'a> CheckFilter<'a> {
     fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
         let filter_set = match self.compare.dump.filter_sets.get(name) {
             Some(f) => f,
-            None => return skip_any_report(format!("{name} is not a recorded Filter Set")),
+            None => return skip_any_report(SkipReason::FilterSetUnrecorded(name.into())),
         };
         let mut aggregater = AnyReportAggregater::new();
         for filter in &filter_set.filters {
@@ -56,7 +56,7 @@ impl<'a> CheckFilter<'a> {
         // TODO: Only report when `num` is on AS path.
         let routes = match self.compare.dump.as_routes.get(&num) {
             Some(r) => r,
-            None => return skip_any_report(format!("AS{num} has no recorded routes")),
+            None => return skip_any_report(SkipReason::AsRoutesUnrecorded(num)),
         };
         let ranges: Vec<_> = routes
             .iter()
@@ -98,7 +98,7 @@ impl<'a> CheckFilter<'a> {
         }
         let route_set = match self.compare.dump.route_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(format!("{name} is not a recorded Route Set")),
+            None => return skip_any_report(SkipReason::RouteSetUnrecorded(name.into())),
         };
         let mut aggregater = AnyReportAggregater::new();
         for member in &route_set.members {
@@ -148,7 +148,7 @@ impl<'a> CheckFilter<'a> {
         }
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(format!("{name} is not a recorded AS Set")),
+            None => return skip_any_report(SkipReason::AsSetUnrecorded(name.into())),
         };
         let mut aggregater = AnyReportAggregater::new();
         for as_name in &as_set.members {
@@ -159,7 +159,7 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_as_regex(&self, expr: &str) -> AnyReport {
         // TODO: Implement.
-        skip_any_report(format!("AS regex {expr} check is not implemented"))
+        skip_any_report(SkipReason::AsRegexUnimplemented(expr.into()))
     }
 
     fn filter_as_name<'v>(
@@ -211,9 +211,7 @@ impl<'a> CheckFilter<'a> {
         match self.check(filter, depth) {
             Some((_errors, true)) => None,
             Some((mut skips, false)) => {
-                skips.push(Skip(format!(
-                    "Skipping NOT filter {filter:?} due to skipped results"
-                )));
+                skips.push(Skip(SkipReason::SkippedNotFilterResult));
                 Some((skips, false))
             }
             None => Some((
@@ -228,7 +226,7 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_community(&self, community: &Call) -> AnyReport {
         // TODO: Implement.
-        skip_any_report(format!("Community {community:?} check is not implemented"))
+        skip_any_report(SkipReason::CommunityCheckUnimplemented(community.clone()))
     }
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {

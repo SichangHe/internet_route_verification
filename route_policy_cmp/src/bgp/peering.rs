@@ -87,7 +87,7 @@ impl<'a> CheckPeering<'a> {
         }
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(format!("{name} is not a recorded AS Set")),
+            None => return skip_any_report(SkipReason::AsSetUnrecorded(name.into())),
         };
         let mut aggregater = AnyReportAggregater::new();
         for as_name in &as_set.members {
@@ -102,7 +102,7 @@ impl<'a> CheckPeering<'a> {
         }
         let peering_set = match self.compare.dump.peering_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(format!("{name} is not a recorded Peering Set")),
+            None => return skip_any_report(SkipReason::PeeringSetUnrecorded(name.into())),
         };
         let mut aggregater = AnyReportAggregater::new();
         for peering in &peering_set.peerings {
@@ -138,9 +138,7 @@ impl<'a> CheckPeering<'a> {
         let right_report = match self.check_remote_as(right, depth) {
             Some((_, true)) => Ok(None),
             Some((mut skips, false)) => {
-                skips.push(Skip(format!(
-                    "Skipping EXCEPT peering {right:?} due to skipped results"
-                )));
+                skips.push(Skip(SkipReason::SkippedExceptPeeringResult));
                 Ok(Some(skips))
             }
             None => no_match_all_report(format!(

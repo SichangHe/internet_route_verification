@@ -14,10 +14,7 @@ use super::{
     filter::CheckFilter,
     map::{parse_table_dump, AsPathEntry},
     peering::CheckPeering,
-    report::{
-        AllReport, AnyReport, AnyReportAggregater, JoinReportItems, Report, ReportItem,
-        ToAllReport, ToAnyReport,
-    },
+    report::*,
 };
 
 pub const RECURSION_LIMIT: isize = 0x100;
@@ -67,8 +64,9 @@ impl<'a> Compare<'a> {
                 if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
                     self.check_pair(*from, *to)
                 } else {
-                    vec![Report::skip(format!(
-                        "Skipping BGP pair {from}, {to} with set."
+                    vec![Report::skip(SkipReason::AsPathPairWithSet(
+                        from.clone(),
+                        to.clone(),
                     ))]
                 }
             })
@@ -78,11 +76,11 @@ impl<'a> Compare<'a> {
     pub fn check_pair(&self, from: usize, to: usize) -> Vec<Report> {
         let from_report = match self.dump.aut_nums.get(&from) {
             Some(from_an) => self.check_compliant(&from_an.exports, to),
-            None => Some(Report::skip(format!("{from} is not a recorded AutNum"))),
+            None => Some(Report::skip(SkipReason::AutNumUnrecorded(from))),
         };
         let to_report = match self.dump.aut_nums.get(&to) {
             Some(to_an) => self.check_compliant(&to_an.imports, from),
-            None => Some(Report::skip(format!("{to} is not a recorded AutNum"))),
+            None => Some(Report::skip(SkipReason::AutNumUnrecorded(to))),
         };
         [from_report, to_report].into_iter().flatten().collect()
     }

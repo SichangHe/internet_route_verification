@@ -2,7 +2,12 @@ use serde::{Deserialize, Serialize};
 use Report::*;
 use ReportItem::*;
 
-use crate::parse::{aut_sys::AsName, set::RouteSetMember};
+use crate::{
+    lex::community::Call,
+    parse::{aut_sys::AsName, set::RouteSetMember},
+};
+
+use super::map::AsPathEntry;
 
 /// Use this in an `Option`, and use `None` to indicate "good."
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -12,17 +17,34 @@ pub enum Report {
 }
 
 impl Report {
-    pub fn skip(reason: String) -> Self {
+    pub fn skip(reason: SkipReason) -> Self {
         Neutral(vec![Skip(reason)])
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
-    Skip(String),
+    Skip(SkipReason),
     NoMatch(String),
     BadRpsl(String),
     Recursion(RecurSrc),
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum SkipReason {
+    FilterSetUnrecorded(String),
+    AsRoutesUnrecorded(usize),
+    RouteSetUnrecorded(String),
+    AsSetUnrecorded(String),
+    // TODO: Remote once implemented.
+    AsRegexUnimplemented(String),
+    SkippedNotFilterResult,
+    // TODO: Remote once implemented.
+    CommunityCheckUnimplemented(Call),
+    PeeringSetUnrecorded(String),
+    SkippedExceptPeeringResult,
+    AsPathPairWithSet(AsPathEntry, AsPathEntry),
+    AutNumUnrecorded(usize),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -71,7 +93,7 @@ impl JoinReportItems for Option<ReportItems> {
 /// - `Err(errors)` indicates failure.
 pub type AllReport = Result<Option<ReportItems>, ReportItems>;
 
-pub fn skip_all_report(reason: String) -> AllReport {
+pub fn skip_all_report(reason: SkipReason) -> AllReport {
     let skips = vec![Skip(reason)];
     Ok(Some(skips))
 }
@@ -92,7 +114,7 @@ pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
 /// - `None` indicates success.
 pub type AnyReport = Option<(ReportItems, bool)>;
 
-pub fn skip_any_report(reason: String) -> AnyReport {
+pub fn skip_any_report(reason: SkipReason) -> AnyReport {
     let skips = vec![Skip(reason)];
     Some((skips, false))
 }

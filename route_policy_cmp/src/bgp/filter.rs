@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    cmp::{Compare, RECURSION_ERROR, RECURSION_LIMIT},
+    cmp::{Compare, RECURSION_ERROR},
     report::{
         bad_rpsl_any_report, no_match_all_report, no_match_any_report, skip_any_report, AllReport,
         AnyReport, AnyReportAggregater, JoinReportItems, ReportItem::*, ToAllReport, ToAnyReport,
@@ -19,41 +19,38 @@ use super::{
 pub struct CheckFilter<'a> {
     pub compare: &'a Compare<'a>,
     pub accept_num: usize,
-    pub call_depth: usize,
 }
 
 impl<'a> CheckFilter<'a> {
-    pub fn check(&mut self, filter: &'a Filter) -> AnyReport {
+    pub fn check(&mut self, filter: &'a Filter, depth: isize) -> AnyReport {
+        if depth <= 0 {
+            return no_match_any_report(format!("check filter: {RECURSION_ERROR}"));
+        }
         match filter {
-            FilterSet(name) => self.filter_set(name),
+            FilterSet(name) => self.filter_set(name, depth),
             Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
-            RouteSet(name, op) => self.filter_route_set(name, op),
+            RouteSet(name, op) => self.filter_route_set(name, op, depth),
             AsNum(num, op) => self.filter_as_num(*num, op),
-            AsSet(name, op) => self.filter_as_set(name, op, &mut Vec::new()),
+            AsSet(name, op) => self.filter_as_set(name, op, depth, &mut Vec::new()),
             AsPathRE(expr) => self.filter_as_regex(expr),
-            And { left, right } => self.filter_and(left, right).to_any(),
-            Or { left, right } => self.filter_or(left, right),
-            Not(filter) => self.filter_not(filter),
-            Group(filter) => self.check(filter),
+            And { left, right } => self.filter_and(left, right, depth).to_any(),
+            Or { left, right } => self.filter_or(left, right, depth),
+            Not(filter) => self.filter_not(filter, depth),
+            Group(filter) => self.check(filter, depth),
             Community(community) => self.filter_community(community),
             Invalid(reason) => self.invalid_filter(reason),
         }
     }
 
-    fn check_recursion(&mut self) -> bool {
-        self.call_depth += 1;
-        self.call_depth >= RECURSION_LIMIT
-    }
-
-    fn filter_set(&mut self, name: &str) -> AnyReport {
+    fn filter_set(&mut self, name: &str, depth: isize) -> AnyReport {
         let filter_set = match self.compare.dump.filter_sets.get(name) {
             Some(f) => f,
             None => return skip_any_report(format!("{name} is not a recorded Filter Set")),
         };
         let mut aggregater = AnyReportAggregater::new();
         for filter in &filter_set.filters {
-            aggregater.join(self.check(filter)?);
+            aggregater.join(self.check(filter, depth - 1)?);
         }
         aggregater.to_any()
     }
@@ -98,8 +95,8 @@ impl<'a> CheckFilter<'a> {
             })
     }
 
-    fn filter_route_set(&mut self, name: &str, op: &RangeOperator) -> AnyReport {
-        if self.check_recursion() {
+    fn filter_route_set(&mut self, name: &str, op: &RangeOperator, depth: isize) -> AnyReport {
+        if depth <= 0 {
             return no_match_any_report(format!(
                 "filter_route_set: {RECURSION_ERROR} checking {name}"
             ));
@@ -110,7 +107,7 @@ impl<'a> CheckFilter<'a> {
         };
         let mut aggregater = AnyReportAggregater::new();
         for member in &route_set.members {
-            aggregater.join(self.filter_route_set_member(member, op)?);
+            aggregater.join(self.filter_route_set_member(member, op, depth - 1)?);
         }
         if aggregater.all_fail {
             no_match_any_report(format!(
@@ -126,8 +123,9 @@ impl<'a> CheckFilter<'a> {
         &mut self,
         member: &RouteSetMember,
         op: &RangeOperator,
+        depth: isize,
     ) -> AnyReport {
-        if self.check_recursion() {
+        if depth <= 0 {
             return no_match_any_report(format!("filter_route_set_member: {RECURSION_ERROR}"));
         }
         match member {
@@ -139,7 +137,7 @@ impl<'a> CheckFilter<'a> {
                 }]),
                 _ => self.filter_prefixes([prefix]),
             },
-            RouteSetMember::NameOp(name, op) => self.filter_route_set(name, op),
+            RouteSetMember::NameOp(name, op) => self.filter_route_set(name, op, depth - 1),
         }
     }
 
@@ -147,9 +145,10 @@ impl<'a> CheckFilter<'a> {
         &mut self,
         name: &'a str,
         op: &RangeOperator,
+        depth: isize,
         visited: &'v mut Vec<&'a AsName>,
     ) -> AnyReport {
-        if self.check_recursion() {
+        if depth <= 0 {
             return no_match_any_report(format!(
                 "filter_as_set: {RECURSION_ERROR} checking {name}"
             ));
@@ -160,7 +159,7 @@ impl<'a> CheckFilter<'a> {
         };
         let mut aggregater = AnyReportAggregater::new();
         for as_name in &as_set.members {
-            aggregater.join(self.filter_as_name(as_name, op, visited)?);
+            aggregater.join(self.filter_as_name(as_name, op, depth - 1, visited)?);
         }
         aggregater.to_any()
     }
@@ -174,50 +173,51 @@ impl<'a> CheckFilter<'a> {
         &mut self,
         as_name: &'a AsName,
         op: &RangeOperator,
+        depth: isize,
         visited: &'v mut Vec<&'a AsName>,
     ) -> AnyReport {
         if visited.iter().any(|x| **x == *as_name) {
             return no_match_any_report(format!("filter_as_name visited {as_name:?} before"));
         }
         visited.push(as_name);
-        if self.check_recursion() {
+        if depth <= 0 {
             return no_match_any_report(format!(
                 "filter_as_name: {RECURSION_ERROR} checking {as_name:?}"
             ));
         }
         match as_name {
             AsName::Num(num) => self.filter_as_num(*num, op),
-            AsName::Set(name) => self.filter_as_set(name, op, visited),
+            AsName::Set(name) => self.filter_as_set(name, op, depth - 1, visited),
             AsName::Invalid(reason) => {
                 bad_rpsl_any_report(format!("Invalid AS name in filter: {reason}"))
             }
         }
     }
 
-    fn filter_and(&mut self, left: &'a Filter, right: &'a Filter) -> AllReport {
-        if self.check_recursion() {
+    fn filter_and(&mut self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
+        if depth <= 0 {
             return no_match_all_report(format!("filter_and: {RECURSION_ERROR}"));
         }
-        self.check(left)
+        self.check(left, depth - 1)
             .to_all()?
-            .join(self.check(right).to_all()?)
+            .join(self.check(right, depth).to_all()?)
             .to_all()
     }
 
-    fn filter_or(&mut self, left: &'a Filter, right: &'a Filter) -> AnyReport {
-        if self.check_recursion() {
+    fn filter_or(&mut self, left: &'a Filter, right: &'a Filter, depth: isize) -> AnyReport {
+        if depth <= 0 {
             return no_match_any_report(format!("filter_or: {RECURSION_ERROR}"));
         }
-        let mut report: AnyReportAggregater = self.check(left)?.into();
-        report.join(self.check(right)?);
+        let mut report: AnyReportAggregater = self.check(left, depth - 1)?.into();
+        report.join(self.check(right, depth)?);
         report.to_any()
     }
 
-    fn filter_not(&mut self, filter: &'a Filter) -> AnyReport {
-        if self.check_recursion() {
+    fn filter_not(&mut self, filter: &'a Filter, depth: isize) -> AnyReport {
+        if depth <= 0 {
             return no_match_any_report(format!("filter_not: {RECURSION_ERROR}"));
         }
-        match self.check(filter) {
+        match self.check(filter, depth) {
             Some((_errors, true)) => None,
             Some((mut skips, false)) => {
                 skips.push(Skip(format!(

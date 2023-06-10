@@ -20,7 +20,7 @@ use super::{
     },
 };
 
-pub const RECURSION_LIMIT: usize = 0x1000;
+pub const RECURSION_LIMIT: isize = 0x100;
 
 pub const RECURSION_ERROR: &str = "Recursion limit exceeded";
 
@@ -124,9 +124,8 @@ impl<'a> Compare<'a> {
         CheckFilter {
             compare: self,
             accept_num,
-            call_depth: 0,
         }
-        .check(&entry.mp_filter)
+        .check(&entry.mp_filter, RECURSION_LIMIT)
         .to_all()?
         .join(
             self.check_peering_actions(&entry.mp_peerings, accept_num)
@@ -157,9 +156,8 @@ impl<'a> Compare<'a> {
         CheckPeering {
             compare: self,
             accept_num,
-            call_depth: 0,
         }
-        .check(&peering_actions.mp_peering)?
+        .check(&peering_actions.mp_peering, RECURSION_LIMIT)?
         .join(self.check_actions(&peering_actions.actions)?)
         .to_all()
     }

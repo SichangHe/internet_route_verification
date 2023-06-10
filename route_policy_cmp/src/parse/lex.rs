@@ -5,11 +5,11 @@ use ipnet::IpNet;
 use lazy_regex::regex_captures;
 use log::{debug, error};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
-use serde::{Deserialize, Serialize};
 
 use super::{
     aut_num::AutNum,
     aut_sys::{is_as_set, parse_as_name},
+    dump::Dump,
     mp_import::parse_imports,
     peering::{is_peering_set, parse_mp_peering},
     set::{is_route_set_name, AsSet, FilterSet, PeeringSet, RouteSet},
@@ -29,26 +29,16 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
         filter_sets,
         as_routes,
     } = lexed;
-    let aut_nums = parse_lexed_aut_nums(aut_nums);
-    debug!("Parsed {} Aut Nums.", aut_nums.len());
-    let as_sets = parse_lexed_as_sets(as_sets);
-    debug!("Parsed {} As Sets.", as_sets.len());
-    let route_sets = parse_lexed_route_sets(route_sets);
-    debug!("Parsed {} Route Sets.", route_sets.len());
-    let peering_sets = parse_lexed_peering_sets(peering_sets);
-    debug!("Parsed {} Peering Sets.", peering_sets.len());
-    let filter_sets = parse_lexed_filter_sets(filter_sets);
-    debug!("Parsed {} Filter Sets.", filter_sets.len());
-    let as_routes = parse_lexed_as_routes(as_routes);
-    debug!("Parsed {} AS Routes.", as_routes.len());
-    Dump {
-        aut_nums,
-        as_sets,
-        route_sets,
-        peering_sets,
-        filter_sets,
-        as_routes,
-    }
+    let dump = Dump {
+        aut_nums: parse_lexed_aut_nums(aut_nums),
+        as_sets: parse_lexed_as_sets(as_sets),
+        route_sets: parse_lexed_route_sets(route_sets),
+        peering_sets: parse_lexed_peering_sets(peering_sets),
+        filter_sets: parse_lexed_filter_sets(filter_sets),
+        as_routes: parse_lexed_as_routes(as_routes),
+    };
+    dump.log_count();
+    dump
 }
 
 pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, AutNum> {
@@ -202,16 +192,4 @@ pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(u
     let num = parse_aut_num_name(name)?;
     let routes: Result<_> = routes.iter().map(|r| Ok(r.parse()?)).collect();
     Ok((num, routes?))
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Dump {
-    pub aut_nums: BTreeMap<usize, AutNum>,
-    pub as_sets: BTreeMap<String, AsSet>,
-    pub route_sets: BTreeMap<String, RouteSet>,
-    pub peering_sets: BTreeMap<String, PeeringSet>,
-    pub filter_sets: BTreeMap<String, FilterSet>,
-    /// The AS numbers with Vec of their routes.
-    /// <https://www.rfc-editor.org/rfc/rfc2622#section-4>.
-    pub as_routes: BTreeMap<usize, Vec<IpNet>>,
 }

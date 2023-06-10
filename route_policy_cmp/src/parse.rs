@@ -2,6 +2,7 @@ pub mod action;
 pub mod address_prefix;
 pub mod aut_num;
 pub mod aut_sys;
+pub mod dump;
 pub mod filter;
 pub mod lex;
 pub mod mp_import;

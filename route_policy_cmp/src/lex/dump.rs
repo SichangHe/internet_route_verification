@@ -18,14 +18,22 @@ pub struct Dump {
 
 impl Dump {
     pub fn log_count(&self) {
+        let Self {
+            aut_nums,
+            as_sets,
+            route_sets,
+            peering_sets,
+            filter_sets,
+            as_routes,
+        } = self;
         debug!(
             "Parsed {} aut_nums, {} as_sets, {} route_sets, {} peering_sets, {} filter_sets, {} as_routes.",
-            self.aut_nums.len(),
-            self.as_sets.len(),
-            self.route_sets.len(),
-            self.peering_sets.len(),
-            self.filter_sets.len(),
-            self.as_routes.len(),
+            aut_nums.len(),
+            as_sets.len(),
+            route_sets.len(),
+            peering_sets.len(),
+            filter_sets.len(),
+            as_routes.len(),
         )
     }
 }

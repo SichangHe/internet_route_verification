@@ -1,7 +1,7 @@
 use super::*;
 use crate as route_policy_cmp;
 
-use route_policy_cmp::{bgp::cmp::Compare, parse::lex::Dump, serde::from_reader};
+use route_policy_cmp::{bgp::cmp::Compare, parse::dump::Dump};
 use std::{
     fs::File,
     io::{prelude::*, BufReader},
@@ -10,7 +10,7 @@ use std::{
 #[allow(dead_code)]
 #[allow(unused_must_use)]
 fn example() -> Result<()> {
-    let parsed: Dump = from_reader(File::open("parsed.json")?)?;
+    let parsed = Dump::pal_read("parsed")?;
 
     let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt")?)
         .lines()

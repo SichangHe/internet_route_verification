@@ -6,7 +6,7 @@ use ipnet::{IpNet, Ipv4Net, Ipv6Net, PrefixLenError};
 use crate::parse::{
     action::Actions,
     aut_num::AutNum,
-    lex::Dump,
+    dump::Dump,
     mp_import::{Casts, Entry, Versions},
     peering::PeeringAction,
 };

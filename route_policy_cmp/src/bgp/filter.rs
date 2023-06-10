@@ -128,7 +128,6 @@ impl<'a> CheckFilter<'a> {
         op: &RangeOperator,
     ) -> AnyReport {
         if self.check_recursion() {
-            // TODO: Allow cycle.
             return no_match_any_report(format!("filter_route_set_member: {RECURSION_ERROR}"));
         }
         match member {
@@ -161,11 +160,7 @@ impl<'a> CheckFilter<'a> {
         };
         let mut aggregater = AnyReportAggregater::new();
         for as_name in &as_set.members {
-            let (report, abort) = self.filter_as_name(as_name, op, visited);
-            aggregater.join(report?);
-            if abort {
-                break;
-            }
+            aggregater.join(self.filter_as_name(as_name, op, visited)?);
         }
         aggregater.to_any()
     }
@@ -180,26 +175,23 @@ impl<'a> CheckFilter<'a> {
         as_name: &'a AsName,
         op: &RangeOperator,
         visited: &'v mut Vec<&'a AsName>,
-    ) -> (AnyReport, bool) {
+    ) -> AnyReport {
         if visited.iter().any(|x| **x == *as_name) {
-            let report = bad_rpsl_any_report(format!("filter_as_name visited {as_name:?} before"));
-            return (report, true);
+            return no_match_any_report(format!("filter_as_name visited {as_name:?} before"));
         }
         visited.push(as_name);
         if self.check_recursion() {
-            let report = no_match_any_report(format!(
+            return no_match_any_report(format!(
                 "filter_as_name: {RECURSION_ERROR} checking {as_name:?}"
             ));
-            return (report, true);
         }
-        let report = match as_name {
+        match as_name {
             AsName::Num(num) => self.filter_as_num(*num, op),
             AsName::Set(name) => self.filter_as_set(name, op, visited),
             AsName::Invalid(reason) => {
                 bad_rpsl_any_report(format!("Invalid AS name in filter: {reason}"))
             }
-        };
-        (report, false)
+        }
     }
 
     fn filter_and(&mut self, left: &'a Filter, right: &'a Filter) -> AllReport {

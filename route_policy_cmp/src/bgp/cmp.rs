@@ -20,7 +20,7 @@ use super::{
     },
 };
 
-pub const RECURSION_LIMIT: usize = 0x100;
+pub const RECURSION_LIMIT: usize = 0x1000;
 
 pub const RECURSION_ERROR: &str = "Recursion limit exceeded";
 

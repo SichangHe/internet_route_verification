@@ -1,7 +1,7 @@
 use std::{
     collections::BTreeMap,
     fs::{create_dir_all, read_dir, File},
-    io::BufReader,
+    io::{BufReader, Write},
     path::Path,
     thread::available_parallelism,
 };
@@ -230,6 +230,11 @@ pub fn split_n_btreemap<K, V>(mut map: BTreeMap<K, V>, n: usize) -> Vec<BTreeMap
 where
     K: std::cmp::Ord + Clone,
 {
+    let length = map.len();
+    if length < n {
+        return split_n_btreemap(map, length);
+    }
+
     let size_per_split = map.len() / n - 1;
     let mut splits = Vec::with_capacity(n);
     for _ in 0..(n - 1) {
@@ -345,16 +350,20 @@ where
 {
     let directory = directory.as_ref().to_owned();
     create_dir_all(&directory)?;
-    splits
+    let writes = splits
         .par_iter()
         .enumerate()
         .map(|(index, dump)| {
             let path = directory.clone().join(format!("{index}.json"));
             let file = File::create(path)?;
-            serde_json::to_writer(file, dump)?;
-            Ok(())
+            let json = serde_json::to_string(dump)?;
+            Ok((file, json))
         })
-        .collect::<Result<()>>()
+        .collect::<Result<Vec<_>>>()?;
+    for (mut file, json) in writes {
+        file.write_all(json.as_bytes())?;
+    }
+    Ok(())
 }
 
 pub fn merge_dumps(dumps: Vec<Dump>) -> Dump {

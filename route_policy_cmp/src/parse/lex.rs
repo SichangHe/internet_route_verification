@@ -1,6 +1,7 @@
 use std::{
-    collections::{BTreeMap, VecDeque},
-    fs::{create_dir_all, File},
+    collections::BTreeMap,
+    fs::{create_dir_all, read_dir, File},
+    io::BufReader,
     path::Path,
     thread::available_parallelism,
 };
@@ -25,6 +26,7 @@ use super::{
 use crate::{
     lex::{dump, rpsl_object},
     parse::filter::{is_filter_set, parse_filter},
+    serde::from_reader,
 };
 
 pub fn parse_lexed(lexed: dump::Dump) -> Dump {
@@ -228,20 +230,14 @@ pub fn split_n_btreemap<K, V>(mut map: BTreeMap<K, V>, n: usize) -> Vec<BTreeMap
 where
     K: std::cmp::Ord + Clone,
 {
-    let size_per_split = map.len() / n;
-    let mut split_points = VecDeque::with_capacity(n - 1);
-    for (index, (key, _)) in map.iter().enumerate() {
-        if index % size_per_split == 0 {
-            split_points.push_back((*key).clone());
-        }
-    }
+    let size_per_split = map.len() / n - 1;
     let mut splits = Vec::with_capacity(n);
-    splits.push(BTreeMap::new());
-    for _ in 1..n {
-        let split = map.split_off(&split_points.pop_front().unwrap());
+    for _ in 0..(n - 1) {
+        let split_point = map.iter().rev().nth(size_per_split).unwrap().0.clone();
+        let split = map.split_off(&split_point);
         splits.push(split);
     }
-    splits[0] = map;
+    splits.push(map);
     splits
 }
 
@@ -297,6 +293,50 @@ impl Dump {
         let splits = self.split_n_cpus()?;
         pal_write_dump(&splits, directory)
     }
+
+    pub fn merge(mut self, other: Self) -> Self {
+        let Self {
+            aut_nums,
+            as_sets,
+            route_sets,
+            peering_sets,
+            filter_sets,
+            as_routes,
+        } = other;
+        self.aut_nums.extend(aut_nums);
+        self.as_sets.extend(as_sets);
+        self.route_sets.extend(route_sets);
+        self.peering_sets.extend(peering_sets);
+        self.filter_sets.extend(filter_sets);
+        self.as_routes.extend(as_routes);
+        self
+    }
+
+    pub fn pal_read<P>(directory: P) -> Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        let readers = read_dir(directory)?
+            .map(|p| Ok(BufReader::new(File::open(p?.path())?)))
+            .collect::<Result<Vec<_>>>()?;
+        let dumps = readers
+            .into_par_iter()
+            .map(from_reader)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(merge_dumps(dumps))
+    }
+
+    pub fn log_count(&self) {
+        debug!(
+            "Parsed {} aut_nums, {} as_sets, {} route_sets, {} peering_sets, {} filter_sets, {} as_routes.",
+            self.aut_nums.len(),
+            self.as_sets.len(),
+            self.route_sets.len(),
+            self.peering_sets.len(),
+            self.filter_sets.len(),
+            self.as_routes.len(),
+        )
+    }
 }
 
 pub fn pal_write_dump<P>(splits: &Vec<Dump>, directory: P) -> Result<()>
@@ -315,4 +355,8 @@ where
             Ok(())
         })
         .collect::<Result<()>>()
+}
+
+pub fn merge_dumps(dumps: Vec<Dump>) -> Dump {
+    dumps.into_par_iter().reduce(Dump::default, Dump::merge)
 }

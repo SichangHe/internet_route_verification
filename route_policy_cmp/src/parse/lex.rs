@@ -1,10 +1,18 @@
-use std::collections::BTreeMap;
+use std::{
+    collections::{BTreeMap, VecDeque},
+    fs::{create_dir_all, File},
+    path::Path,
+    thread::available_parallelism,
+};
 
 use anyhow::{bail, Context, Error, Ok, Result};
 use ipnet::IpNet;
+use itertools::izip;
 use lazy_regex::regex_captures;
 use log::{debug, error};
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use rayon::prelude::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
+};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -214,4 +222,97 @@ pub struct Dump {
     /// The AS numbers with Vec of their routes.
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-4>.
     pub as_routes: BTreeMap<usize, Vec<IpNet>>,
+}
+
+pub fn split_n_btreemap<K, V>(mut map: BTreeMap<K, V>, n: usize) -> Vec<BTreeMap<K, V>>
+where
+    K: std::cmp::Ord + Clone,
+{
+    let size_per_split = map.len() / n;
+    let mut split_points = VecDeque::with_capacity(n - 1);
+    for (index, (key, _)) in map.iter().enumerate() {
+        if index % size_per_split == 0 {
+            split_points.push_back((*key).clone());
+        }
+    }
+    let mut splits = Vec::with_capacity(n);
+    splits.push(BTreeMap::new());
+    for _ in 1..n {
+        let split = map.split_off(&split_points.pop_front().unwrap());
+        splits.push(split);
+    }
+    splits[0] = map;
+    splits
+}
+
+impl Dump {
+    pub fn split_n(self, n: usize) -> Vec<Self> {
+        let Self {
+            aut_nums,
+            as_sets,
+            route_sets,
+            peering_sets,
+            filter_sets,
+            as_routes,
+        } = self;
+        let aut_num_splits = split_n_btreemap(aut_nums, n);
+        let as_set_splits = split_n_btreemap(as_sets, n);
+        let route_set_splits = split_n_btreemap(route_sets, n);
+        let peering_set_splits = split_n_btreemap(peering_sets, n);
+        let filter_set_splits = split_n_btreemap(filter_sets, n);
+        let as_route_splits = split_n_btreemap(as_routes, n);
+
+        izip!(
+            aut_num_splits,
+            as_set_splits,
+            route_set_splits,
+            peering_set_splits,
+            filter_set_splits,
+            as_route_splits
+        )
+        .map(
+            |(aut_nums, as_sets, route_sets, peering_sets, filter_sets, as_routes)| Self {
+                aut_nums,
+                as_sets,
+                route_sets,
+                peering_sets,
+                filter_sets,
+                as_routes,
+            },
+        )
+        .collect()
+    }
+
+    /// Split self based on the number of CPU logic cores available × 4.
+    pub fn split_n_cpus(self) -> Result<Vec<Self>> {
+        let n: usize = available_parallelism()?.into();
+        Ok(self.split_n(n * 4))
+    }
+
+    /// Quickly write self to `directory` in parallel.
+    pub fn pal_write<P>(self, directory: P) -> Result<()>
+    where
+        P: AsRef<Path>,
+    {
+        let splits = self.split_n_cpus()?;
+        pal_write_dump(&splits, directory)
+    }
+}
+
+pub fn pal_write_dump<P>(splits: &Vec<Dump>, directory: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let directory = directory.as_ref().to_owned();
+    create_dir_all(&directory)?;
+    splits
+        .par_iter()
+        .enumerate()
+        .map(|(index, dump)| {
+            let path = directory.clone().join(format!("{index}.json"));
+            let file = File::create(path)?;
+            serde_json::to_writer(file, dump)?;
+            Ok(())
+        })
+        .collect::<Result<()>>()
 }

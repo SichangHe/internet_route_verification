@@ -22,3 +22,9 @@ fn example() -> Result<()> {
 
     Ok(())
 }
+
+#[allow(dead_code)]
+#[allow(unused_must_use)]
+fn pal_load_dump() -> Result<()> {
+    todo!();
+}

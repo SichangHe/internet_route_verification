@@ -19,7 +19,7 @@ pub struct CheckPeering<'a> {
 
 impl<'a> CheckPeering<'a> {
     pub fn check(
-        &mut self,
+        &self,
         Peering {
             remote_as,
             remote_router,
@@ -46,7 +46,7 @@ impl<'a> CheckPeering<'a> {
         None
     }
 
-    fn check_remote_as(&mut self, remote_as: &AsExpr, depth: isize) -> AnyReport {
+    fn check_remote_as(&self, remote_as: &AsExpr, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("check_remote_as: {RECURSION_ERROR}"));
         }
@@ -60,7 +60,7 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_name(&mut self, as_name: &AsName, depth: isize) -> AnyReport {
+    fn check_remote_as_name(&self, as_name: &AsName, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("check_remote_as_name: {RECURSION_ERROR}"));
         }
@@ -84,7 +84,7 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_set(&mut self, name: &str, depth: isize) -> AnyReport {
+    fn check_remote_as_set(&self, name: &str, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("check_remote_as_set: {RECURSION_ERROR}"));
         }
@@ -99,7 +99,7 @@ impl<'a> CheckPeering<'a> {
         aggregater.to_any()
     }
 
-    fn check_remote_peering_set(&mut self, name: &str, depth: isize) -> AnyReport {
+    fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("check_remote_peering_set: {RECURSION_ERROR}"));
         }
@@ -114,7 +114,7 @@ impl<'a> CheckPeering<'a> {
         aggregater.to_any()
     }
 
-    fn check_and(&mut self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
+    fn check_and(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
             return no_match_all_report(format!("check_and: {RECURSION_ERROR}"));
         }
@@ -124,7 +124,7 @@ impl<'a> CheckPeering<'a> {
             .to_all()
     }
 
-    fn check_or(&mut self, left: &AsExpr, right: &AsExpr, depth: isize) -> AnyReport {
+    fn check_or(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("check_or: {RECURSION_ERROR}"));
         }
@@ -133,7 +133,7 @@ impl<'a> CheckPeering<'a> {
         report.to_any()
     }
 
-    fn check_except(&mut self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
+    fn check_except(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
             return no_match_all_report(format!("check_except: {RECURSION_ERROR}"));
         }

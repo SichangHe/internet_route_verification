@@ -22,7 +22,7 @@ pub struct CheckFilter<'a> {
 }
 
 impl<'a> CheckFilter<'a> {
-    pub fn check(&mut self, filter: &'a Filter, depth: isize) -> AnyReport {
+    pub fn check(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("check filter: {RECURSION_ERROR}"));
         }
@@ -43,7 +43,7 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_set(&mut self, name: &str, depth: isize) -> AnyReport {
+    fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
         let filter_set = match self.compare.dump.filter_sets.get(name) {
             Some(f) => f,
             None => return skip_any_report(format!("{name} is not a recorded Filter Set")),
@@ -95,7 +95,7 @@ impl<'a> CheckFilter<'a> {
             })
     }
 
-    fn filter_route_set(&mut self, name: &str, op: &RangeOperator, depth: isize) -> AnyReport {
+    fn filter_route_set(&self, name: &str, op: &RangeOperator, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!(
                 "filter_route_set: {RECURSION_ERROR} checking {name}"
@@ -120,7 +120,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_route_set_member(
-        &mut self,
+        &self,
         member: &RouteSetMember,
         op: &RangeOperator,
         depth: isize,
@@ -142,7 +142,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_as_set<'v>(
-        &mut self,
+        &self,
         name: &'a str,
         op: &RangeOperator,
         depth: isize,
@@ -170,7 +170,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_as_name<'v>(
-        &mut self,
+        &self,
         as_name: &'a AsName,
         op: &RangeOperator,
         depth: isize,
@@ -194,7 +194,7 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_and(&mut self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
+    fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
         if depth <= 0 {
             return no_match_all_report(format!("filter_and: {RECURSION_ERROR}"));
         }
@@ -204,7 +204,7 @@ impl<'a> CheckFilter<'a> {
             .to_all()
     }
 
-    fn filter_or(&mut self, left: &'a Filter, right: &'a Filter, depth: isize) -> AnyReport {
+    fn filter_or(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("filter_or: {RECURSION_ERROR}"));
         }
@@ -213,7 +213,7 @@ impl<'a> CheckFilter<'a> {
         report.to_any()
     }
 
-    fn filter_not(&mut self, filter: &'a Filter, depth: isize) -> AnyReport {
+    fn filter_not(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return no_match_any_report(format!("filter_not: {RECURSION_ERROR}"));
         }

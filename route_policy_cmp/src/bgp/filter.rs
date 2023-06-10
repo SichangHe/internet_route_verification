@@ -167,9 +167,7 @@ impl<'a> CheckFilter<'a> {
         match as_name {
             AsName::Num(num) => self.filter_as_num(*num, op),
             AsName::Set(name) => self.filter_as_set(name, op, depth - 1, visited),
-            AsName::Invalid(reason) => {
-                bad_rpsl_any_report(format!("Invalid AS name in filter: {reason}"))
-            }
+            AsName::Invalid(reason) => bad_rpsl_any_report(RpslError::InvalidAsName(reason.into())),
         }
     }
 
@@ -212,6 +210,6 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {
-        bad_rpsl_any_report(format!("Invalid filter: {reason}"))
+        bad_rpsl_any_report(RpslError::InvalidFilter(reason.into()))
     }
 }

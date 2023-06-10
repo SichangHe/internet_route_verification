@@ -26,7 +26,7 @@ impl Report {
 pub enum ReportItem {
     Skip(SkipReason),
     NoMatch(MatchProblem),
-    BadRpsl(String),
+    BadRpsl(RpslError),
     Recursion(RecurSrc),
 }
 
@@ -60,6 +60,12 @@ pub enum MatchProblem {
     NotFilterMatch,
     RemoteAsNum(usize),
     ExceptFilterRightMatch,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum RpslError {
+    InvalidAsName(String),
+    InvalidFilter(String),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -139,7 +145,7 @@ pub fn no_match_any_report(reason: MatchProblem) -> AnyReport {
     Some((errors, true))
 }
 
-pub fn bad_rpsl_any_report(reason: String) -> AnyReport {
+pub fn bad_rpsl_any_report(reason: RpslError) -> AnyReport {
     let errors = vec![BadRpsl(reason)];
     Some((errors, true))
 }

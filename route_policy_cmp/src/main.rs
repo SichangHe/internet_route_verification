@@ -5,7 +5,7 @@ use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::debug;
 use route_policy_cmp::{
     irr::read_db,
-    parse::lex::{parse_lexed, Dump},
+    parse::{dump::Dump, lex::parse_lexed},
 };
 use std::{env::args, fs::File, io::BufReader};
 

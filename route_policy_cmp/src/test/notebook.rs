@@ -1,7 +1,7 @@
 use super::*;
 use crate as route_policy_cmp;
 
-use route_policy_cmp::{bgp::cmp::Compare, parse::lex::Dump, serde::from_reader};
+use route_policy_cmp::{bgp::cmp::Compare, parse::dump::Dump, serde::from_reader};
 use std::{
     fs::File,
     io::{prelude::*, BufReader},

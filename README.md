@@ -17,8 +17,16 @@ WIP
 - Run at `route_policy_cmp/`:
 
     ```sh
-    cargo r --release -- ../data/ripe.db > ../parsed.json
+    cargo r --release -- parse ../data/ripe.db ../parsed
     ```
+
+    The parsed dump will be distributed in `parsed/`.
+
+## Running interactively in Jupyter Notebook
+
+- Finish the previous section. Your parsed dump should be cached in `parsed/`.
+- [Install Evcxr Jupyter Kernel](https://github.com/evcxr/evcxr/blob/main/evcxr_jupyter/README.md).
+- Open the notebook at `./`, and try out `parse_test.ipynb`.
 
 ## Produce a lexed dump using lexer
 
@@ -39,7 +47,7 @@ Run at `./`:
 pytest
 ```
 
-### Test against `ripe.db`
+### Test lexer against `ripe.db`
 
 To test against `ripe.db` using `rpsl_policy/tests/mp_import_w_db.py`,
 put the database file at `data/ripe.db`:

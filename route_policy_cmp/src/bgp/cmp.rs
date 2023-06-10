@@ -20,17 +20,12 @@ use super::{
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
-pub fn compare_line_w_dump(line: &str, dump: &Dump) -> Result<Vec<Report>> {
-    let (prefix, as_path, _, communities) = parse_table_dump(line)?;
-    let cmp = Compare::new(dump, prefix, as_path, communities);
-    Ok(cmp.check())
-}
-
 pub struct Compare<'a> {
     pub dump: &'a Dump,
     pub prefix: IpNet,
     pub as_path: Vec<AsPathEntry>,
     pub communities: Vec<&'a str>,
+    pub recursion_limit: isize,
     // TODO: Verbosity.
 }
 
@@ -46,11 +41,15 @@ impl<'a> Compare<'a> {
             prefix,
             as_path,
             communities,
+            recursion_limit: RECURSION_LIMIT,
         }
     }
-}
 
-impl<'a> Compare<'a> {
+    pub fn with_line_dump(line: &'a str, dump: &'a Dump) -> Result<Self> {
+        let (prefix, as_path, _, communities) = parse_table_dump(line)?;
+        Ok(Self::new(dump, prefix, as_path, communities))
+    }
+
     pub fn check(&self) -> Vec<Report> {
         // TODO: check origin and address.
 

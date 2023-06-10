@@ -1,7 +1,7 @@
 use super::*;
 use crate as route_policy_cmp;
 
-use route_policy_cmp::{bgp::cmp::compare_line_w_dump, parse::lex::Dump, serde::from_reader};
+use route_policy_cmp::{bgp::cmp::Compare, parse::lex::Dump, serde::from_reader};
 use std::{
     fs::File,
     io::{prelude::*, BufReader},
@@ -18,7 +18,7 @@ fn example() -> Result<()> {
         .collect();
 
     // Remove `;` in notebook.
-    compare_line_w_dump(&bgp_file[2], &parsed);
+    Compare::with_line_dump(&bgp_file[2], &parsed)?.check();
 
     Ok(())
 }

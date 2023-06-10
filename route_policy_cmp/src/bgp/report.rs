@@ -4,7 +4,7 @@ use ReportItem::*;
 
 use crate::{
     lex::community::Call,
-    parse::{aut_sys::AsName, set::RouteSetMember},
+    parse::{address_prefix::RangeOperator, aut_sys::AsName, set::RouteSetMember},
 };
 
 use super::map::AsPathEntry;
@@ -25,7 +25,7 @@ impl Report {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
     Skip(SkipReason),
-    NoMatch(String),
+    NoMatch(MatchProblem),
     BadRpsl(String),
     Recursion(RecurSrc),
 }
@@ -45,6 +45,21 @@ pub enum SkipReason {
     SkippedExceptPeeringResult,
     AsPathPairWithSet(AsPathEntry, AsPathEntry),
     AutNumUnrecorded(usize),
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum MatchProblem {
+    /// Left side should not export to right side.
+    NoExportRule(usize, usize),
+    /// Left side should not import from right side.
+    NoImportRule(usize, usize),
+    FilterAsNum(usize, RangeOperator),
+    FilterPrefixes,
+    FilterRouteSet(String),
+    AsNameVisited(AsName),
+    NotFilterMatch,
+    RemoteAsNum(usize),
+    ExceptFilterRightMatch,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -98,7 +113,7 @@ pub fn skip_all_report(reason: SkipReason) -> AllReport {
     Ok(Some(skips))
 }
 
-pub fn no_match_all_report(reason: String) -> AllReport {
+pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
     let errors = vec![NoMatch(reason)];
     Err(errors)
 }
@@ -119,7 +134,7 @@ pub fn skip_any_report(reason: SkipReason) -> AnyReport {
     Some((skips, false))
 }
 
-pub fn no_match_any_report(reason: String) -> AnyReport {
+pub fn no_match_any_report(reason: MatchProblem) -> AnyReport {
     let errors = vec![NoMatch(reason)];
     Some((errors, true))
 }

@@ -5,6 +5,7 @@ use ipnet::{IpNet, Ipv4Net, Ipv6Net, PrefixLenError};
 
 use crate::parse::{
     action::Actions,
+    aut_num::AutNum,
     lex::Dump,
     mp_import::{Casts, Entry, Versions},
     peering::PeeringAction,
@@ -75,32 +76,50 @@ impl<'a> Compare<'a> {
 
     pub fn check_pair(&self, from: usize, to: usize) -> Vec<Report> {
         let from_report = match self.dump.aut_nums.get(&from) {
-            Some(from_an) => self.check_compliant(&from_an.exports, to),
+            Some(from_an) => self.check_export(from_an, from, to),
             None => Some(Report::skip(SkipReason::AutNumUnrecorded(from))),
         };
         let to_report = match self.dump.aut_nums.get(&to) {
-            Some(to_an) => self.check_compliant(&to_an.imports, from),
+            Some(to_an) => self.check_import(to_an, from, to),
             None => Some(Report::skip(SkipReason::AutNumUnrecorded(to))),
         };
         [from_report, to_report].into_iter().flatten().collect()
     }
 
-    pub fn check_compliant(&self, policy: &Versions, accept_num: usize) -> Option<Report> {
+    fn check_export(&self, from_an: &AutNum, from: usize, to: usize) -> Option<Report> {
+        let mut aggregator = self.check_compliant(&from_an.exports, to)?;
+        let report = if aggregator.all_fail {
+            aggregator.join(no_match_any_report(MatchProblem::NoExportRule(from, to)).unwrap());
+            Report::Bad(aggregator.report_items)
+        } else {
+            Report::Neutral(aggregator.report_items)
+        };
+        Some(report)
+    }
+
+    fn check_import(&self, to_an: &AutNum, from: usize, to: usize) -> Option<Report> {
+        let mut aggregator = self.check_compliant(&to_an.imports, from)?;
+        let report = if aggregator.all_fail {
+            aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());
+            Report::Bad(aggregator.report_items)
+        } else {
+            Report::Neutral(aggregator.report_items)
+        };
+        Some(report)
+    }
+
+    pub fn check_compliant(
+        &self,
+        policy: &Versions,
+        accept_num: usize,
+    ) -> Option<AnyReportAggregater> {
         let mut aggregater: AnyReportAggregater = match self.prefix {
             IpNet::V4(_) => self.check_casts(&policy.ipv4, accept_num),
             IpNet::V6(_) => self.check_casts(&policy.ipv6, accept_num),
         }?
         .into();
         aggregater.join(self.check_casts(&policy.any, accept_num)?);
-        Some(if aggregater.all_fail {
-            aggregater.report_items.push(ReportItem::NoMatch(format!(
-                "No policy matches AS{accept_num} from {}",
-                self.prefix
-            )));
-            Report::Bad(aggregater.report_items)
-        } else {
-            Report::Neutral(aggregater.report_items)
-        })
+        Some(aggregater)
     }
 
     pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> AnyReport {

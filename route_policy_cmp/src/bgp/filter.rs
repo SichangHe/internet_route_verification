@@ -67,10 +67,7 @@ impl<'a> CheckFilter<'a> {
             .collect();
         let (reports, all_fail) = self.filter_prefixes(&ranges)?;
         if all_fail {
-            no_match_any_report(format!(
-                "{} does not match filter AS{num}{range_operator}",
-                self.compare.prefix
-            ))
+            no_match_any_report(MatchProblem::FilterAsNum(num, range_operator))
         } else {
             Some((reports, all_fail))
         }
@@ -83,13 +80,7 @@ impl<'a> CheckFilter<'a> {
         prefixes
             .into_iter()
             .all(|prefix| !prefix.contains(&self.compare.prefix))
-            .then(|| {
-                let errors = vec![NoMatch(format!(
-                    "{} does not match filter prefixes",
-                    self.compare.prefix
-                ))];
-                (errors, true)
-            })
+            .then(|| no_match_any_report(MatchProblem::FilterPrefixes).unwrap())
     }
 
     fn filter_route_set(&self, name: &str, op: &RangeOperator, depth: isize) -> AnyReport {
@@ -105,10 +96,7 @@ impl<'a> CheckFilter<'a> {
             aggregater.join(self.filter_route_set_member(member, op, depth - 1)?);
         }
         if aggregater.all_fail {
-            no_match_any_report(format!(
-                "{} does no match filter route set {name}",
-                self.compare.prefix
-            ))
+            no_match_any_report(MatchProblem::FilterRouteSet(name.into()))
         } else {
             aggregater.to_any()
         }
@@ -170,7 +158,7 @@ impl<'a> CheckFilter<'a> {
         visited: &'v mut Vec<&'a AsName>,
     ) -> AnyReport {
         if visited.iter().any(|x| **x == *as_name) {
-            return no_match_any_report(format!("filter_as_name visited {as_name:?} before"));
+            return no_match_any_report(MatchProblem::AsNameVisited(as_name.clone()));
         }
         visited.push(as_name);
         if depth <= 0 {
@@ -214,13 +202,7 @@ impl<'a> CheckFilter<'a> {
                 skips.push(Skip(SkipReason::SkippedNotFilterResult));
                 Some((skips, false))
             }
-            None => Some((
-                vec![NoMatch(format!(
-                    "AS{} from {} matches NOT filter {filter:?}",
-                    self.accept_num, self.compare.prefix
-                ))],
-                true,
-            )),
+            None => no_match_any_report(MatchProblem::NotFilterMatch),
         }
     }
 

@@ -74,10 +74,7 @@ impl<'a> CheckPeering<'a> {
         if self.accept_num == num {
             None
         } else {
-            no_match_any_report(format!(
-                "AS{} does not match peering {num} in remote AS name",
-                self.accept_num
-            ))
+            no_match_any_report(MatchProblem::RemoteAsNum(num))
         }
     }
 
@@ -141,10 +138,7 @@ impl<'a> CheckPeering<'a> {
                 skips.push(Skip(SkipReason::SkippedExceptPeeringResult));
                 Ok(Some(skips))
             }
-            None => no_match_all_report(format!(
-                "AS{} matches right of EXCEPT peering {right:?}",
-                self.accept_num
-            )),
+            None => no_match_all_report(MatchProblem::ExceptFilterRightMatch),
         };
         left_report.join(right_report?).to_all()
     }

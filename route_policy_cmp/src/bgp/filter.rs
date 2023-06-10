@@ -158,7 +158,7 @@ impl<'a> CheckFilter<'a> {
         visited: &'v mut Vec<&'a AsName>,
     ) -> AnyReport {
         if visited.iter().any(|x| **x == *as_name) {
-            return no_match_any_report(MatchProblem::AsNameVisited(as_name.clone()));
+            return failed_any_report();
         }
         visited.push(as_name);
         if depth <= 0 {

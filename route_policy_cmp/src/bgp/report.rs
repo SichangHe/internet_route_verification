@@ -56,7 +56,6 @@ pub enum MatchProblem {
     FilterAsNum(usize, RangeOperator),
     FilterPrefixes,
     FilterRouteSet(String),
-    AsNameVisited(AsName),
     NotFilterMatch,
     RemoteAsNum(usize),
     ExceptFilterRightMatch,
@@ -153,6 +152,10 @@ pub fn bad_rpsl_any_report(reason: RpslError) -> AnyReport {
 pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
     let errors = vec![Recursion(reason)];
     Some((errors, true))
+}
+
+pub fn failed_any_report() -> AnyReport {
+    Some((vec![], true))
 }
 
 pub trait ToAnyReport {

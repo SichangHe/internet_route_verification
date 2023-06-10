@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use Report::*;
 use ReportItem::*;
 
+use crate::parse::{aut_sys::AsName, set::RouteSetMember};
+
 /// Use this in an `Option`, and use `None` to indicate "good."
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
@@ -20,6 +22,26 @@ pub enum ReportItem {
     Skip(String),
     NoMatch(String),
     BadRpsl(String),
+    Recursion(RecurSrc),
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum RecurSrc {
+    CheckFilter,
+    FilterRouteSet(String),
+    FilterRouteSetMember(RouteSetMember),
+    FilterAsSet(String),
+    FilterAsName(AsName),
+    FilterAnd,
+    FilterOr,
+    FilterNot,
+    CheckRemoteAs,
+    RemoteAsName(AsName),
+    RemoteAsSet(String),
+    RemotePeeringSet(String),
+    PeeringAnd,
+    PeeringOr,
+    PeeringExcept,
 }
 
 pub type ReportItems = Vec<ReportItem>;
@@ -59,6 +81,11 @@ pub fn no_match_all_report(reason: String) -> AllReport {
     Err(errors)
 }
 
+pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
+    let errors = vec![Recursion(reason)];
+    Err(errors)
+}
+
 /// Useful if any of the reports succeeding is enough.
 /// - `Some((errors, true))` indicates failure.
 /// - `Some((skips, false))` indicates skip.
@@ -77,6 +104,11 @@ pub fn no_match_any_report(reason: String) -> AnyReport {
 
 pub fn bad_rpsl_any_report(reason: String) -> AnyReport {
     let errors = vec![BadRpsl(reason)];
+    Some((errors, true))
+}
+
+pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
+    let errors = vec![Recursion(reason)];
     Some((errors, true))
 }
 

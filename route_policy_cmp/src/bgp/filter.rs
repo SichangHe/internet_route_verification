@@ -45,11 +45,11 @@ impl<'a> CheckFilter<'a> {
             Some(f) => f,
             None => return skip_any_report(SkipReason::FilterSetUnrecorded(name.into())),
         };
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         for filter in &filter_set.filters {
-            aggregater.join(self.check(filter, depth - 1)?);
+            aggregator.join(self.check(filter, depth - 1)?);
         }
-        aggregater.to_any()
+        aggregator.to_any()
     }
 
     fn filter_as_num(&self, num: usize, &range_operator: &RangeOperator) -> AnyReport {
@@ -91,14 +91,14 @@ impl<'a> CheckFilter<'a> {
             Some(r) => r,
             None => return skip_any_report(SkipReason::RouteSetUnrecorded(name.into())),
         };
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         for member in &route_set.members {
-            aggregater.join(self.filter_route_set_member(member, op, depth - 1)?);
+            aggregator.join(self.filter_route_set_member(member, op, depth - 1)?);
         }
-        if aggregater.all_fail {
+        if aggregator.all_fail {
             no_match_any_report(MatchProblem::FilterRouteSet(name.into()))
         } else {
-            aggregater.to_any()
+            aggregator.to_any()
         }
     }
 
@@ -138,11 +138,11 @@ impl<'a> CheckFilter<'a> {
             Some(r) => r,
             None => return skip_any_report(SkipReason::AsSetUnrecorded(name.into())),
         };
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         for as_name in &as_set.members {
-            aggregater.join(self.filter_as_name(as_name, op, depth - 1, visited)?);
+            aggregator.join(self.filter_as_name(as_name, op, depth - 1, visited)?);
         }
-        aggregater.to_any()
+        aggregator.to_any()
     }
 
     fn filter_as_regex(&self, expr: &str) -> AnyReport {
@@ -185,7 +185,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterOr);
         }
-        let mut report: AnyReportAggregater = self.check(left, depth - 1)?.into();
+        let mut report: AnyReportAggregator = self.check(left, depth - 1)?.into();
         report.join(self.check(right, depth)?);
         report.to_any()
     }

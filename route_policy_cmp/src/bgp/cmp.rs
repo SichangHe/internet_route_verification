@@ -111,27 +111,27 @@ impl<'a> Compare<'a> {
         &self,
         policy: &Versions,
         accept_num: usize,
-    ) -> Option<AnyReportAggregater> {
-        let mut aggregater: AnyReportAggregater = match self.prefix {
+    ) -> Option<AnyReportAggregator> {
+        let mut aggregator: AnyReportAggregator = match self.prefix {
             IpNet::V4(_) => self.check_casts(&policy.ipv4, accept_num),
             IpNet::V6(_) => self.check_casts(&policy.ipv6, accept_num),
         }?
         .into();
-        aggregater.join(self.check_casts(&policy.any, accept_num)?);
-        Some(aggregater)
+        aggregator.join(self.check_casts(&policy.any, accept_num)?);
+        Some(aggregator)
     }
 
     pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> AnyReport {
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         let specific_cast = if is_multicast(&self.prefix) {
             &casts.multicast
         } else {
             &casts.unicast
         };
         for entry in [specific_cast, &casts.any].into_iter().flatten() {
-            aggregater.join(self.check_entry(entry, accept_num).to_any()?);
+            aggregator.join(self.check_entry(entry, accept_num).to_any()?);
         }
-        aggregater.to_any()
+        aggregator.to_any()
     }
 
     pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> AllReport {
@@ -152,14 +152,14 @@ impl<'a> Compare<'a> {
     where
         I: IntoIterator<Item = &'a PeeringAction>,
     {
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         for peering_actions in peerings.into_iter() {
-            aggregater.join(
+            aggregator.join(
                 self.check_peering_action(peering_actions, accept_num)
                     .to_any()?,
             );
         }
-        aggregater.to_any()
+        aggregator.to_any()
     }
 
     pub fn check_peering_action(

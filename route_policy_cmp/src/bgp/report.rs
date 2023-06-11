@@ -192,12 +192,12 @@ impl ToAllReport for Option<ReportItems> {
     }
 }
 
-pub struct AnyReportAggregater {
+pub struct AnyReportAggregator {
     pub report_items: ReportItems,
     pub all_fail: bool,
 }
 
-impl AnyReportAggregater {
+impl AnyReportAggregator {
     pub fn new() -> Self {
         Self {
             report_items: vec![],
@@ -211,19 +211,19 @@ impl AnyReportAggregater {
     }
 }
 
-impl ToAnyReport for AnyReportAggregater {
+impl ToAnyReport for AnyReportAggregator {
     fn to_any(self) -> AnyReport {
         Some((self.report_items, self.all_fail))
     }
 }
 
-impl Default for AnyReportAggregater {
+impl Default for AnyReportAggregator {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl From<(ReportItems, bool)> for AnyReportAggregater {
+impl From<(ReportItems, bool)> for AnyReportAggregator {
     fn from((report_items, all_fail): (ReportItems, bool)) -> Self {
         Self {
             report_items,

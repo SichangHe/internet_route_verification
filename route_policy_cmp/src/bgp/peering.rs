@@ -84,11 +84,11 @@ impl<'a> CheckPeering<'a> {
             Some(r) => r,
             None => return skip_any_report(SkipReason::AsSetUnrecorded(name.into())),
         };
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         for as_name in &as_set.members {
-            aggregater.join(self.check_remote_as_name(as_name, depth - 1)?);
+            aggregator.join(self.check_remote_as_name(as_name, depth - 1)?);
         }
-        aggregater.to_any()
+        aggregator.to_any()
     }
 
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
@@ -99,11 +99,11 @@ impl<'a> CheckPeering<'a> {
             Some(r) => r,
             None => return skip_any_report(SkipReason::PeeringSetUnrecorded(name.into())),
         };
-        let mut aggregater = AnyReportAggregater::new();
+        let mut aggregator = AnyReportAggregator::new();
         for peering in &peering_set.peerings {
-            aggregater.join(self.check(peering, depth - 1).to_any()?);
+            aggregator.join(self.check(peering, depth - 1).to_any()?);
         }
-        aggregater.to_any()
+        aggregator.to_any()
     }
 
     fn check_and(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
@@ -120,7 +120,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::PeeringOr);
         }
-        let mut report: AnyReportAggregater = self.check_remote_as(left, depth - 1)?.into();
+        let mut report: AnyReportAggregator = self.check_remote_as(left, depth - 1)?.into();
         report.join(self.check_remote_as(right, depth)?);
         report.to_any()
     }

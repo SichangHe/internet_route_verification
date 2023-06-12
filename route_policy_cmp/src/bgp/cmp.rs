@@ -83,17 +83,20 @@ impl<'a> Compare<'a> {
 
     pub fn check_last_export(&self) -> Option<Report> {
         match self.as_path.last()? {
-            AsPathEntry::Seq(from) => {
-                self.get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
-            }
+            AsPathEntry::Seq(from) => self
+                .get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
+                .or_else(|| self.success_report(|| SuccessType::ExportSingle(*from))),
             entry => self.skip_report(|| SkipReason::AsPathWithSet(entry.clone())),
         }
     }
 
     pub fn check_pair(&self, from: usize, to: usize) -> Vec<Report> {
-        let from_report =
-            self.get_aut_num_then(from, |from_an| self.check_export(from_an, from, Some(to)));
-        let to_report = self.get_aut_num_then(to, |to_an| self.check_import(to_an, from, to));
+        let from_report = self
+            .get_aut_num_then(from, |from_an| self.check_export(from_an, from, Some(to)))
+            .or_else(|| self.success_report(|| SuccessType::Export(from, to)));
+        let to_report = self
+            .get_aut_num_then(to, |to_an| self.check_import(to_an, from, to))
+            .or_else(|| self.success_report(|| SuccessType::Import(to, from)));
         [from_report, to_report].into_iter().flatten().collect()
     }
 

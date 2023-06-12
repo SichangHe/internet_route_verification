@@ -5,13 +5,14 @@ use crate::parse::{
 };
 
 use super::{
-    cmp::Compare,
+    cmp::{Compare, Verbosity},
     report::{ReportItem::*, *},
 };
 
 pub struct CheckPeering<'a> {
     pub compare: &'a Compare<'a>,
     pub accept_num: usize,
+    pub verbosity: Verbosity,
 }
 
 impl<'a> CheckPeering<'a> {

@@ -20,13 +20,20 @@ use super::{
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Verbosity {
+    ErrOnly,
+    Brief,
+    Detailed,
+}
+
 pub struct Compare<'a> {
     pub dump: &'a Dump,
     pub prefix: IpNet,
     pub as_path: Vec<AsPathEntry>,
     pub communities: Vec<&'a str>,
     pub recursion_limit: isize,
-    // TODO: Verbosity.
+    pub verbosity: Verbosity,
 }
 
 impl<'a> Compare<'a> {
@@ -42,6 +49,7 @@ impl<'a> Compare<'a> {
             as_path,
             communities,
             recursion_limit: RECURSION_LIMIT,
+            verbosity: Verbosity::ErrOnly,
         }
     }
 
@@ -155,9 +163,12 @@ impl<'a> Compare<'a> {
     }
 
     pub fn check_entry(&self, entry: &Entry, accept_num: Option<usize>) -> AllReport {
-        let report = CheckFilter { compare: self }
-            .check(&entry.mp_filter, self.recursion_limit)
-            .to_all()?;
+        let report = CheckFilter {
+            compare: self,
+            verbosity: self.verbosity,
+        }
+        .check(&entry.mp_filter, self.recursion_limit)
+        .to_all()?;
         match accept_num {
             Some(accept_num) => report.join(
                 self.check_peering_actions(&entry.mp_peerings, accept_num)
@@ -190,6 +201,7 @@ impl<'a> Compare<'a> {
         CheckPeering {
             compare: self,
             accept_num,
+            verbosity: self.verbosity,
         }
         .check(&peering_actions.mp_peering, self.recursion_limit)?
         .join(self.check_actions(&peering_actions.actions)?)

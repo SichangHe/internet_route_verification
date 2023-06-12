@@ -9,12 +9,13 @@ use crate::{
 };
 
 use super::{
-    cmp::Compare,
+    cmp::{Compare, Verbosity},
     report::{ReportItem::*, *},
 };
 
 pub struct CheckFilter<'a> {
     pub compare: &'a Compare<'a>,
+    pub verbosity: Verbosity,
 }
 
 impl<'a> CheckFilter<'a> {

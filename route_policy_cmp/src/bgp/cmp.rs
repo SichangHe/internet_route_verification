@@ -51,7 +51,8 @@ impl<'a> Compare<'a> {
     }
 
     pub fn check(&self) -> Vec<Report> {
-        // TODO: check origin and address.
+        let mut reports = Vec::new();
+        reports.extend(self.check_last_export());
 
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         let pairs = self
@@ -59,36 +60,55 @@ impl<'a> Compare<'a> {
             .iter()
             .rev()
             .zip(self.as_path.iter().rev().skip(1));
-        pairs
-            .flat_map(|(from, to)| {
-                if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
-                    self.check_pair(*from, *to)
-                } else {
-                    vec![Report::skip(SkipReason::AsPathPairWithSet(
-                        from.clone(),
-                        to.clone(),
-                    ))]
-                }
-            })
-            .collect()
+        let pair_reports = pairs.flat_map(|(from, to)| {
+            if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
+                self.check_pair(*from, *to)
+            } else {
+                vec![Report::skip(SkipReason::AsPathPairWithSet(
+                    from.clone(),
+                    to.clone(),
+                ))]
+            }
+        });
+        reports.extend(pair_reports);
+        reports
+    }
+
+    pub fn check_last_export(&self) -> Option<Report> {
+        match self.as_path.last() {
+            Some(AsPathEntry::Seq(from)) => {
+                self.get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
+            }
+            Some(entry) => Some(Report::skip(SkipReason::AsPathWithSet(entry.clone()))),
+            None => None,
+        }
     }
 
     pub fn check_pair(&self, from: usize, to: usize) -> Vec<Report> {
-        let from_report = match self.dump.aut_nums.get(&from) {
-            Some(from_an) => self.check_export(from_an, from, to),
-            None => Some(Report::skip(SkipReason::AutNumUnrecorded(from))),
-        };
-        let to_report = match self.dump.aut_nums.get(&to) {
-            Some(to_an) => self.check_import(to_an, from, to),
-            None => Some(Report::skip(SkipReason::AutNumUnrecorded(to))),
-        };
+        let from_report =
+            self.get_aut_num_then(from, |from_an| self.check_export(from_an, from, Some(to)));
+        let to_report = self.get_aut_num_then(to, |to_an| self.check_import(to_an, from, to));
         [from_report, to_report].into_iter().flatten().collect()
     }
 
-    fn check_export(&self, from_an: &AutNum, from: usize, to: usize) -> Option<Report> {
+    pub fn get_aut_num_then<F>(&self, aut_num: usize, call: F) -> Option<Report>
+    where
+        F: Fn(&AutNum) -> Option<Report>,
+    {
+        match self.dump.aut_nums.get(&aut_num) {
+            Some(aut_num) => call(aut_num),
+            None => Some(Report::skip(SkipReason::AutNumUnrecorded(aut_num))),
+        }
+    }
+
+    pub fn check_export(&self, from_an: &AutNum, from: usize, to: Option<usize>) -> Option<Report> {
         let mut aggregator = self.check_compliant(&from_an.exports, to)?;
         let report = if aggregator.all_fail {
-            aggregator.join(no_match_any_report(MatchProblem::NoExportRule(from, to)).unwrap());
+            let reason = match to {
+                Some(to) => MatchProblem::NoExportRule(from, to),
+                None => MatchProblem::NoExportRuleSingle(from),
+            };
+            aggregator.join(no_match_any_report(reason).unwrap());
             Report::Bad(aggregator.report_items)
         } else {
             Report::Neutral(aggregator.report_items)
@@ -96,8 +116,8 @@ impl<'a> Compare<'a> {
         Some(report)
     }
 
-    fn check_import(&self, to_an: &AutNum, from: usize, to: usize) -> Option<Report> {
-        let mut aggregator = self.check_compliant(&to_an.imports, from)?;
+    pub fn check_import(&self, to_an: &AutNum, from: usize, to: usize) -> Option<Report> {
+        let mut aggregator = self.check_compliant(&to_an.imports, Some(from))?;
         let report = if aggregator.all_fail {
             aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());
             Report::Bad(aggregator.report_items)
@@ -110,7 +130,7 @@ impl<'a> Compare<'a> {
     pub fn check_compliant(
         &self,
         policy: &Versions,
-        accept_num: usize,
+        accept_num: Option<usize>,
     ) -> Option<AnyReportAggregater> {
         let mut aggregater: AnyReportAggregater = match self.prefix {
             IpNet::V4(_) => self.check_casts(&policy.ipv4, accept_num),
@@ -121,7 +141,7 @@ impl<'a> Compare<'a> {
         Some(aggregater)
     }
 
-    pub fn check_casts(&self, casts: &Casts, accept_num: usize) -> AnyReport {
+    pub fn check_casts(&self, casts: &Casts, accept_num: Option<usize>) -> AnyReport {
         let mut aggregater = AnyReportAggregater::new();
         let specific_cast = if is_multicast(&self.prefix) {
             &casts.multicast
@@ -134,17 +154,17 @@ impl<'a> Compare<'a> {
         aggregater.to_any()
     }
 
-    pub fn check_entry(&self, entry: &Entry, accept_num: usize) -> AllReport {
-        CheckFilter {
-            compare: self,
-            accept_num,
+    pub fn check_entry(&self, entry: &Entry, accept_num: Option<usize>) -> AllReport {
+        let report = CheckFilter { compare: self }
+            .check(&entry.mp_filter, RECURSION_LIMIT)
+            .to_all()?;
+        match accept_num {
+            Some(accept_num) => report.join(
+                self.check_peering_actions(&entry.mp_peerings, accept_num)
+                    .to_all()?,
+            ),
+            None => report,
         }
-        .check(&entry.mp_filter, RECURSION_LIMIT)
-        .to_all()?
-        .join(
-            self.check_peering_actions(&entry.mp_peerings, accept_num)
-                .to_all()?,
-        )
         .to_all()
     }
 

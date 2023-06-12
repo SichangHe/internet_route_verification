@@ -44,6 +44,7 @@ pub enum SkipReason {
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,
     AsPathPairWithSet(AsPathEntry, AsPathEntry),
+    AsPathWithSet(AsPathEntry),
     AutNumUnrecorded(usize),
 }
 
@@ -51,6 +52,7 @@ pub enum SkipReason {
 pub enum MatchProblem {
     /// Left side should not export to right side.
     NoExportRule(usize, usize),
+    NoExportRuleSingle(usize),
     /// Left side should not import from right side.
     NoImportRule(usize, usize),
     FilterAsNum(usize, RangeOperator),

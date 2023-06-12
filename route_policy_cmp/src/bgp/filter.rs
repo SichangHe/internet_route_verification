@@ -15,7 +15,6 @@ use super::{
 
 pub struct CheckFilter<'a> {
     pub compare: &'a Compare<'a>,
-    pub accept_num: usize,
 }
 
 impl<'a> CheckFilter<'a> {

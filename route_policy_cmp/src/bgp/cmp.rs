@@ -24,6 +24,7 @@ pub const RECURSION_LIMIT: isize = 0x100;
 pub enum Verbosity {
     ErrOnly,
     Brief,
+    ShowSkips,
     Detailed,
 }
 
@@ -51,6 +52,10 @@ impl<'a> Compare<'a> {
             recursion_limit: RECURSION_LIMIT,
             verbosity: Verbosity::ErrOnly,
         }
+    }
+
+    pub fn verbosity(self, verbosity: Verbosity) -> Self {
+        Self { verbosity, ..self }
     }
 
     pub fn with_line_dump(line: &'a str, dump: &'a Dump) -> Result<Self> {
@@ -87,7 +92,7 @@ impl<'a> Compare<'a> {
             Some(AsPathEntry::Seq(from)) => {
                 self.get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
             }
-            Some(entry) if self.verbosity > Verbosity::ErrOnly => {
+            Some(entry) if self.verbosity >= Verbosity::ShowSkips => {
                 Some(Report::skip(SkipReason::AsPathWithSet(entry.clone())))
             }
             _ => None,
@@ -107,7 +112,7 @@ impl<'a> Compare<'a> {
     {
         match self.dump.aut_nums.get(&aut_num) {
             Some(aut_num) => call(aut_num),
-            None if self.verbosity > Verbosity::ErrOnly => {
+            None if self.verbosity >= Verbosity::ShowSkips => {
                 Some(Report::skip(SkipReason::AutNumUnrecorded(aut_num)))
             }
             _ => None,
@@ -123,7 +128,7 @@ impl<'a> Compare<'a> {
             };
             aggregator.join(no_match_any_report(reason).unwrap());
             Report::Bad(aggregator.report_items)
-        } else if self.verbosity <= Verbosity::ErrOnly {
+        } else if self.verbosity < Verbosity::ShowSkips {
             return None;
         } else {
             Report::Neutral(aggregator.report_items)
@@ -136,7 +141,7 @@ impl<'a> Compare<'a> {
         let report = if aggregator.all_fail {
             aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());
             Report::Bad(aggregator.report_items)
-        } else if self.verbosity <= Verbosity::ErrOnly {
+        } else if self.verbosity < Verbosity::ShowSkips {
             return None;
         } else {
             Report::Neutral(aggregator.report_items)

@@ -40,10 +40,43 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
+    fn skip_any_report<F>(&self, reason: F) -> AnyReport
+    where
+        F: Fn() -> SkipReason,
+    {
+        if self.verbosity >= Verbosity::ShowSkips {
+            skip_any_report(reason())
+        } else {
+            empty_skip_any_report()
+        }
+    }
+
+    fn no_match_any_report<F>(&self, reason: F) -> AnyReport
+    where
+        F: Fn() -> MatchProblem,
+    {
+        if self.verbosity >= Verbosity::Detailed {
+            no_match_any_report(reason())
+        } else {
+            failed_any_report()
+        }
+    }
+
+    fn bad_rpsl_any_report<F>(&self, reason: F) -> AnyReport
+    where
+        F: Fn() -> RpslError,
+    {
+        if self.verbosity >= Verbosity::Detailed {
+            bad_rpsl_any_report(reason())
+        } else {
+            failed_any_report()
+        }
+    }
+
     fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
         let filter_set = match self.compare.dump.filter_sets.get(name) {
             Some(f) => f,
-            None => return skip_any_report(SkipReason::FilterSetUnrecorded(name.into())),
+            None => return self.skip_any_report(|| SkipReason::FilterSetUnrecorded(name.into())),
         };
         let mut aggregator = AnyReportAggregator::new();
         for filter in &filter_set.filters {
@@ -56,7 +89,7 @@ impl<'a> CheckFilter<'a> {
         // TODO: Only report when `num` is on AS path.
         let routes = match self.compare.dump.as_routes.get(&num) {
             Some(r) => r,
-            None => return skip_any_report(SkipReason::AsRoutesUnrecorded(num)),
+            None => return self.skip_any_report(|| SkipReason::AsRoutesUnrecorded(num)),
         };
         let ranges: Vec<_> = routes
             .iter()
@@ -67,7 +100,7 @@ impl<'a> CheckFilter<'a> {
             .collect();
         let (reports, all_fail) = self.filter_prefixes(&ranges)?;
         if all_fail {
-            no_match_any_report(MatchProblem::FilterAsNum(num, range_operator))
+            self.no_match_any_report(|| MatchProblem::FilterAsNum(num, range_operator))
         } else {
             Some((reports, all_fail))
         }
@@ -77,10 +110,14 @@ impl<'a> CheckFilter<'a> {
     where
         I: IntoIterator<Item = &'a AddrPfxRange>,
     {
-        prefixes
+        if prefixes
             .into_iter()
             .all(|prefix| !prefix.contains(&self.compare.prefix))
-            .then(|| no_match_any_report(MatchProblem::FilterPrefixes).unwrap())
+        {
+            self.no_match_any_report(|| MatchProblem::FilterPrefixes)
+        } else {
+            None
+        }
     }
 
     fn filter_route_set(&self, name: &str, op: &RangeOperator, depth: isize) -> AnyReport {
@@ -89,14 +126,14 @@ impl<'a> CheckFilter<'a> {
         }
         let route_set = match self.compare.dump.route_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(SkipReason::RouteSetUnrecorded(name.into())),
+            None => return self.skip_any_report(|| SkipReason::RouteSetUnrecorded(name.into())),
         };
         let mut aggregator = AnyReportAggregator::new();
         for member in &route_set.members {
             aggregator.join(self.filter_route_set_member(member, op, depth - 1)?);
         }
         if aggregator.all_fail {
-            no_match_any_report(MatchProblem::FilterRouteSet(name.into()))
+            self.no_match_any_report(|| MatchProblem::FilterRouteSet(name.into()))
         } else {
             aggregator.to_any()
         }
@@ -136,14 +173,14 @@ impl<'a> CheckFilter<'a> {
         }
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(SkipReason::AsSetUnrecorded(name.into())),
+            None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
         let mut aggregator = AnyReportAggregator::new();
         for as_name in &as_set.members {
             aggregator.join(self.filter_as_name(as_name, op, depth - 1, visited)?);
         }
         if aggregator.all_fail {
-            no_match_any_report(MatchProblem::FilterAsSet(name.into(), *op))
+            self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), *op))
         } else {
             aggregator.to_any()
         }
@@ -151,7 +188,7 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_as_regex(&self, expr: &str) -> AnyReport {
         // TODO: Implement.
-        skip_any_report(SkipReason::AsRegexUnimplemented(expr.into()))
+        self.skip_any_report(|| SkipReason::AsRegexUnimplemented(expr.into()))
     }
 
     fn filter_as_name<'v>(
@@ -171,7 +208,9 @@ impl<'a> CheckFilter<'a> {
         match as_name {
             AsName::Num(num) => self.filter_as_num(*num, op),
             AsName::Set(name) => self.filter_as_set(name, op, depth - 1, visited),
-            AsName::Invalid(reason) => bad_rpsl_any_report(RpslError::InvalidAsName(reason.into())),
+            AsName::Invalid(reason) => {
+                self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))
+            }
         }
     }
 
@@ -204,16 +243,16 @@ impl<'a> CheckFilter<'a> {
                 skips.push(Skip(SkipReason::SkippedNotFilterResult));
                 Some((skips, false))
             }
-            None => no_match_any_report(MatchProblem::NotFilterMatch),
+            None => self.no_match_any_report(|| MatchProblem::NotFilterMatch),
         }
     }
 
     fn filter_community(&self, community: &Call) -> AnyReport {
         // TODO: Implement.
-        skip_any_report(SkipReason::CommunityCheckUnimplemented(community.clone()))
+        self.skip_any_report(|| SkipReason::CommunityCheckUnimplemented(community.clone()))
     }
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {
-        bad_rpsl_any_report(RpslError::InvalidFilter(reason.into()))
+        self.bad_rpsl_any_report(|| RpslError::InvalidFilter(reason.into()))
     }
 }

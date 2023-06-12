@@ -122,6 +122,10 @@ pub fn skip_all_report(reason: SkipReason) -> AllReport {
     Ok(Some(skips))
 }
 
+pub const fn empty_skip_all_report() -> AllReport {
+    Ok(Some(vec![]))
+}
+
 pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
     let errors = vec![NoMatch(reason)];
     Err(errors)
@@ -130,6 +134,10 @@ pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
 pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
     let errors = vec![Recursion(reason)];
     Err(errors)
+}
+
+pub const fn failed_match_all_report() -> AllReport {
+    Err(vec![])
 }
 
 /// Useful if any of the reports succeeding is enough.
@@ -141,6 +149,10 @@ pub type AnyReport = Option<(ReportItems, bool)>;
 pub fn skip_any_report(reason: SkipReason) -> AnyReport {
     let skips = vec![Skip(reason)];
     Some((skips, false))
+}
+
+pub const fn empty_skip_any_report() -> AnyReport {
+    Some((vec![], false))
 }
 
 pub fn no_match_any_report(reason: MatchProblem) -> AnyReport {
@@ -158,7 +170,8 @@ pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
     Some((errors, true))
 }
 
-pub fn failed_any_report() -> AnyReport {
+/// Empty failed `AnyReport`.
+pub const fn failed_any_report() -> AnyReport {
     Some((vec![], true))
 }
 

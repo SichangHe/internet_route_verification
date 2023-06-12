@@ -6,7 +6,7 @@ use crate::parse::{
 
 use super::{
     cmp::Compare,
-    report::{ReportItem::*, *},
+    report::*,
     verbosity::{Verbosity, VerbosityReport},
 };
 
@@ -140,10 +140,10 @@ impl<'a> CheckPeering<'a> {
         let left_report = self.check_remote_as(left, depth - 1).to_all()?;
         let right_report = match self.check_remote_as(right, depth) {
             Some((_, true)) => Ok(None),
-            Some((mut skips, false)) => {
-                skips.push(Skip(SkipReason::SkippedExceptPeeringResult));
-                Ok(Some(skips))
-            }
+            report @ Some((_, false)) => report
+                .to_all()?
+                .join(self.skip_all_report(|| SkipReason::SkippedExceptPeeringResult)?)
+                .to_all(),
             None => self.no_match_all_report(|| MatchProblem::ExceptFilterRightMatch),
         };
         left_report.join(right_report?).to_all()

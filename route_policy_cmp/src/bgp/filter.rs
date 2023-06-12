@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     cmp::Compare,
-    report::{ReportItem::*, *},
+    report::*,
     verbosity::{Verbosity, VerbosityReport},
 };
 
@@ -207,9 +207,10 @@ impl<'a> CheckFilter<'a> {
         }
         match self.check(filter, depth) {
             Some((_errors, true)) => None,
-            Some((mut skips, false)) => {
-                skips.push(Skip(SkipReason::SkippedNotFilterResult));
-                Some((skips, false))
+            Some(report @ (_, false)) => {
+                let mut aggregator: AnyReportAggregator = report.into();
+                aggregator.join(self.no_match_any_report(|| MatchProblem::NotFilterMatch)?);
+                aggregator.to_any()
             }
             None => self.no_match_any_report(|| MatchProblem::NotFilterMatch),
         }

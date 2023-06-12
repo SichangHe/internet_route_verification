@@ -12,11 +12,16 @@ use super::map::AsPathEntry;
 /// Use this in an `Option`, and use `None` to indicate "good."
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
+    Good(Vec<ReportItem>),
     Neutral(Vec<ReportItem>),
     Bad(Vec<ReportItem>),
 }
 
 impl Report {
+    pub fn success(reason: SuccessType) -> Self {
+        Good(vec![Success(reason)])
+    }
+
     pub fn skip(reason: SkipReason) -> Self {
         Neutral(vec![Skip(reason)])
     }
@@ -24,10 +29,18 @@ impl Report {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
+    Success(SuccessType),
     Skip(SkipReason),
     NoMatch(MatchProblem),
     BadRpsl(RpslError),
     Recursion(RecurSrc),
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum SuccessType {
+    Export(usize, usize),
+    ExportSingle(usize),
+    Import(usize, usize),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

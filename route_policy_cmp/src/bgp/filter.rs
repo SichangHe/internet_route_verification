@@ -227,7 +227,7 @@ impl<'a> CheckFilter<'a> {
 }
 
 impl<'a> VerbosityReport for CheckFilter<'a> {
-    fn verbosity(&self) -> Verbosity {
+    fn get_verbosity(&self) -> Verbosity {
         self.verbosity
     }
 }

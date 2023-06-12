@@ -151,7 +151,7 @@ impl<'a> CheckPeering<'a> {
 }
 
 impl<'a> VerbosityReport for CheckPeering<'a> {
-    fn verbosity(&self) -> Verbosity {
+    fn get_verbosity(&self) -> Verbosity {
         self.verbosity
     }
 }

@@ -9,13 +9,43 @@ pub enum Verbosity {
 }
 
 pub trait VerbosityReport {
-    fn verbosity(&self) -> Verbosity;
+    fn get_verbosity(&self) -> Verbosity;
+
+    fn success_report<F>(&self, reason: F) -> Option<Report>
+    where
+        F: Fn() -> SuccessType,
+    {
+        if self.get_verbosity() >= Verbosity::Brief {
+            Some(Report::success(reason()))
+        } else {
+            None
+        }
+    }
+
+    fn skips_report(&self, skips: Vec<ReportItem>) -> Option<Report> {
+        if self.get_verbosity() >= Verbosity::ShowSkips {
+            Some(Report::Neutral(skips))
+        } else {
+            None
+        }
+    }
+
+    fn skip_report<F>(&self, reason: F) -> Option<Report>
+    where
+        F: Fn() -> SkipReason,
+    {
+        if self.get_verbosity() >= Verbosity::ShowSkips {
+            Some(Report::skip(reason()))
+        } else {
+            None
+        }
+    }
 
     fn skip_any_report<F>(&self, reason: F) -> AnyReport
     where
         F: Fn() -> SkipReason,
     {
-        if self.verbosity() >= Verbosity::ShowSkips {
+        if self.get_verbosity() >= Verbosity::ShowSkips {
             skip_any_report(reason())
         } else {
             empty_skip_any_report()
@@ -26,7 +56,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> MatchProblem,
     {
-        if self.verbosity() >= Verbosity::Detailed {
+        if self.get_verbosity() >= Verbosity::Detailed {
             no_match_any_report(reason())
         } else {
             failed_any_report()
@@ -37,7 +67,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> RpslError,
     {
-        if self.verbosity() >= Verbosity::Detailed {
+        if self.get_verbosity() >= Verbosity::Detailed {
             bad_rpsl_any_report(reason())
         } else {
             failed_any_report()
@@ -48,7 +78,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> SkipReason,
     {
-        if self.verbosity() >= Verbosity::ShowSkips {
+        if self.get_verbosity() >= Verbosity::ShowSkips {
             skip_all_report(reason())
         } else {
             empty_skip_all_report()
@@ -59,7 +89,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> MatchProblem,
     {
-        if self.verbosity() >= Verbosity::Detailed {
+        if self.get_verbosity() >= Verbosity::Detailed {
             no_match_all_report(reason())
         } else {
             failed_all_report()
@@ -70,7 +100,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> RpslError,
     {
-        if self.verbosity() >= Verbosity::Detailed {
+        if self.get_verbosity() >= Verbosity::Detailed {
             bad_rpsl_all_report(reason())
         } else {
             failed_all_report()

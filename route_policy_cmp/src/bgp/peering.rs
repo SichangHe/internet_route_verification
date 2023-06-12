@@ -88,7 +88,11 @@ impl<'a> CheckPeering<'a> {
         for as_name in &as_set.members {
             aggregater.join(self.check_remote_as_name(as_name, depth - 1)?);
         }
-        aggregater.to_any()
+        if aggregater.all_fail {
+            no_match_any_report(MatchProblem::RemoteAsSet(name.into()))
+        } else {
+            aggregater.to_any()
+        }
     }
 
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {

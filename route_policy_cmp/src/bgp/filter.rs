@@ -141,7 +141,11 @@ impl<'a> CheckFilter<'a> {
         for as_name in &as_set.members {
             aggregater.join(self.filter_as_name(as_name, op, depth - 1, visited)?);
         }
-        aggregater.to_any()
+        if aggregater.all_fail {
+            no_match_any_report(MatchProblem::FilterAsSet(name.into(), *op))
+        } else {
+            aggregater.to_any()
+        }
     }
 
     fn filter_as_regex(&self, expr: &str) -> AnyReport {

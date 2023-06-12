@@ -56,10 +56,12 @@ pub enum MatchProblem {
     /// Left side should not import from right side.
     NoImportRule(usize, usize),
     FilterAsNum(usize, RangeOperator),
+    FilterAsSet(String, RangeOperator),
     FilterPrefixes,
     FilterRouteSet(String),
     NotFilterMatch,
     RemoteAsNum(usize),
+    RemoteAsSet(String),
     ExceptFilterRightMatch,
 }
 

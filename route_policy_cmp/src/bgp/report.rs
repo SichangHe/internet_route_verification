@@ -36,10 +36,10 @@ pub enum SkipReason {
     AsRoutesUnrecorded(usize),
     RouteSetUnrecorded(String),
     AsSetUnrecorded(String),
-    // TODO: Remote once implemented.
+    // TODO: Remove once implemented.
     AsRegexUnimplemented(String),
     SkippedNotFilterResult,
-    // TODO: Remote once implemented.
+    // TODO: Remove once implemented.
     CommunityCheckUnimplemented(Call),
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,

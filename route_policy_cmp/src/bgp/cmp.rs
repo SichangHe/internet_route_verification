@@ -156,7 +156,7 @@ impl<'a> Compare<'a> {
 
     pub fn check_entry(&self, entry: &Entry, accept_num: Option<usize>) -> AllReport {
         let report = CheckFilter { compare: self }
-            .check(&entry.mp_filter, RECURSION_LIMIT)
+            .check(&entry.mp_filter, self.recursion_limit)
             .to_all()?;
         match accept_num {
             Some(accept_num) => report.join(
@@ -191,7 +191,7 @@ impl<'a> Compare<'a> {
             compare: self,
             accept_num,
         }
-        .check(&peering_actions.mp_peering, RECURSION_LIMIT)?
+        .check(&peering_actions.mp_peering, self.recursion_limit)?
         .join(self.check_actions(&peering_actions.actions)?)
         .to_all()
     }

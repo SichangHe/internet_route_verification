@@ -87,8 +87,10 @@ impl<'a> Compare<'a> {
             Some(AsPathEntry::Seq(from)) => {
                 self.get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
             }
-            Some(entry) => Some(Report::skip(SkipReason::AsPathWithSet(entry.clone()))),
-            None => None,
+            Some(entry) if self.verbosity > Verbosity::ErrOnly => {
+                Some(Report::skip(SkipReason::AsPathWithSet(entry.clone())))
+            }
+            _ => None,
         }
     }
 
@@ -105,7 +107,10 @@ impl<'a> Compare<'a> {
     {
         match self.dump.aut_nums.get(&aut_num) {
             Some(aut_num) => call(aut_num),
-            None => Some(Report::skip(SkipReason::AutNumUnrecorded(aut_num))),
+            None if self.verbosity > Verbosity::ErrOnly => {
+                Some(Report::skip(SkipReason::AutNumUnrecorded(aut_num)))
+            }
+            _ => None,
         }
     }
 
@@ -118,6 +123,8 @@ impl<'a> Compare<'a> {
             };
             aggregator.join(no_match_any_report(reason).unwrap());
             Report::Bad(aggregator.report_items)
+        } else if self.verbosity <= Verbosity::ErrOnly {
+            return None;
         } else {
             Report::Neutral(aggregator.report_items)
         };
@@ -129,6 +136,8 @@ impl<'a> Compare<'a> {
         let report = if aggregator.all_fail {
             aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());
             Report::Bad(aggregator.report_items)
+        } else if self.verbosity <= Verbosity::ErrOnly {
+            return None;
         } else {
             Report::Neutral(aggregator.report_items)
         };

@@ -16,17 +16,10 @@ use super::{
     map::{parse_table_dump, AsPathEntry},
     peering::CheckPeering,
     report::*,
+    verbosity::Verbosity,
 };
 
 pub const RECURSION_LIMIT: isize = 0x100;
-
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum Verbosity {
-    ErrOnly,
-    Brief,
-    ShowSkips,
-    Detailed,
-}
 
 pub struct Compare<'a> {
     pub dump: &'a Dump,

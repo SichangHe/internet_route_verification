@@ -131,12 +131,17 @@ pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
     Err(errors)
 }
 
+pub fn bad_rpsl_all_report(reason: RpslError) -> AllReport {
+    let errors = vec![BadRpsl(reason)];
+    Err(errors)
+}
+
 pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
     let errors = vec![Recursion(reason)];
     Err(errors)
 }
 
-pub const fn failed_match_all_report() -> AllReport {
+pub const fn failed_all_report() -> AllReport {
     Err(vec![])
 }
 

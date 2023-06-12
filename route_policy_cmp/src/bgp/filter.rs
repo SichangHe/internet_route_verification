@@ -9,8 +9,9 @@ use crate::{
 };
 
 use super::{
-    cmp::{Compare, Verbosity},
+    cmp::Compare,
     report::{ReportItem::*, *},
+    verbosity::{Verbosity, VerbosityReport},
 };
 
 pub struct CheckFilter<'a> {
@@ -37,39 +38,6 @@ impl<'a> CheckFilter<'a> {
             Group(filter) => self.check(filter, depth),
             Community(community) => self.filter_community(community),
             Invalid(reason) => self.invalid_filter(reason),
-        }
-    }
-
-    fn skip_any_report<F>(&self, reason: F) -> AnyReport
-    where
-        F: Fn() -> SkipReason,
-    {
-        if self.verbosity >= Verbosity::ShowSkips {
-            skip_any_report(reason())
-        } else {
-            empty_skip_any_report()
-        }
-    }
-
-    fn no_match_any_report<F>(&self, reason: F) -> AnyReport
-    where
-        F: Fn() -> MatchProblem,
-    {
-        if self.verbosity >= Verbosity::Detailed {
-            no_match_any_report(reason())
-        } else {
-            failed_any_report()
-        }
-    }
-
-    fn bad_rpsl_any_report<F>(&self, reason: F) -> AnyReport
-    where
-        F: Fn() -> RpslError,
-    {
-        if self.verbosity >= Verbosity::Detailed {
-            bad_rpsl_any_report(reason())
-        } else {
-            failed_any_report()
         }
     }
 
@@ -254,5 +222,11 @@ impl<'a> CheckFilter<'a> {
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {
         self.bad_rpsl_any_report(|| RpslError::InvalidFilter(reason.into()))
+    }
+}
+
+impl<'a> VerbosityReport for CheckFilter<'a> {
+    fn verbosity(&self) -> Verbosity {
+        self.verbosity
     }
 }

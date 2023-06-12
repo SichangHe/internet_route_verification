@@ -1,10 +1,7 @@
 use super::*;
 use crate as route_policy_cmp;
 
-use route_policy_cmp::{
-    bgp::cmp::{Compare, Verbosity},
-    parse::dump::Dump,
-};
+use route_policy_cmp::{bgp::*, parse::dump::Dump};
 use std::{
     fs::File,
     io::{prelude::*, BufReader},

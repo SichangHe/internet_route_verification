@@ -12,11 +12,16 @@ use super::map::AsPathEntry;
 /// Use this in an `Option`, and use `None` to indicate "good."
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
+    Good(Vec<ReportItem>),
     Neutral(Vec<ReportItem>),
     Bad(Vec<ReportItem>),
 }
 
 impl Report {
+    pub fn success(reason: SuccessType) -> Self {
+        Good(vec![Success(reason)])
+    }
+
     pub fn skip(reason: SkipReason) -> Self {
         Neutral(vec![Skip(reason)])
     }
@@ -24,10 +29,18 @@ impl Report {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
+    Success(SuccessType),
     Skip(SkipReason),
     NoMatch(MatchProblem),
     BadRpsl(RpslError),
     Recursion(RecurSrc),
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum SuccessType {
+    Export(usize, usize),
+    ExportSingle(usize),
+    Import(usize, usize),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -122,14 +135,27 @@ pub fn skip_all_report(reason: SkipReason) -> AllReport {
     Ok(Some(skips))
 }
 
+pub const fn empty_skip_all_report() -> AllReport {
+    Ok(Some(vec![]))
+}
+
 pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
     let errors = vec![NoMatch(reason)];
+    Err(errors)
+}
+
+pub fn bad_rpsl_all_report(reason: RpslError) -> AllReport {
+    let errors = vec![BadRpsl(reason)];
     Err(errors)
 }
 
 pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
     let errors = vec![Recursion(reason)];
     Err(errors)
+}
+
+pub const fn failed_all_report() -> AllReport {
+    Err(vec![])
 }
 
 /// Useful if any of the reports succeeding is enough.
@@ -141,6 +167,10 @@ pub type AnyReport = Option<(ReportItems, bool)>;
 pub fn skip_any_report(reason: SkipReason) -> AnyReport {
     let skips = vec![Skip(reason)];
     Some((skips, false))
+}
+
+pub const fn empty_skip_any_report() -> AnyReport {
+    Some((vec![], false))
 }
 
 pub fn no_match_any_report(reason: MatchProblem) -> AnyReport {
@@ -158,7 +188,8 @@ pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
     Some((errors, true))
 }
 
-pub fn failed_any_report() -> AnyReport {
+/// Empty failed `AnyReport`.
+pub const fn failed_any_report() -> AnyReport {
     Some((vec![], true))
 }
 

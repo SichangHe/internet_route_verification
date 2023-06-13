@@ -3,3 +3,6 @@ pub mod filter;
 pub mod map;
 pub mod peering;
 pub mod report;
+pub mod verbosity;
+
+pub use {cmp::Compare, verbosity::Verbosity};

@@ -6,12 +6,14 @@ use crate::parse::{
 
 use super::{
     cmp::Compare,
-    report::{ReportItem::*, *},
+    report::*,
+    verbosity::{Verbosity, VerbosityReport},
 };
 
 pub struct CheckPeering<'a> {
     pub compare: &'a Compare<'a>,
     pub accept_num: usize,
+    pub verbosity: Verbosity,
 }
 
 impl<'a> CheckPeering<'a> {
@@ -64,7 +66,9 @@ impl<'a> CheckPeering<'a> {
         match as_name {
             AsName::Num(num) => self.check_remote_as_num(*num),
             AsName::Set(name) => self.check_remote_as_set(name, depth),
-            AsName::Invalid(reason) => bad_rpsl_any_report(RpslError::InvalidAsName(reason.into())),
+            AsName::Invalid(reason) => {
+                self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))
+            }
         }
     }
 
@@ -72,7 +76,7 @@ impl<'a> CheckPeering<'a> {
         if self.accept_num == num {
             None
         } else {
-            no_match_any_report(MatchProblem::RemoteAsNum(num))
+            self.no_match_any_report(|| MatchProblem::RemoteAsNum(num))
         }
     }
 
@@ -82,14 +86,14 @@ impl<'a> CheckPeering<'a> {
         }
         let as_set = match self.compare.dump.as_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(SkipReason::AsSetUnrecorded(name.into())),
+            None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
         let mut aggregator = AnyReportAggregator::new();
         for as_name in &as_set.members {
             aggregator.join(self.check_remote_as_name(as_name, depth - 1)?);
         }
         if aggregator.all_fail {
-            no_match_any_report(MatchProblem::RemoteAsSet(name.into()))
+            self.no_match_any_report(|| MatchProblem::RemoteAsSet(name.into()))
         } else {
             aggregator.to_any()
         }
@@ -101,7 +105,7 @@ impl<'a> CheckPeering<'a> {
         }
         let peering_set = match self.compare.dump.peering_sets.get(name) {
             Some(r) => r,
-            None => return skip_any_report(SkipReason::PeeringSetUnrecorded(name.into())),
+            None => return self.skip_any_report(|| SkipReason::PeeringSetUnrecorded(name.into())),
         };
         let mut aggregator = AnyReportAggregator::new();
         for peering in &peering_set.peerings {
@@ -136,12 +140,18 @@ impl<'a> CheckPeering<'a> {
         let left_report = self.check_remote_as(left, depth - 1).to_all()?;
         let right_report = match self.check_remote_as(right, depth) {
             Some((_, true)) => Ok(None),
-            Some((mut skips, false)) => {
-                skips.push(Skip(SkipReason::SkippedExceptPeeringResult));
-                Ok(Some(skips))
-            }
-            None => no_match_all_report(MatchProblem::ExceptFilterRightMatch),
+            report @ Some((_, false)) => report
+                .to_all()?
+                .join(self.skip_all_report(|| SkipReason::SkippedExceptPeeringResult)?)
+                .to_all(),
+            None => self.no_match_all_report(|| MatchProblem::ExceptFilterRightMatch),
         };
         left_report.join(right_report?).to_all()
+    }
+}
+
+impl<'a> VerbosityReport for CheckPeering<'a> {
+    fn get_verbosity(&self) -> Verbosity {
+        self.verbosity
     }
 }

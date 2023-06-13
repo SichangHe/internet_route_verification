@@ -16,6 +16,7 @@ use super::{
     map::{parse_table_dump, AsPathEntry},
     peering::CheckPeering,
     report::*,
+    verbosity::{Verbosity, VerbosityReport},
 };
 
 pub const RECURSION_LIMIT: isize = 0x100;
@@ -26,7 +27,7 @@ pub struct Compare<'a> {
     pub as_path: Vec<AsPathEntry>,
     pub communities: Vec<&'a str>,
     pub recursion_limit: isize,
-    // TODO: Verbosity.
+    pub verbosity: Verbosity,
 }
 
 impl<'a> Compare<'a> {
@@ -42,7 +43,12 @@ impl<'a> Compare<'a> {
             as_path,
             communities,
             recursion_limit: RECURSION_LIMIT,
+            verbosity: Verbosity::ErrOnly,
         }
+    }
+
+    pub fn verbosity(self, verbosity: Verbosity) -> Self {
+        Self { verbosity, ..self }
     }
 
     pub fn with_line_dump(line: &'a str, dump: &'a Dump) -> Result<Self> {
@@ -51,7 +57,7 @@ impl<'a> Compare<'a> {
     }
 
     pub fn check(&self) -> Vec<Report> {
-        let mut reports = Vec::new();
+        let mut reports = Vec::with_capacity(self.as_path.len() * 2);
         reports.extend(self.check_last_export());
 
         // Iterate the pairs in `as_path` from right to left, with overlaps.
@@ -71,23 +77,26 @@ impl<'a> Compare<'a> {
             }
         });
         reports.extend(pair_reports);
+        reports.shrink_to_fit();
         reports
     }
 
     pub fn check_last_export(&self) -> Option<Report> {
-        match self.as_path.last() {
-            Some(AsPathEntry::Seq(from)) => {
-                self.get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
-            }
-            Some(entry) => Some(Report::skip(SkipReason::AsPathWithSet(entry.clone()))),
-            None => None,
+        match self.as_path.last()? {
+            AsPathEntry::Seq(from) => self
+                .get_aut_num_then(*from, |from_an| self.check_export(from_an, *from, None))
+                .or_else(|| self.success_report(|| SuccessType::ExportSingle(*from))),
+            entry => self.skip_report(|| SkipReason::AsPathWithSet(entry.clone())),
         }
     }
 
     pub fn check_pair(&self, from: usize, to: usize) -> Vec<Report> {
-        let from_report =
-            self.get_aut_num_then(from, |from_an| self.check_export(from_an, from, Some(to)));
-        let to_report = self.get_aut_num_then(to, |to_an| self.check_import(to_an, from, to));
+        let from_report = self
+            .get_aut_num_then(from, |from_an| self.check_export(from_an, from, Some(to)))
+            .or_else(|| self.success_report(|| SuccessType::Export(from, to)));
+        let to_report = self
+            .get_aut_num_then(to, |to_an| self.check_import(to_an, from, to))
+            .or_else(|| self.success_report(|| SuccessType::Import(to, from)));
         [from_report, to_report].into_iter().flatten().collect()
     }
 
@@ -97,34 +106,32 @@ impl<'a> Compare<'a> {
     {
         match self.dump.aut_nums.get(&aut_num) {
             Some(aut_num) => call(aut_num),
-            None => Some(Report::skip(SkipReason::AutNumUnrecorded(aut_num))),
+            None => self.skip_report(|| SkipReason::AutNumUnrecorded(aut_num)),
         }
     }
 
     pub fn check_export(&self, from_an: &AutNum, from: usize, to: Option<usize>) -> Option<Report> {
         let mut aggregator = self.check_compliant(&from_an.exports, to)?;
-        let report = if aggregator.all_fail {
+        if aggregator.all_fail {
             let reason = match to {
                 Some(to) => MatchProblem::NoExportRule(from, to),
                 None => MatchProblem::NoExportRuleSingle(from),
             };
             aggregator.join(no_match_any_report(reason).unwrap());
-            Report::Bad(aggregator.report_items)
+            Some(Report::Bad(aggregator.report_items))
         } else {
-            Report::Neutral(aggregator.report_items)
-        };
-        Some(report)
+            self.skips_report(aggregator.report_items)
+        }
     }
 
     pub fn check_import(&self, to_an: &AutNum, from: usize, to: usize) -> Option<Report> {
         let mut aggregator = self.check_compliant(&to_an.imports, Some(from))?;
-        let report = if aggregator.all_fail {
+        if aggregator.all_fail {
             aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());
-            Report::Bad(aggregator.report_items)
+            Some(Report::Bad(aggregator.report_items))
         } else {
-            Report::Neutral(aggregator.report_items)
-        };
-        Some(report)
+            self.skips_report(aggregator.report_items)
+        }
     }
 
     pub fn check_compliant(
@@ -155,9 +162,12 @@ impl<'a> Compare<'a> {
     }
 
     pub fn check_entry(&self, entry: &Entry, accept_num: Option<usize>) -> AllReport {
-        let report = CheckFilter { compare: self }
-            .check(&entry.mp_filter, self.recursion_limit)
-            .to_all()?;
+        let report = CheckFilter {
+            compare: self,
+            verbosity: self.verbosity,
+        }
+        .check(&entry.mp_filter, self.recursion_limit)
+        .to_all()?;
         match accept_num {
             Some(accept_num) => report.join(
                 self.check_peering_actions(&entry.mp_peerings, accept_num)
@@ -190,6 +200,7 @@ impl<'a> Compare<'a> {
         CheckPeering {
             compare: self,
             accept_num,
+            verbosity: self.verbosity,
         }
         .check(&peering_actions.mp_peering, self.recursion_limit)?
         .join(self.check_actions(&peering_actions.actions)?)
@@ -200,6 +211,12 @@ impl<'a> Compare<'a> {
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
         // TODO: We currently do not check actions.
         Ok(None)
+    }
+}
+
+impl<'a> VerbosityReport for Compare<'a> {
+    fn get_verbosity(&self) -> Verbosity {
+        self.verbosity
     }
 }
 

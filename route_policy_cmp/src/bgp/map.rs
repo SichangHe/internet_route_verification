@@ -20,6 +20,15 @@ pub enum AsPathEntry {
     Set(Vec<usize>),
 }
 
+impl AsPathEntry {
+    pub fn contains_num(&self, num: usize) -> bool {
+        match self {
+            AsPathEntry::Seq(n) => num == *n,
+            AsPathEntry::Set(ns) => ns.contains(&num),
+        }
+    }
+}
+
 impl Display for AsPathEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

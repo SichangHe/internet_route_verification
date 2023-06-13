@@ -54,10 +54,14 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_as_num(&self, num: usize, &range_operator: &RangeOperator) -> AnyReport {
-        // TODO: Only report when `num` is on AS path.
         let routes = match self.compare.dump.as_routes.get(&num) {
             Some(r) => r,
-            None => return self.skip_any_report(|| SkipReason::AsRoutesUnrecorded(num)),
+            None => {
+                return match self.compare.goes_through_num(num) {
+                    true => self.skip_any_report(|| SkipReason::AsRoutesUnrecorded(num)),
+                    false => empty_skip_any_report(),
+                }
+            }
         };
         let ranges: Vec<_> = routes
             .iter()

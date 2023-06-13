@@ -212,6 +212,10 @@ impl<'a> Compare<'a> {
         // TODO: We currently do not check actions.
         Ok(None)
     }
+
+    pub fn goes_through_num(&self, num: usize) -> bool {
+        self.as_path.iter().any(|p| p.contains_num(num))
+    }
 }
 
 impl<'a> VerbosityReport for Compare<'a> {

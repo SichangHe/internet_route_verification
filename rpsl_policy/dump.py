@@ -19,8 +19,8 @@ n = 0
 
 def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
     try:
-        if lexed := lex_with(mp_import, expr):
-            import_export(lexed, imports)
+        lexed = lex_with(mp_import, expr)
+        import_export(lexed, imports)
     except Exception as err:
         print(f"{err} while parsing {expr}.", file=sys.stderr)
 
@@ -31,7 +31,7 @@ def parse_aut_num(obj: RPSLObject):
     for key, expr in expressions(lines_continued(obj.body.splitlines())):
         if key == "import" or key == "mp-import":
             parse_mp_import(expr, imports)
-        elif key == "export" or key == "mp-export":
+        elif key in ("export", "mp-export", "default", "mp-default"):
             parse_mp_import(expr, exports)
     aut_nums.append(AutNum(obj.name, obj.body, imports, exports).__dict__)
 

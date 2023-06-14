@@ -17,32 +17,18 @@ pub struct CheckPeering<'a> {
 }
 
 impl<'a> CheckPeering<'a> {
+    /// Do not check `remote_router` or `local_router` because we do not have
+    /// the router information needed.
     pub fn check(
         &self,
         Peering {
             remote_as,
-            remote_router,
-            local_router,
+            remote_router: _,
+            local_router: _,
         }: &Peering,
         depth: isize,
     ) -> AllReport {
-        self.check_remote_route(remote_router.as_ref())
-            .to_all()?
-            .join(self.check_local_route(local_router.as_ref()).to_all()?)
-            .join(self.check_remote_as(remote_as, depth).to_all()?)
-            .to_all()
-    }
-
-    fn check_remote_route(&self, remote_router: Option<&RouterExpr>) -> AnyReport {
-        let _remote_router = remote_router?;
-        // TODO: How to check this?
-        None
-    }
-
-    fn check_local_route(&self, local_router: Option<&RouterExpr>) -> AnyReport {
-        let _local_router = local_router?;
-        // TODO: How to check this?
-        None
+        self.check_remote_as(remote_as, depth).to_all()
     }
 
     fn check_remote_as(&self, remote_as: &AsExpr, depth: isize) -> AnyReport {

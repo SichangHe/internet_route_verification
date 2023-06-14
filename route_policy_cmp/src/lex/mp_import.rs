@@ -21,6 +21,7 @@ pub struct Casts {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Entry {
     pub mp_peerings: Vec<PeeringAction>,
+    #[serde(default)]
     pub mp_filter: Filter,
 }
 

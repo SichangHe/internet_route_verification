@@ -16,6 +16,7 @@ use super::{
 pub fn parse_filter(mp_filter: filter::Filter, mp_peerings: &[PeeringAction]) -> Filter {
     use filter::Filter::*;
     match mp_filter {
+        Any => Filter::Any,
         And { left, right } => Filter::And {
             left: Box::new(parse_filter(*left, mp_peerings)),
             right: Box::new(parse_filter(*right, mp_peerings)),

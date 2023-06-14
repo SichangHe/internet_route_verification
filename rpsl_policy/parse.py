@@ -162,15 +162,14 @@ def parse_import_factor(import_factor_raw: dict) -> dict[str, list | dict] | Non
                 [method]: str, args: list[str]
             }], [<rp-attribute1>...]: list[{method: str, args: list[str]}]}
         }],
-        mp_filter: {(and | or: {left, right}) | not | group}
+        [mp_filter]: {(and | or: {left, right}) | not | group}
             | {community: {[method]: str, args: list[str]}}
             | list[str | list[str]]
     }"""
     import_factor: dict[str, list | dict] = {"mp_peerings": []}
-    if filter := lex_with(mp_filter, import_factor_raw["mp-filter"]):
+    if filter_raw := import_factor_raw["mp-filter"]:
+        filter = lex_with(mp_filter, filter_raw)
         import_factor["mp_filter"] = clean_mp_filter(filter)
-    else:
-        return
     for peering_raw in import_factor_raw["mp-peerings"]:
         peering = {}
         if peer := parse_mp_peering(peering_raw["mp-peering"]):
@@ -217,7 +216,7 @@ def parse_import_term(
                 parsed.append(import_factor)
         return parsed
 
-    if "mp-peerings" in lexed and "mp-filter" in lexed:
+    if "mp-peerings" in lexed:
         if import_factor := parse_import_factor(lexed):
             return [import_factor]
 

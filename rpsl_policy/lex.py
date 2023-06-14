@@ -89,17 +89,16 @@ protocol = CaselessKeyword("protocol") + field("protocol-1")
 into_protocol = CaselessKeyword("into") + field("protocol-2")
 """into <protocol-2>
 -> protocol-2: str"""
-import_factor = (
-    Group(OneOrMore(Group(mp_peering_raws))).set_results_name("mp-peerings")
-    + (accept_kw | announce_kw)
-    + field_w_space("mp-filter")
+import_factor = Group(OneOrMore(Group(mp_peering_raws)))("mp-peerings") + Opt(
+    (accept_kw | announce_kw | networks_kw) + field_w_space("mp-filter")
 )
 """<import-factor> ::=
 from <mp-peering-1> [action <action-1>; ... <action-M>;]
 . . .
 from <mp-peering-N> [action <action-1>; ... <action-K>;]
 accept <mp-filter>
--> mp-peerings: list[{mp-peering, [actions]}], mp-filter: str
+Instead of `accept`, could be `announce` or `networks`.
+-> mp-peerings: list[{mp-peering, [actions]}], [mp-filter]: str
 Note: no trailing `;`, different from spec in RFC."""
 import_term = (
     # Semicolon separated list.
@@ -115,7 +114,7 @@ import_term = (
  . . .
 <import-factor-N>[;]
 } | import-factor[;]
--> import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)"""
+-> import-factors: list[{mp-peerings, [mp-filter]}] | (mp-peerings, [mp-filter])"""
 
 # `import_expression` and `afi_import_expression` are recursively defined.
 import_expression = Forward()
@@ -129,7 +128,7 @@ import_expression = Forward()
         except: {...} | refine: {...} | import-factors: list[...]
         | (mp-peerings, mp-filter)
     )}
-} | import-factors: list[{mp-peerings, mp-filter}] | (mp-peerings, mp-filter)
+} | import-factors: list[{mp-peerings, [mp-filter]}] | (mp-peerings, [mp-filter])
 <https://www.rfc-editor.org/rfc/rfc4012#page-6>
 <https://www.rfc-editor.org/rfc/rfc2622#page-34>
 """
@@ -137,13 +136,13 @@ afi_import_expression = Opt(afi_raw) + import_expression
 """<afi-import-expression> ::= [afi <afi-list>] <import-expression>
 -> [afi-list]: list[str], (
     except | refine: {
-        left: {import-factors | (mp-peerings, mp-filter)},
+        left: {import-factors | (mp-peerings, [mp-filter])},
         right: {[afi-list], (
             except: {...} | refine: {...} | import-factors: list[...]
-            | (mp-peerings, mp-filter)
+            | (mp-peerings, [mp-filter])
         )}
-    } | import-factors: list[{mp-peerings, mp-filter}]
-    | (mp-peerings, mp-filter)
+    } | import-factors: list[{mp-peerings, [mp-filter]}]
+    | (mp-peerings, [mp-filter])
 )"""
 import_expression_except = Group(
     Group(import_term)("left")
@@ -152,11 +151,11 @@ import_expression_except = Group(
 )("except")
 """<import-term> EXCEPT <afi-import-expression>
 -> except: {
-    left: {import-factors: list[{mp-peerings, mp-filter}]
-        | (mp-peerings, mp-filter)},
+    left: {import-factors: list[{mp-peerings, [mp-filter]}]
+        | (mp-peerings, [mp-filter])},
     right: {[afi-list], (
         except: {...} | refine: {...} | import-factors: list[...]
-        | (mp-peerings, mp-filter)
+        | (mp-peerings, [mp-filter])
     )}
 }"""
 import_expression_refine = Group(
@@ -166,11 +165,11 @@ import_expression_refine = Group(
 )("refine")
 """<import-term> REFINE <afi-import-expression>
 -> refine: {
-    left: {import-factors: list[{mp-peerings, mp-filter}]
-        | (mp-peerings, mp-filter)},
+    left: {import-factors: list[{mp-peerings, [mp-filter]}]
+        | (mp-peerings, [mp-filter])},
     right: {[afi-list], (
         except: {...} | refine: {...} | import-factors: list[...]
-        | (mp-peerings, mp-filter)
+        | (mp-peerings, [mp-filter])
     )}
 }"""
 import_expression <<= import_expression_except | import_expression_refine | import_term
@@ -179,33 +178,20 @@ mp_import = Opt(protocol) + Opt(into_protocol) + afi_import_expression
 """mp-import: [protocol <protocol-1>] [into <protocol-2>]
 <afi-import-expression>
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5>
-Input should be in one line, without comments. Can also parse `mp-export`.
+Input should be in one line, without comments. Can also parse `mp-export`,
+`mp-default`, and their non-`mp` variants.
 <action>, <mp-filter>, <mp-peering> in parse results not further parsed.
 -> [protocol-1]: str, [protocol-2]: str, [afi-list]: list[str], (
     except | refine: {
-        left: {import-factors | (mp-peerings, mp-filter)},
+        left: {import-factors | (mp-peerings, [mp-filter])},
         right: {[afi-list], (
             except: {...} | refine: {...} | import-factors: list[...]
-            | (mp-peerings, mp-filter)
+            | (mp-peerings, [mp-filter])
         )}
-    } | import-factors: list[{mp-peerings, mp-filter}]
-    | (mp-peerings, mp-filter)
+    } | import-factors: list[{mp-peerings, [mp-filter]}]
+    | (mp-peerings, [mp-filter])
 )
 """
-
-# -----------------------------------------------------------------------------
-# <mp-default>
-# -----------------------------------------------------------------------------
-mp_default = (
-    Opt(afi_raw)
-    + mp_peering_raws
-    + Opt(networks_kw + field_w_space("mp-filter"))
-)
-"""mp-default [afi <afi-list>] to <mp-peering>
-              [action <action-1>; ... <action-N>;]
-              [networks <mp-filter>]
--> [afi-list]: list[str], mp-peering: list[str], [actions]: list[str],
-    [mp-filter]: str"""
 
 # -----------------------------------------------------------------------------
 # Further parse <mp-peering>

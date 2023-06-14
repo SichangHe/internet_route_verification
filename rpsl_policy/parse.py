@@ -70,7 +70,7 @@ def clean_mp_filter(
         (and | or: {left, right}) | not | group
         | community: {[method]: str, args: list[str]}
         | regex: str | path_attr: str | addr_prefix_set: list[str]
-       }"""
+    }"""
     if inner := lexed.get("and"):
         return {
             "and": {
@@ -122,17 +122,15 @@ def clean_as_expr(lexed: dict) -> str | dict:
     raise ValueError(f"Illegal keys: {lexed}")
 
 
-def clean_mp_peering(lexed: dict) -> dict[str, str | dict] | None:
+def clean_mp_peering(lexed: dict) -> dict[str, str | dict]:
     """-> {
         as_expr: str | {and | or | except: {left, right} | group: {...}},
         [router_expr1]: str | {and | or | except: {left, right} | group: {...}},
         [router_expr2]: str | {and | or | except: {left, right} | group: {...}}
     }"""
     as_expr_raw = " ".join(lexed["as-expression"])
-    if expr := lex_with(as_expr, as_expr_raw):
-        result = {"as_expr": clean_as_expr(expr)}
-    else:
-        return
+    expr = lex_with(as_expr, as_expr_raw)
+    result = {"as_expr": clean_as_expr(expr)}
     if (expr1 := lexed.get("mp-router-expression-1")) and (
         expr := lex_with(as_expr, " ".join(expr1))
     ):
@@ -150,11 +148,11 @@ def parse_mp_peering(mp_peering_raw: list[str]):
         [router_expr1]: str | {and | or | except: {left, right} | group: {...}},
         [router_expr2]: str | {and | or | except: {left, right} | group: {...}}
     }"""
-    if lexed := lex_with(mp_peering, " ".join(mp_peering_raw)):
-        return clean_mp_peering(lexed)
+    lexed = lex_with(mp_peering, " ".join(mp_peering_raw))
+    return clean_mp_peering(lexed)
 
 
-def parse_import_factor(import_factor_raw: dict) -> dict[str, list | dict] | None:
+def parse_import_factor(import_factor_raw: dict) -> dict[str, list | dict]:
     """-> {
         mp_peerings: list[{
             mp_peering: {as_expr, [router_expr1], [router_expr2]}
@@ -167,20 +165,16 @@ def parse_import_factor(import_factor_raw: dict) -> dict[str, list | dict] | Non
             | list[str | list[str]]
     }"""
     import_factor: dict[str, list | dict] = {"mp_peerings": []}
-    if filter_raw := import_factor_raw["mp-filter"]:
+    if filter_raw := import_factor_raw.get("mp-filter"):
         filter = lex_with(mp_filter, filter_raw)
         import_factor["mp_filter"] = clean_mp_filter(filter)
     for peering_raw in import_factor_raw["mp-peerings"]:
         peering = {}
-        if peer := parse_mp_peering(peering_raw["mp-peering"]):
-            peering["mp_peering"] = peer
-        else:
-            continue
+        peer = parse_mp_peering(peering_raw["mp-peering"])
+        peering["mp_peering"] = peer
         if action_raws := peering_raw.get("actions"):
             peering["actions"] = clean_action(
-                action_lexed
-                for action_raw in action_raws
-                if (action_lexed := lex_with(action, action_raw))
+                lex_with(action, action_raw) for action_raw in action_raws
             )
         import_factor["mp_peerings"].append(peering)  # type: ignore
     return import_factor
@@ -212,13 +206,13 @@ def parse_import_term(
     if import_factors := lexed.get("import-factors"):
         parsed = []
         for import_factor_raw in import_factors:
-            if import_factor := parse_import_factor(import_factor_raw):
-                parsed.append(import_factor)
+            import_factor = parse_import_factor(import_factor_raw)
+            parsed.append(import_factor)
         return parsed
 
     if "mp-peerings" in lexed:
-        if import_factor := parse_import_factor(lexed):
-            return [import_factor]
+        import_factor = parse_import_factor(lexed)
+        return [import_factor]
 
 
 def parse_import_expression_except(
@@ -344,11 +338,7 @@ def parse_import_expression_refine(
             policy expressions and is valid only within the policy expression
             that contains it."""
             if len(intersection) > 0:
-                applied_list = [
-                    applied
-                    for parsed in parsed_list
-                    if (applied := apply_refine(left, parsed))
-                ]
+                applied_list = [apply_refine(left, parsed) for parsed in parsed_list]
                 result.append((intersection, applied_list))
 
     return result
@@ -359,9 +349,7 @@ def parse_afi_import_expression(
 ) -> list[tuple[set[tuple[str, str]], list[dict]]]:
     """-> list[tuple[afi_entries, parsed]]"""
     if afi_list := afi_import_expression.get("afi-list"):
-        afi_entries = merge_afi_dict(
-            afi_item for item in afi_list if (afi_item := lex_with(afi, item))
-        )
+        afi_entries = merge_afi_dict(lex_with(afi, item) for item in afi_list)
 
     if import_term := parse_import_term(afi_import_expression):
         return [(afi_entries, import_term)]

@@ -21,6 +21,7 @@ use super::{
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
+#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Compare<'a> {
     pub dump: &'a Dump,
     pub prefix: IpNet,
@@ -28,6 +29,18 @@ pub struct Compare<'a> {
     pub communities: Vec<&'a str>,
     pub recursion_limit: isize,
     pub verbosity: Verbosity,
+}
+
+impl<'a> std::fmt::Debug for Compare<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Compare")
+            .field("prefix", &self.prefix)
+            .field("as_path", &self.as_path)
+            .field("communities", &self.communities)
+            .field("recursion_limit", &self.recursion_limit)
+            .field("verbosity", &self.verbosity)
+            .finish()
+    }
 }
 
 impl<'a> Compare<'a> {

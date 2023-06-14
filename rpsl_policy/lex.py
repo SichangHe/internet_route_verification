@@ -51,6 +51,7 @@ ipv4_kw = CaselessKeyword("ipv4")
 ipv6_kw = CaselessKeyword("ipv6")
 unicast_kw = CaselessKeyword("unicast")
 multicast_kw = CaselessKeyword("multicast")
+networks_kw = CaselessKeyword("networks")
 
 # -----------------------------------------------------------------------------
 # <mp-peering>, not further parsed.
@@ -66,13 +67,13 @@ action_raws = action_kw + Group(
 mp_peering_raw = Group(OneOrMore(~(action_kw | follows_action) + field))
 """<mp-peering-M>
 -> list[str]"""
-mp_peering_raws = Group(
+mp_peering_raws = (
     (from_kw | to_kw) + mp_peering_raw.set_results_name("mp-peering") + Opt(action_raws)
 )
 """from <mp-peering-M> [action <action-1>; ... <action-N>;]
 or
 to <mp-peering-M> [action <action-1>; ... <action-N>;]
--> {mp-peering: list[str], [actions]: list[str]}"""
+-> mp-peering: list[str], [actions]: list[str]"""
 
 # -----------------------------------------------------------------------------
 # Structured <mp-import>
@@ -89,7 +90,7 @@ into_protocol = CaselessKeyword("into") + field("protocol-2")
 """into <protocol-2>
 -> protocol-2: str"""
 import_factor = (
-    Group(OneOrMore(mp_peering_raws)).set_results_name("mp-peerings")
+    Group(OneOrMore(Group(mp_peering_raws))).set_results_name("mp-peerings")
     + (accept_kw | announce_kw)
     + field_w_space("mp-filter")
 )
@@ -191,6 +192,20 @@ Input should be in one line, without comments. Can also parse `mp-export`.
     | (mp-peerings, mp-filter)
 )
 """
+
+# -----------------------------------------------------------------------------
+# <mp-default>
+# -----------------------------------------------------------------------------
+mp_default = (
+    Opt(afi_raw)
+    + mp_peering_raws
+    + Opt(networks_kw + field_w_space("mp-filter"))
+)
+"""mp-default [afi <afi-list>] to <mp-peering>
+              [action <action-1>; ... <action-N>;]
+              [networks <mp-filter>]
+-> [afi-list]: list[str], mp-peering: list[str], [actions]: list[str],
+    [mp-filter]: str"""
 
 # -----------------------------------------------------------------------------
 # Further parse <mp-peering>

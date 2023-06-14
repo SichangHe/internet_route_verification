@@ -1,6 +1,6 @@
 from pyparsing import ParseResults
 
-from ..lex import action, as_expr, mp_filter, mp_import, mp_peering
+from ..lex import action, as_expr, mp_default, mp_filter, mp_import, mp_peering
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",
@@ -858,6 +858,34 @@ LEXED_MP_EXPORT_EXAMPLES = [
         ],
     },
 ]
+
+MP_DEFAULT_EXAMPLES = [
+    "to AS8400",
+    "to AS22351 action pref=100; networks ANY",
+    "to AS8732 action pref=100;",
+    "afi ipv6.unicast to AS12502 action pref=100; networks ANY",
+]
+
+LEXED_MP_DEFAULT_EXAMPLES = [
+    {"mp-peering": ["AS8400"]},
+    {"mp-peering": ["AS22351"], "actions": ["pref=100"], "mp-filter": "ANY"},
+    {"mp-peering": ["AS8732"], "actions": ["pref=100"]},
+    {
+        "afi-list": ["ipv6.unicast"],
+        "mp-peering": ["AS12502"],
+        "actions": ["pref=100"],
+        "mp-filter": "ANY",
+    },
+]
+
+
+def test_mp_default():
+    for example, expected in zip(MP_DEFAULT_EXAMPLES, LEXED_MP_DEFAULT_EXAMPLES):
+        success, results = mp_default.run_tests(example, full_dump=False)
+        assert success
+        result = results[0][1]
+        assert isinstance(result, ParseResults)
+        assert result.as_dict() == expected
 
 
 def test_mp_export():

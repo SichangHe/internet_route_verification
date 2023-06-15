@@ -22,6 +22,7 @@ use crate::{
 };
 
 use anyhow::Result;
+use lazy_regex::regex;
 use log::{debug, error, warn};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
@@ -31,7 +32,7 @@ pub fn gather_members(body: &str) -> Vec<String> {
     let mut members = Vec::new();
     for RpslExpr { key, expr } in expressions(lines_continued(body.lines())) {
         if key == "members" || key == "mp-members" {
-            members.extend(expr.split(',').map(|s| s.trim().into()));
+            members.extend(regex!(r",\s*").split(&expr).map(|s| s.trim().into()));
         }
     }
     members

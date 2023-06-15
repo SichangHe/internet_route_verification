@@ -1,7 +1,6 @@
 import sys
 
-from pyparsing import ParseException
-
+from .dump import red
 from .lex import mp_peering
 from .lines import expressions
 from .parse import clean_mp_peering, lex_with
@@ -17,8 +16,12 @@ def parse_peering_set():
                 lexed = lex_with(mp_peering, expr)
                 if parsed := clean_mp_peering(lexed):
                     peerings.append(parsed)
-            except ParseException as err:
-                print(f"{err} while parsing {expr}.", file=sys.stderr)
+            except Exception as err:
+                tag = red("[parse_peering_set]")
+                print(
+                    f"{tag} {err} ParseException parsing `{expr}`.",
+                    file=sys.stderr,
+                )
     return PeeringSet("", "", peerings).__dict__
 
 

@@ -148,7 +148,9 @@ where
             }
             // Start of new object.
             if !line.contains(':') {
-                error!("Invalid line for start of RPSL object: `{line}`.");
+                if !line.starts_with('#') {
+                    error!("Invalid line for start of RPSL object: `{line}`.");
+                }
                 continue;
             }
             let mut parts = line.splitn(2, ':').map(cleanup_whitespace);

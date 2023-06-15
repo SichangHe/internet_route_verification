@@ -17,12 +17,17 @@ peering_sets: list[dict] = []
 n = 0
 
 
+def red(string: str) -> str:
+    return f"\033[91m{string}\033[0m"
+
+
 def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
     try:
         lexed = lex_with(mp_import, expr)
         import_export(lexed, imports)
     except Exception as err:
-        print(f"{err} while parsing {expr}.", file=sys.stderr)
+        tag = red("[parse_mp_import]")
+        print(f"{tag} {err} parsing `{expr}`.", file=sys.stderr)
 
 
 def parse_aut_num(obj: RPSLObject):
@@ -42,8 +47,12 @@ def gather_members(obj: RPSLObject) -> list[str]:
         if key == "members" or key == "mp-members":
             try:
                 lexed = member.parse_string(expr, parse_all=True)
-            except ParseException as err:
-                print(f"{err} while parsing {expr} in {obj}.", file=sys.stderr)
+            except ParseException:
+                tag = red("[gather_members]")
+                print(
+                    f"{tag} ParseException parsing `{expr}` in {obj}.",
+                    file=sys.stderr,
+                )
                 continue
             members.extend(lexed.as_list())
     return members
@@ -57,8 +66,12 @@ def gather_peerings(obj: RPSLObject) -> list[dict]:
                 lexed = lex_with(mp_peering, expr)
                 if parsed := clean_mp_peering(lexed):
                     peerings.append(parsed)
-            except ParseException as err:
-                print(f"{err} while parsing {expr} in {obj}.", file=sys.stderr)
+            except Exception:
+                tag = red("[gather_peerings]")
+                print(
+                    f"{tag} ParseException parsing `{expr}` in {obj}.",
+                    file=sys.stderr,
+                )
     return peerings
 
 

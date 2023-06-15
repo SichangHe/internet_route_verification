@@ -10,8 +10,8 @@ from .lex import action, afi, as_expr, mp_filter, mp_peering
 def lex_with(lexer: ParserElement, string: str) -> dict:
     try:
         return lexer.parse_string(string, parse_all=True).as_dict()
-    except ParseException as err:
-        raise ValueError(f"{err} parsing `{string}`.")
+    except ParseException:
+        raise ValueError(f"ParseException parsing `{string}`")
 
 
 def clean_action(

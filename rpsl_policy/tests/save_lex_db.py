@@ -2,6 +2,7 @@ from io import TextIOWrapper
 
 from pyparsing import ParseException
 
+from ..dump import red
 from ..lex import mp_import
 from ..lines import io_wrapper_lines, lines_continued
 
@@ -27,8 +28,9 @@ def parse_statement(statement: str):
             imports.append(parse_mp_import(statement))
         if statement.startswith("export:"):
             exports.append(parse_mp_import(statement))
-    except ParseException as err:
-        print(f"ERROR: {err}")
+    except ParseException:
+        tag = red("[parse_statement]")
+        print(f"{tag} ParseException parsing {statement}")
 
 
 def read_db_test_parser(db: TextIOWrapper):

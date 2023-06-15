@@ -73,7 +73,7 @@ pub fn parse_aut_num_name(name: &str) -> Result<usize> {
         Some((_, num)) => num
             .parse()
             .map_err(|err| Error::new(err).context(format!("parsing {name}"))),
-        None => bail!("AS number name {name} does not match pattern"),
+        None => bail!("AS number name `{name}` does not match pattern"),
     }
 }
 

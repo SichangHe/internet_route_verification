@@ -1,7 +1,6 @@
 import sys
 
-from pyparsing import ParseException
-
+from .dump import red
 from .lex import mp_filter
 from .lines import expressions
 from .parse import clean_mp_filter, lex_with
@@ -17,10 +16,12 @@ def parse_filter_set():
                 lexed = lex_with(mp_filter, expr)
                 parsed = clean_mp_filter(lexed)
                 filters.append(parsed)
-            except ParseException as err:
-                print(f"{err} while parsing {expr}.", file=sys.stderr)
-            except ValueError as err:
-                print(f"clean_mp_filter: {err} while parsing {expr}.", file=sys.stderr)
+            except Exception as err:
+                tag = red("[parse_filter_set]")
+                print(
+                    f"{tag} {err} parsing `{expr}`.",
+                    file=sys.stderr,
+                )
     return FilterSet("", "", filters).__dict__
 
 

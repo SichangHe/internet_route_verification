@@ -1,7 +1,6 @@
 use crate::parse::{
     aut_sys::AsName,
     peering::{AsExpr, Peering},
-    router_expr::RouterExpr,
 };
 
 use super::{

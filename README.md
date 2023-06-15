@@ -2,6 +2,18 @@
 
 WIP
 
+## Obtain IRR data
+
+Download from all FTP servers on [IRR List of Routing
+Registries](https://www.irr.net/docs/list.html).
+
+ftp://ftp.radb.net/radb/dbase
+ftp://ftp.afrinic.net/pub/dbase/
+ftp://ftp.apnic.net/pub/apnic/whois/
+ftp://irr-mirror.idnic.net/
+ftp://irr.lacnic.net/
+ftp://ftp.ripe.net/ripe/dbase/
+
 ## Produce a parsed dump using both lexer and parser
 
 - Put the database file at `data/ripe.db`.

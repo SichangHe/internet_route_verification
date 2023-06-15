@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, convert::identity};
 
 use lazy_regex::regex_is_match;
 use serde::{Deserialize, Serialize};
@@ -60,7 +60,9 @@ pub fn parse_single_as_expr(single: String) -> AsExpr {
     if is_peering_set(&single) {
         AsExpr::PeeringSet(single)
     } else {
-        AsExpr::Single(parse_as_name(single))
+        AsExpr::Single(
+            parse_as_name(single).map_or_else(|e| AsName::Invalid(e.to_string()), identity),
+        )
     }
 }
 

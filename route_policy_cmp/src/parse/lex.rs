@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use anyhow::{bail, Context, Error, Ok, Result};
+use anyhow::{bail, Context, Error, Result};
 use ipnet::IpNet;
 use lazy_regex::regex_captures;
 use log::{debug, error};
@@ -86,9 +86,19 @@ pub fn parse_lexed_as_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<St
 
 pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, AsSet)> {
     if !is_as_set(&lexed.name) {
-        bail!("invalid AS set name in {lexed:?}");
+        bail!("invalid AS Set name in {lexed:?}");
     }
-    let members = lexed.members.into_iter().map(parse_as_name).collect();
+    let members = match lexed
+        .members
+        .into_iter()
+        .map(parse_as_name)
+        .collect::<Result<Vec<_>>>()
+    {
+        Ok(m) => m,
+        Err(err) => {
+            return Err(err.context(format!("parsing AS Set {}\n{}", lexed.name, lexed.body)))
+        }
+    };
     let as_set = AsSet {
         body: lexed.body,
         members,

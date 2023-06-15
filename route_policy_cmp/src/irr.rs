@@ -32,7 +32,10 @@ pub fn gather_members(body: &str) -> Vec<String> {
     let mut members = Vec::new();
     for RpslExpr { key, expr } in expressions(lines_continued(body.lines())) {
         if key == "members" || key == "mp-members" {
-            members.extend(regex!(r",\s*").split(&expr).map(|s| s.trim().into()));
+            members.extend(regex!(r",\s*").split(&expr).filter_map(|s| {
+                let r = s.trim();
+                (!r.is_empty()).then(|| r.into())
+            }));
         }
     }
     members

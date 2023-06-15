@@ -7,14 +7,23 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use crate::lex::{
-    dump::Dump,
-    lines::{expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr},
-    rpsl_object::AsOrRouteSet,
+use crate::{
+    lex::{
+        dump::Dump,
+        lines::{
+            expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr,
+        },
+        rpsl_object::AsOrRouteSet,
+    },
+    parse::{
+        dump::{self, merge_dumps},
+        lex::parse_lexed,
+    },
 };
 
 use anyhow::Result;
 use log::{debug, error, warn};
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use self::worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
@@ -142,4 +151,16 @@ where
         filter_sets,
         as_routes,
     })
+}
+
+pub fn parse_dbs<I, R>(dbs: I) -> Result<dump::Dump>
+where
+    I: IntoParallelIterator<Item = BufReader<R>>,
+    R: Read,
+{
+    let dumps = dbs
+        .into_par_iter()
+        .map(|db| read_db(db).map(parse_lexed))
+        .collect::<Result<_>>()?;
+    Ok(merge_dumps(dumps))
 }

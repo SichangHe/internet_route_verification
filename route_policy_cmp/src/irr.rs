@@ -66,7 +66,7 @@ pub fn parse_object(
     match obj.class.as_str() {
         "aut-num" => send_aut_num.send(obj)?,
         "as-set" => parse_as_set(obj, as_sets),
-        "route" => parse_route(obj, as_routes),
+        "route" | "route6" => parse_route(obj, as_routes),
         "route-set" => parse_route_set(obj, route_sets),
         "filter-set" => send_filter_set.send(obj)?,
         "peering-set" => send_peering_set.send(obj)?,

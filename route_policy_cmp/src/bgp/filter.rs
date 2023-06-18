@@ -220,8 +220,9 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
+    /// We skip community checks, but this could be an enhancement.
+    /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     fn filter_community(&self, community: &Call) -> AnyReport {
-        // TODO: Implement.
         self.skip_any_report(|| SkipReason::CommunityCheckUnimplemented(community.clone()))
     }
 

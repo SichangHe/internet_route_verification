@@ -215,14 +215,17 @@ impl<'a> Compare<'a> {
             accept_num,
             verbosity: self.verbosity,
         }
-        .check(&peering_actions.mp_peering, self.recursion_limit)?
+        .check(&peering_actions.mp_peering, self.recursion_limit)
+        // Skipped.
+        /* ?
         .join(self.check_actions(&peering_actions.actions)?)
         .to_all()
+        */
     }
 
-    /// Check communities.
+    /// We skip community checks, but this could be an enhancement.
+    /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
-        // TODO: We currently do not check actions.
         Ok(None)
     }
 

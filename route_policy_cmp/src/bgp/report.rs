@@ -52,7 +52,6 @@ pub enum SkipReason {
     // TODO: Remove once implemented.
     AsRegexUnimplemented(String),
     SkippedNotFilterResult,
-    // TODO: Remove once implemented.
     CommunityCheckUnimplemented(Call),
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,

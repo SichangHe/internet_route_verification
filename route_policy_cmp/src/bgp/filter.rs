@@ -3,6 +3,7 @@ use crate::{
     parse::{
         address_prefix::{AddrPfxRange, RangeOperator},
         aut_sys::AsName,
+        dump::Dump,
         filter::Filter::{self, *},
         set::RouteSetMember,
     },
@@ -15,7 +16,8 @@ use super::{
 };
 
 pub struct CheckFilter<'a> {
-    pub compare: &'a Compare<'a>,
+    pub dump: &'a Dump,
+    pub compare: &'a Compare,
     pub verbosity: Verbosity,
 }
 
@@ -42,7 +44,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
-        let filter_set = match self.compare.dump.filter_sets.get(name) {
+        let filter_set = match self.dump.filter_sets.get(name) {
             Some(f) => f,
             None => return self.skip_any_report(|| SkipReason::FilterSetUnrecorded(name.into())),
         };
@@ -54,7 +56,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_as_num(&self, num: usize, &range_operator: &RangeOperator) -> AnyReport {
-        let routes = match self.compare.dump.as_routes.get(&num) {
+        let routes = match self.dump.as_routes.get(&num) {
             Some(r) => r,
             None => {
                 return match self.compare.goes_through_num(num) {
@@ -96,7 +98,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterRouteSet(name.into()));
         }
-        let route_set = match self.compare.dump.route_sets.get(name) {
+        let route_set = match self.dump.route_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::RouteSetUnrecorded(name.into())),
         };
@@ -143,7 +145,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
         }
-        let as_set = match self.compare.dump.as_sets.get(name) {
+        let as_set = match self.dump.as_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };

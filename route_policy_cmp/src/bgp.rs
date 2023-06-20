@@ -6,4 +6,8 @@ pub mod report;
 pub mod verbosity;
 pub mod wrapper;
 
-pub use {cmp::Compare, verbosity::Verbosity, wrapper::parse_mrt};
+pub use {
+    cmp::Compare,
+    verbosity::Verbosity,
+    wrapper::{parse_mrt, Line},
+};

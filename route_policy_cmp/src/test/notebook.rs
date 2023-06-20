@@ -20,7 +20,7 @@ fn read_parsed_rpsl() -> Result<()> {
         .collect();
 
     // Remove `;` in notebook.
-    Compare::with_line_dump(&bgp_file[2], &parsed)?.check();
+    Compare::with_line_dump(&bgp_file[2])?.check(&parsed);
 
     Verbosity::Brief > Verbosity::ErrOnly;
 
@@ -32,9 +32,11 @@ fn parse_bgp_lines() -> Result<()> {
 
     parsed.aut_nums.iter().next();
 
-    let bgp_lines = parse_mrt("data/mrts/rib.20230619.2200.bz2", &parsed)?;
+    let bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
     bgp_lines.first();
+
+    bgp_lines[0].compare.check(&parsed);
 
     Ok(())
 }

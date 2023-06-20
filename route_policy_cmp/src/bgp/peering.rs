@@ -1,5 +1,6 @@
 use crate::parse::{
     aut_sys::AsName,
+    dump::Dump,
     peering::{AsExpr, Peering},
 };
 
@@ -10,7 +11,8 @@ use super::{
 };
 
 pub struct CheckPeering<'a> {
-    pub compare: &'a Compare<'a>,
+    pub dump: &'a Dump,
+    pub compare: &'a Compare,
     pub accept_num: usize,
     pub verbosity: Verbosity,
 }
@@ -69,7 +71,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemoteAsSet(name.into()));
         }
-        let as_set = match self.compare.dump.as_sets.get(name) {
+        let as_set = match self.dump.as_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
@@ -88,7 +90,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemotePeeringSet(name.into()));
         }
-        let peering_set = match self.compare.dump.peering_sets.get(name) {
+        let peering_set = match self.dump.peering_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::PeeringSetUnrecorded(name.into())),
         };

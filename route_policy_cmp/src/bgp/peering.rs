@@ -52,7 +52,7 @@ impl<'a> CheckPeering<'a> {
         }
         match as_name {
             AsName::Num(num) => self.check_remote_as_num(*num),
-            AsName::Set(name) => self.check_remote_as_set(name, depth),
+            AsName::Set(name) => self.check_remote_as_set(name, depth, &mut vec![]),
             AsName::Invalid(reason) => {
                 self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))
             }
@@ -67,7 +67,17 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_set(&self, name: &str, depth: isize) -> AnyReport {
+    fn check_remote_as_set(
+        &self,
+        name: &'a str,
+        depth: isize,
+        visited: &mut Vec<&'a str>,
+    ) -> AnyReport {
+        if visited.contains(&name) {
+            return failed_any_report();
+        }
+        visited.push(name);
+
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemoteAsSet(name.into()));
         }
@@ -82,7 +92,7 @@ impl<'a> CheckPeering<'a> {
 
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set.set_members {
-            aggregator.join(self.check_remote_as_set(set, depth - 1)?);
+            aggregator.join(self.check_remote_as_set(set, depth - 1, visited)?);
         }
         if aggregator.all_fail {
             self.no_match_any_report(|| MatchProblem::RemoteAsSet(name.into()))

@@ -134,12 +134,12 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_as_set<'v>(
+    fn filter_as_set(
         &self,
         name: &'a str,
         op: &RangeOperator,
         depth: isize,
-        visited: &'v mut Vec<&'a str>,
+        visited: &mut Vec<&'a str>,
     ) -> AnyReport {
         if visited.contains(&name) {
             return failed_any_report();

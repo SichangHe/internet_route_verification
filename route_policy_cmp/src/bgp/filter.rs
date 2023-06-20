@@ -141,6 +141,11 @@ impl<'a> CheckFilter<'a> {
         depth: isize,
         visited: &'v mut Vec<&'a str>,
     ) -> AnyReport {
+        if visited.contains(&name) {
+            return failed_any_report();
+        }
+        visited.push(name);
+
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
         }
@@ -154,7 +159,6 @@ impl<'a> CheckFilter<'a> {
             aggregator.join(self.filter_as_num(*num, op)?);
         }
         for set in &as_set.set_members {
-            visited.push(set);
             aggregator.join(self.filter_as_set(set, op, depth - 1, visited)?);
         }
         if aggregator.all_fail {

@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+#![allow(clippy::no_effect)]
+#![allow(unused_must_use)]
+
 use super::*;
 use crate as route_policy_cmp;
 
@@ -7,11 +11,8 @@ use std::{
     io::{prelude::*, BufReader},
 };
 
-#[allow(dead_code)]
-#[allow(clippy::no_effect)]
-#[allow(unused_must_use)]
-fn example() -> Result<()> {
-    let parsed = Dump::pal_read("parsed")?;
+fn read_parsed_rpsl() -> Result<()> {
+    let parsed = Dump::pal_read("parsed_all")?;
 
     let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt")?)
         .lines()
@@ -22,6 +23,18 @@ fn example() -> Result<()> {
     Compare::with_line_dump(&bgp_file[2], &parsed)?.check();
 
     Verbosity::Brief > Verbosity::ErrOnly;
+
+    Ok(())
+}
+
+fn parse_bgp_lines() -> Result<()> {
+    let parsed = Dump::pal_read("parsed_all")?;
+
+    parsed.aut_nums.iter().next();
+
+    let bgp_lines = parse_mrt("data/mrts/rib.20230619.2200.bz2", &parsed)?;
+
+    bgp_lines.first();
 
     Ok(())
 }

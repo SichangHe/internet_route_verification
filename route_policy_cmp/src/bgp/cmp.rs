@@ -26,7 +26,7 @@ pub struct Compare<'a> {
     pub dump: &'a Dump,
     pub prefix: IpNet,
     pub as_path: Vec<AsPathEntry>,
-    pub communities: Vec<&'a str>,
+    pub communities: Vec<String>,
     pub recursion_limit: isize,
     pub verbosity: Verbosity,
 }
@@ -48,7 +48,7 @@ impl<'a> Compare<'a> {
         dump: &'a Dump,
         prefix: IpNet,
         as_path: Vec<AsPathEntry>,
-        communities: Vec<&'a str>,
+        communities: Vec<String>,
     ) -> Self {
         Self {
             dump,
@@ -64,8 +64,9 @@ impl<'a> Compare<'a> {
         Self { verbosity, ..self }
     }
 
-    pub fn with_line_dump(line: &'a str, dump: &'a Dump) -> Result<Self> {
+    pub fn with_line_dump(line: &str, dump: &'a Dump) -> Result<Self> {
         let (prefix, as_path, _, communities) = parse_table_dump(line)?;
+        let communities = communities.into_iter().map(ToOwned::to_owned).collect();
         Ok(Self::new(dump, prefix, as_path, communities))
     }
 

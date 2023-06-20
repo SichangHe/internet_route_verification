@@ -5,6 +5,7 @@
 use super::*;
 use crate as route_policy_cmp;
 
+use rayon::prelude::*;
 use route_policy_cmp::{bgp::*, parse::dump::Dump};
 use std::{
     fs::File,
@@ -32,11 +33,16 @@ fn parse_bgp_lines() -> Result<()> {
 
     parsed.aut_nums.iter().next();
 
-    let bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+    let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
     bgp_lines.first();
 
     bgp_lines[0].compare.check(&parsed);
+
+    // TODO: Below line maximizes out all CPUs and causes memory outage.
+    bgp_lines
+        .par_iter_mut()
+        .for_each(|line| line.report = Some(line.compare.check(&parsed)));
 
     Ok(())
 }

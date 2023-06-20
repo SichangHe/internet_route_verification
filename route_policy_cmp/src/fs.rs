@@ -35,7 +35,7 @@ pub fn read(input_dir: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn parse_all(input_dir: &str, output_dir: &str) -> Result<()> {
+pub fn parse_all(input_dir: &str) -> Result<Dump> {
     let readers = read_dir(input_dir)?
         .par_bridge()
         .map(|entry| {
@@ -50,14 +50,7 @@ pub fn parse_all(input_dir: &str, output_dir: &str) -> Result<()> {
         .collect::<Result<Vec<_>>>()?;
 
     debug!("Starting to read and parse.");
-    let parsed = parse_dbs(readers)?;
-    parsed.log_count();
-
-    debug!("Starting to write the parsed dump.");
-    parsed.pal_write(output_dir)?;
-    debug!("Wrote the parsed dump.");
-
-    Ok(())
+    parse_dbs(readers)
 }
 
 pub fn detect_file_encoding<P>(path: P) -> Result<&'static Encoding>

@@ -14,6 +14,7 @@ fn main() -> Result<()> {
         "parse" => parse(args),
         "parse_all" => parse_all(args),
         "read" => read(args),
+        "report" => report(args),
         other => bail!("Unknown command {other}!"),
     }
 }

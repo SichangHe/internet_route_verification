@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     address_prefix::{AddrPfxRange, RangeOperator},
-    aut_sys::AsName,
     filter::Filter,
     peering::Peering,
 };
@@ -13,7 +12,23 @@ use super::{
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AsSet {
     pub body: String,
-    pub members: Vec<AsName>,
+    /// AS numbers; should be kept sorted.
+    pub members: Vec<usize>,
+    pub set_members: Vec<String>,
+}
+
+impl AsSet {
+    pub fn new(mut body: String, mut members: Vec<usize>, mut set_members: Vec<String>) -> Self {
+        body.shrink_to_fit();
+        members.shrink_to_fit();
+        members.sort_unstable();
+        set_members.shrink_to_fit();
+        Self {
+            body,
+            members,
+            set_members,
+        }
+    }
 }
 
 pub fn is_route_set_name(attr: &str) -> bool {

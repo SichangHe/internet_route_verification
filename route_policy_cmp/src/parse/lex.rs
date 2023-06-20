@@ -8,7 +8,7 @@ use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use super::{
     aut_num::AutNum,
-    aut_sys::{is_as_set, parse_as_name},
+    aut_sys::{is_as_set, parse_as_name, AsName},
     dump::Dump,
     mp_import::parse_imports,
     peering::{is_peering_set, parse_mp_peering},
@@ -88,21 +88,25 @@ pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, A
     if !is_as_set(&lexed.name) {
         bail!("invalid AS Set name in {lexed:?}");
     }
-    let members = match lexed
-        .members
-        .into_iter()
-        .map(parse_as_name)
-        .collect::<Result<Vec<_>>>()
-    {
-        Ok(m) => m,
-        Err(err) => {
-            return Err(err.context(format!("parsing AS Set {}\n{}", lexed.name, lexed.body)))
+    let max_length = lexed.members.len();
+    let mut members = Vec::with_capacity(max_length);
+    let mut set_members = Vec::with_capacity(max_length);
+    for member in lexed.members {
+        let member = match parse_as_name(member) {
+            Ok(m) => m,
+            Err(err) => {
+                return Err(err.context(format!("parsing AS Set {}\n{}", lexed.name, lexed.body)))
+            }
+        };
+        match member {
+            AsName::Num(n) => members.push(n),
+            AsName::Set(set) => set_members.push(set),
+            AsName::Invalid(reason) => {
+                bail!("{reason} parsing AS Set {}\n{}", lexed.name, lexed.body)
+            }
         }
-    };
-    let as_set = AsSet {
-        body: lexed.body,
-        members,
-    };
+    }
+    let as_set = AsSet::new(lexed.body, members, set_members);
     Ok((lexed.name, as_set))
 }
 

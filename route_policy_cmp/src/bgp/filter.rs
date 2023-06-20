@@ -2,7 +2,6 @@ use crate::{
     lex::community::Call,
     parse::{
         address_prefix::{AddrPfxRange, RangeOperator},
-        aut_sys::AsName,
         dump::Dump,
         filter::Filter::{self, *},
         set::RouteSetMember,
@@ -140,7 +139,7 @@ impl<'a> CheckFilter<'a> {
         name: &'a str,
         op: &RangeOperator,
         depth: isize,
-        visited: &'v mut Vec<&'a AsName>,
+        visited: &'v mut Vec<&'a str>,
     ) -> AnyReport {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
@@ -149,9 +148,14 @@ impl<'a> CheckFilter<'a> {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
+
         let mut aggregator = AnyReportAggregator::new();
-        for as_name in &as_set.members {
-            aggregator.join(self.filter_as_name(as_name, op, depth - 1, visited)?);
+        for num in &as_set.members {
+            aggregator.join(self.filter_as_num(*num, op)?);
+        }
+        for set in &as_set.set_members {
+            visited.push(set);
+            aggregator.join(self.filter_as_set(set, op, depth - 1, visited)?);
         }
         if aggregator.all_fail {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), *op))
@@ -163,29 +167,6 @@ impl<'a> CheckFilter<'a> {
     fn filter_as_regex(&self, expr: &str) -> AnyReport {
         // TODO: Implement.
         self.skip_any_report(|| SkipReason::AsRegexUnimplemented(expr.into()))
-    }
-
-    fn filter_as_name<'v>(
-        &self,
-        as_name: &'a AsName,
-        op: &RangeOperator,
-        depth: isize,
-        visited: &'v mut Vec<&'a AsName>,
-    ) -> AnyReport {
-        if visited.iter().any(|x| **x == *as_name) {
-            return failed_any_report();
-        }
-        visited.push(as_name);
-        if depth <= 0 {
-            return recursion_any_report(RecurSrc::FilterAsName(as_name.clone()));
-        }
-        match as_name {
-            AsName::Num(num) => self.filter_as_num(*num, op),
-            AsName::Set(name) => self.filter_as_set(name, op, depth - 1, visited),
-            AsName::Invalid(reason) => {
-                self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))
-            }
-        }
     }
 
     fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {

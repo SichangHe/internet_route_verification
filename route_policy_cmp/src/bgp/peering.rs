@@ -75,9 +75,14 @@ impl<'a> CheckPeering<'a> {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
+
+        if as_set.members.binary_search(&self.accept_num).is_ok() {
+            return None;
+        }
+
         let mut aggregator = AnyReportAggregator::new();
-        for as_name in &as_set.members {
-            aggregator.join(self.check_remote_as_name(as_name, depth - 1)?);
+        for set in &as_set.set_members {
+            aggregator.join(self.check_remote_as_set(set, depth - 1)?);
         }
         if aggregator.all_fail {
             self.no_match_any_report(|| MatchProblem::RemoteAsSet(name.into()))

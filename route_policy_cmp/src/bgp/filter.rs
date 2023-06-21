@@ -200,10 +200,10 @@ impl<'a> CheckFilter<'a> {
             Some((_errors, true)) => None,
             Some(report @ (_, false)) => {
                 let mut aggregator: AnyReportAggregator = report.into();
-                aggregator.join(self.no_match_any_report(|| MatchProblem::NotFilterMatch)?);
+                aggregator.join(self.no_match_any_report(|| MatchProblem::Filter)?);
                 aggregator.to_any()
             }
-            None => self.no_match_any_report(|| MatchProblem::NotFilterMatch),
+            None => self.no_match_any_report(|| MatchProblem::Filter),
         }
     }
 

@@ -5,6 +5,7 @@ pub enum Verbosity {
     ErrOnly,
     Brief,
     ShowSkips,
+    PerEntry,
     Detailed,
 }
 

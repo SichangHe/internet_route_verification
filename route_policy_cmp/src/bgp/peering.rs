@@ -146,7 +146,7 @@ impl<'a> CheckPeering<'a> {
                 .to_all()?
                 .join(self.skip_all_report(|| SkipReason::SkippedExceptPeeringResult)?)
                 .to_all(),
-            None => self.no_match_all_report(|| MatchProblem::ExceptFilterRightMatch),
+            None => self.no_match_all_report(|| MatchProblem::ExceptPeeringRightMatch),
         };
         left_report.join(right_report?).to_all()
     }

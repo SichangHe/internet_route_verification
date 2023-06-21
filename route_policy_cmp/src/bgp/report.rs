@@ -67,14 +67,15 @@ pub enum MatchProblem {
     NoExportRuleSingle(usize),
     /// Left side should not import from right side.
     NoImportRule(usize, usize),
+    Filter,
     FilterAsNum(usize, RangeOperator),
     FilterAsSet(String, RangeOperator),
     FilterPrefixes,
     FilterRouteSet(String),
-    NotFilterMatch,
     RemoteAsNum(usize),
     RemoteAsSet(String),
-    ExceptFilterRightMatch,
+    ExceptPeeringRightMatch,
+    Peering,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

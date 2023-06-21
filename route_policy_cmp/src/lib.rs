@@ -69,9 +69,10 @@ pub fn report(args: Vec<String>) -> Result<()> {
 
     let mut bgp_lines: Vec<Line> = parse_mrt(mrt_dir)?;
     const SIZE: usize = 0x100;
-    bgp_lines[..SIZE]
-        .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check(&parsed)));
+    bgp_lines[..SIZE].par_iter_mut().for_each(|line| {
+        line.compare.verbosity = Verbosity::PerEntry;
+        line.report = Some(line.compare.check(&parsed))
+    });
 
     let n_error: usize = bgp_lines[..SIZE]
         .par_iter()
@@ -79,6 +80,7 @@ pub fn report(args: Vec<String>) -> Result<()> {
             if line.report.as_ref().unwrap().is_empty() {
                 0
             } else {
+                println!("{line:#?}");
                 1
             }
         })

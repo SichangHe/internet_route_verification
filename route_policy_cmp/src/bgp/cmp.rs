@@ -185,11 +185,23 @@ impl Compare {
             verbosity: self.verbosity,
         }
         .check(&entry.mp_filter, self.recursion_limit)
-        .to_all()?;
+        .to_all()
+        .map_err(|mut report| {
+            if self.verbosity == Verbosity::PerEntry {
+                report.push(ReportItem::NoMatch(MatchProblem::Filter));
+            }
+            report
+        })?;
         match accept_num {
             Some(accept_num) => report.join(
                 self.check_peering_actions(dump, &entry.mp_peerings, accept_num)
-                    .to_all()?,
+                    .to_all()
+                    .map_err(|mut report| {
+                        if self.verbosity == Verbosity::PerEntry {
+                            report.push(ReportItem::NoMatch(MatchProblem::Peering));
+                        }
+                        report
+                    })?,
             ),
             None => report,
         }

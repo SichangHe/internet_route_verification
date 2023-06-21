@@ -61,17 +61,24 @@ impl Compare {
             .iter()
             .rev()
             .zip(self.as_path.iter().rev().skip(1));
-        let pair_reports = pairs.flat_map(|(from, to)| {
+        for (from, to) in pairs {
             if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
-                self.check_pair(dump, *from, *to)
+                match self.check_pair(dump, *from, *to) {
+                    r if r.is_empty() => (),
+                    r => {
+                        reports.extend(r);
+                        if self.verbosity <= Verbosity::ErrOnly {
+                            break;
+                        }
+                    }
+                }
             } else {
-                vec![Report::skip(SkipReason::AsPathPairWithSet(
+                reports.push(Report::skip(SkipReason::AsPathPairWithSet(
                     from.clone(),
                     to.clone(),
-                ))]
+                )));
             }
-        });
-        reports.extend(pair_reports);
+        }
         reports.shrink_to_fit();
         reports
     }

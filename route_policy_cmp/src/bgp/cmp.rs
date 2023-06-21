@@ -25,17 +25,16 @@ pub const RECURSION_LIMIT: isize = 0x100;
 pub struct Compare {
     pub prefix: IpNet,
     pub as_path: Vec<AsPathEntry>,
-    pub communities: Vec<String>,
     pub recursion_limit: isize,
     pub verbosity: Verbosity,
 }
 
 impl Compare {
-    pub fn new(prefix: IpNet, as_path: Vec<AsPathEntry>, communities: Vec<String>) -> Self {
+    pub fn new(prefix: IpNet, mut as_path: Vec<AsPathEntry>) -> Self {
+        as_path.shrink_to_fit();
         Self {
             prefix,
             as_path,
-            communities,
             recursion_limit: RECURSION_LIMIT,
             verbosity: Verbosity::ErrOnly,
         }
@@ -46,9 +45,8 @@ impl Compare {
     }
 
     pub fn with_line_dump(line: &str) -> Result<Self> {
-        let (prefix, as_path, _, communities) = parse_table_dump(line)?;
-        let communities = communities.into_iter().map(ToOwned::to_owned).collect();
-        Ok(Self::new(prefix, as_path, communities))
+        let (prefix, as_path, _, _) = parse_table_dump(line)?;
+        Ok(Self::new(prefix, as_path))
     }
 
     pub fn check(&self, dump: &Dump) -> Vec<Report> {

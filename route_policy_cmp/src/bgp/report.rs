@@ -58,6 +58,8 @@ pub enum SkipReason {
     AsPathPairWithSet(AsPathEntry, AsPathEntry),
     AsPathWithSet(AsPathEntry),
     AutNumUnrecorded(usize),
+    ImportEmpty,
+    ExportEmpty,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

@@ -43,7 +43,7 @@ pub fn parse_filter(mp_filter: filter::Filter, mp_peerings: &[PeeringAction]) ->
 }
 
 pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filter {
-    if regex_is_match!(r"^any$"i, &attr) {
+    if regex_is_match!(r"^(as-)?any$"i, &attr) {
         Filter::Any
     } else if regex_is_match!(r"^peeras$"i, &attr) {
         peer_as_filter(mp_peerings)

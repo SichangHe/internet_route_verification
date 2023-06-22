@@ -121,6 +121,9 @@ impl Compare {
         from: usize,
         to: Option<usize>,
     ) -> Option<Report> {
+        if from_an.exports.is_default() {
+            return self.skip_report(|| SkipReason::ExportEmpty);
+        }
         let mut aggregator = self.check_compliant(dump, &from_an.exports, to)?;
         if aggregator.all_fail {
             let reason = match to {
@@ -141,6 +144,9 @@ impl Compare {
         from: usize,
         to: usize,
     ) -> Option<Report> {
+        if to_an.imports.is_default() {
+            return self.skip_report(|| SkipReason::ImportEmpty);
+        }
         let mut aggregator = self.check_compliant(dump, &to_an.imports, Some(from))?;
         if aggregator.all_fail {
             aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());

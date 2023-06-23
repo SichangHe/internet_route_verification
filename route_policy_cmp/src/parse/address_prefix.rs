@@ -140,14 +140,28 @@ pub fn get_range_operator_range(s: &str) -> Option<(&str, &str, &str)> {
 }
 
 /// `ips` must be sorted.
+/// For `ips` shorter than 16, do linear search.
 /// Starting from the index of the closest element in `ips`, search right and
 /// left for address prefix that, combined with `range_operator`,
 /// contains `ip`.
 /// Stop searching either end when the index do not point to `ip`'s siblings.
 pub fn match_ips(ip: &IpNet, ips: &[IpNet], range_operator: RangeOperator) -> bool {
+    if ips.len() < 16 {
+        // Linear search if `ips` is small.
+        return ips
+            .iter()
+            .any(|value| address_prefix_contains(value, range_operator, ip));
+    }
     let mut left = ips.binary_search(ip).map_or_else(identity, identity);
-    let mut right = left - 1;
+    let mut right = left;
+    // Check center.
+    if let Some(value) = ips.get(right) {
+        if address_prefix_contains(value, range_operator, ip) {
+            return true;
+        }
+    }
     while right < ips.len() - 1 || left > 0 {
+        // Check right.
         if right < ips.len() - 1 {
             right += 1;
             if ip.is_sibling(&ips[right]) {
@@ -158,7 +172,7 @@ pub fn match_ips(ip: &IpNet, ips: &[IpNet], range_operator: RangeOperator) -> bo
                 right = ips.len() - 1;
             }
         }
-
+        // Check left
         if left > 0 {
             left -= 1;
             if ip.is_sibling(&ips[left]) {

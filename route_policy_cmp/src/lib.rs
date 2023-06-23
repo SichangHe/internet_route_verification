@@ -92,10 +92,13 @@ pub fn report(args: Vec<String>) -> Result<()> {
     parsed.log_count();
 
     let mut bgp_lines: Vec<Line> = parse_mrt(mrt_dir)?;
+    debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
+
     const SIZE: usize = 0x10000;
     bgp_lines[..SIZE]
         .par_iter_mut()
         .for_each(|line| line.report = Some(line.compare.check(&parsed)));
+    debug!("Generated {SIZE} reports");
 
     let n_error: usize = bgp_lines[..SIZE]
         .par_iter()

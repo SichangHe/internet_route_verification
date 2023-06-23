@@ -1,7 +1,7 @@
 use crate::{
     lex::community::Call,
     parse::{
-        address_prefix::{AddrPfxRange, RangeOperator},
+        address_prefix::{match_ips, AddrPfxRange, RangeOperator},
         dump::Dump,
         filter::Filter::{self, *},
         set::RouteSetMember,
@@ -29,9 +29,9 @@ impl<'a> CheckFilter<'a> {
             FilterSet(name) => self.filter_set(name, depth),
             Any => None,
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
-            RouteSet(name, op) => self.filter_route_set(name, op, depth),
-            AsNum(num, op) => self.filter_as_num(*num, op),
-            AsSet(name, op) => self.filter_as_set(name, op, depth, &mut Vec::new()),
+            RouteSet(name, op) => self.filter_route_set(name, *op, depth),
+            AsNum(num, op) => self.filter_as_num(*num, *op),
+            AsSet(name, op) => self.filter_as_set(name, *op, depth, &mut Vec::new()),
             AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
@@ -54,7 +54,7 @@ impl<'a> CheckFilter<'a> {
         aggregator.to_any()
     }
 
-    fn filter_as_num(&self, num: usize, &range_operator: &RangeOperator) -> AnyReport {
+    fn filter_as_num(&self, num: usize, op: RangeOperator) -> AnyReport {
         let routes = match self.dump.as_routes.get(&num) {
             Some(r) => r,
             None => {
@@ -64,18 +64,10 @@ impl<'a> CheckFilter<'a> {
                 }
             }
         };
-        let ranges: Vec<_> = routes
-            .iter()
-            .map(|&address_prefix| AddrPfxRange {
-                address_prefix,
-                range_operator,
-            })
-            .collect();
-        let (reports, all_fail) = self.filter_prefixes(&ranges)?;
-        if all_fail {
-            self.no_match_any_report(|| MatchProblem::FilterAsNum(num, range_operator))
+        if match_ips(&self.compare.prefix, routes, op) {
+            None
         } else {
-            Some((reports, all_fail))
+            self.no_match_any_report(|| MatchProblem::FilterAsNum(num, op))
         }
     }
 
@@ -93,7 +85,7 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_route_set(&self, name: &str, op: &RangeOperator, depth: isize) -> AnyReport {
+    fn filter_route_set(&self, name: &str, op: RangeOperator, depth: isize) -> AnyReport {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterRouteSet(name.into()));
         }
@@ -115,7 +107,7 @@ impl<'a> CheckFilter<'a> {
     fn filter_route_set_member(
         &self,
         member: &RouteSetMember,
-        op: &RangeOperator,
+        op: RangeOperator,
         depth: isize,
     ) -> AnyReport {
         if depth <= 0 {
@@ -125,19 +117,19 @@ impl<'a> CheckFilter<'a> {
             RouteSetMember::Range(prefix) => match (prefix.range_operator, op) {
                 (RangeOperator::NoOp, RangeOperator::NoOp) => self.filter_prefixes([prefix]),
                 (RangeOperator::NoOp, op) => self.filter_prefixes([&AddrPfxRange {
-                    range_operator: *op,
+                    range_operator: op,
                     ..prefix.clone()
                 }]),
                 _ => self.filter_prefixes([prefix]),
             },
-            RouteSetMember::NameOp(name, op) => self.filter_route_set(name, op, depth - 1),
+            RouteSetMember::NameOp(name, op) => self.filter_route_set(name, *op, depth - 1),
         }
     }
 
     fn filter_as_set(
         &self,
         name: &'a str,
-        op: &RangeOperator,
+        op: RangeOperator,
         depth: isize,
         visited: &mut Vec<&'a str>,
     ) -> AnyReport {
@@ -162,7 +154,7 @@ impl<'a> CheckFilter<'a> {
             aggregator.join(self.filter_as_set(set, op, depth - 1, visited)?);
         }
         if aggregator.all_fail {
-            self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), *op))
+            self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))
         } else {
             aggregator.to_any()
         }

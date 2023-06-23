@@ -11,6 +11,7 @@ use route_policy_cmp::{bgp::*, parse::dump::Dump};
 use std::{
     fs::File,
     io::{prelude::*, BufReader},
+    time::Instant,
 };
 
 fn read_parsed_rpsl() -> Result<()> {
@@ -35,6 +36,28 @@ fn parse_bgp_lines() -> Result<()> {
     parsed.aut_nums.iter().next();
 
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+
+    // ---
+    // Benchmark for `match_ips`:
+    const SIZE: usize = 0x10000;
+    let start = Instant::now();
+    let n_error: usize = bgp_lines[..SIZE]
+        .par_iter()
+        .map(|line| {
+            if line.compare.check(&parsed).is_empty() {
+                0
+            } else {
+                1
+            }
+        })
+        .sum();
+    println!(
+        "Found {n_error} in {SIZE} routes in {}ms",
+        start.elapsed().as_millis()
+    );
+
+    // ---
+    // Older stuff.
 
     bgp_lines.first();
 

@@ -157,6 +157,7 @@ where
     })
 }
 
+/// When some DBs have the same keys, any value could be used.
 pub fn parse_dbs<I, R>(dbs: I) -> Result<dump::Dump>
 where
     I: IntoParallelIterator<Item = BufReader<R>>,

@@ -2,18 +2,6 @@
 
 WIP
 
-## Obtain IRR data
-
-Download from all FTP servers on [IRR List of Routing
-Registries](https://www.irr.net/docs/list.html).
-
-ftp://ftp.radb.net/radb/dbase
-ftp://ftp.afrinic.net/pub/dbase/
-ftp://ftp.apnic.net/pub/apnic/whois/
-ftp://irr-mirror.idnic.net/
-ftp://irr.lacnic.net/
-ftp://ftp.ripe.net/ripe/dbase/
-
 ## Produce a parsed dump using both lexer and parser
 
 - Put the database file at `data/ripe.db`.
@@ -33,6 +21,48 @@ ftp://ftp.ripe.net/ripe/dbase/
     ```
 
     The parsed dump will be distributed in `parsed/`.
+
+## Produce a spread parsed dump from both priority and backup registries
+
+### Obtain IRR data
+
+Download from all FTP servers on [IRR List of Routing
+Registries](https://www.irr.net/docs/list.html).
+
+Download priority registries to `data/irrs/priority/`:
+
+<ftp://ftp.afrinic.net/pub/dbase/>
+<ftp://ftp.altdb.net/pub/altdb/>
+<ftp://ftp.apnic.net/pub/apnic/whois/>
+<ftp://ftp.arin.net/pub/rr/>
+<ftp://irr.bboi.net/>
+<https://whois.canarie.ca/dbase/>
+<ftp://irr-mirror.idnic.net/>
+<ftp://ftp.nic.ad.jp/jpirr/>
+<ftp://irr.lacnic.net/>
+<ftp://ftp.nestegg.net/irr>
+<ftp://rr1.ntt.net/nttcomRR/>
+<ftp://ftp.panix.com/pub/rrdb>
+<ftp://ftp.ripe.net/ripe/dbase/>
+
+Download backup registries to `data/irrs/backup/`:
+
+<ftp://ftp.radb.net/radb/dbase/>
+
+Decompress all files.
+
+### Run the parser with `parse_priority`
+
+Run at `route_policy_cmp/`:
+
+```sh
+cargo r --release -- parse_priority ../data/irrs/priority/ ../data/irrs/backup/ ../parsed_all/
+```
+
+The above command parses all IRR DB files in `data/irrs/priority/` and
+`data/irrs/backup/`,
+overrides any duplicated information with the version from the former,
+and writes the result to multiple JSON files in `parsed_all/`.
 
 ## Running interactively in Jupyter Notebook
 

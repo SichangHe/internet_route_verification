@@ -107,6 +107,7 @@ impl Dump {
         pal_write_dump(&splits, directory)
     }
 
+    /// When both `Dump`s have the same keys, choose `other`'s value.
     pub fn merge(mut self, other: Self) -> Self {
         let Self {
             aut_nums,

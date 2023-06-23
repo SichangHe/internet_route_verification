@@ -205,5 +205,7 @@ pub fn parse_lexed_as_routes(
 pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(usize, Vec<IpNet>)> {
     let num = parse_aut_num_name(name)?;
     let routes: Result<_> = routes.iter().map(|r| Ok(r.parse()?)).collect();
-    Ok((num, routes?))
+    let mut routes: Vec<_> = routes?;
+    routes.sort_unstable();
+    Ok((num, routes))
 }

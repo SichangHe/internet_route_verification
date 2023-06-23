@@ -31,6 +31,7 @@ pub struct Dump {
     pub filter_sets: BTreeMap<String, FilterSet>,
     /// The AS numbers with Vec of their routes.
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-4>.
+    /// Each value should always be sorted.
     pub as_routes: BTreeMap<usize, Vec<IpNet>>,
 }
 

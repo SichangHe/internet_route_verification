@@ -16,6 +16,7 @@ use std::{
 
 fn read_parsed_rpsl() -> Result<()> {
     let parsed = Dump::pal_read("parsed_all")?;
+    let query = QueryDump::from_dump(parsed);
 
     let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt")?)
         .lines()
@@ -23,7 +24,7 @@ fn read_parsed_rpsl() -> Result<()> {
         .collect();
 
     // Remove `;` in notebook.
-    Compare::with_line_dump(&bgp_file[2])?.check(&parsed);
+    Compare::with_line_dump(&bgp_file[2])?.check(&query);
 
     Verbosity::Brief > Verbosity::ErrOnly;
 
@@ -32,8 +33,9 @@ fn read_parsed_rpsl() -> Result<()> {
 
 fn parse_bgp_lines() -> Result<()> {
     let parsed = Dump::pal_read("parsed_all")?;
+    let query: QueryDump = QueryDump::from_dump(parsed);
 
-    parsed.aut_nums.iter().next();
+    query.aut_nums.iter().next();
 
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
@@ -44,7 +46,7 @@ fn parse_bgp_lines() -> Result<()> {
     let n_error: usize = bgp_lines[..SIZE]
         .par_iter()
         .map(|line| {
-            if line.compare.check(&parsed).is_empty() {
+            if line.compare.check(&query).is_empty() {
                 0
             } else {
                 1
@@ -61,15 +63,15 @@ fn parse_bgp_lines() -> Result<()> {
 
     bgp_lines.first();
 
-    bgp_lines[0].compare.check(&parsed);
+    bgp_lines[0].compare.check(&query);
 
     // TODO: Below line maximizes out all CPUs and causes memory outage.
     bgp_lines
         .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check(&parsed)));
+        .for_each(|line| line.report = Some(line.compare.check(&query)));
 
     for (index, line) in bgp_lines[..].iter_mut().enumerate() {
-        let report = line.compare.check(&parsed);
+        let report = line.compare.check(&query);
         if report.is_empty() {
             line.report = Some(report);
         } else {
@@ -80,7 +82,7 @@ fn parse_bgp_lines() -> Result<()> {
     }
 
     bgp_lines[1].compare.verbosity = Verbosity::Detailed;
-    let report = bgp_lines[1].compare.check(&parsed);
+    let report = bgp_lines[1].compare.check(&query);
     let items: Option<Vec<ReportItem>> = if let Report::Bad(items) = &report[2] {
         Some(items.clone())
     } else {
@@ -90,13 +92,13 @@ fn parse_bgp_lines() -> Result<()> {
 
     println!(
         "{:#?}",
-        &parsed.aut_nums.get(&3257).unwrap().imports.any.any[401..500]
+        &query.aut_nums.get(&3257).unwrap().imports.any.any[401..500]
     );
 
     // ---
 
     for (index, line) in bgp_lines[1000..].iter_mut().enumerate() {
-        let report = line.compare.check(&parsed);
+        let report = line.compare.check(&query);
         if report.is_empty() {
             line.report = Some(report);
         } else {

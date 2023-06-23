@@ -49,6 +49,7 @@ pub enum SkipReason {
     AsRoutesUnrecorded(usize),
     RouteSetUnrecorded(String),
     AsSetUnrecorded(String),
+    AsSetRouteUnrecorded(String),
     // TODO: Remove once implemented.
     AsRegexUnimplemented(String),
     SkippedNotFilterResult,

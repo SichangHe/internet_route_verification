@@ -6,7 +6,6 @@ use ipnet::{IpNet, Ipv4Net, Ipv6Net, PrefixLenError};
 use crate::parse::{
     action::Actions,
     aut_num::AutNum,
-    dump::Dump,
     mp_import::{Casts, Entry, Versions},
     peering::PeeringAction,
 };
@@ -15,6 +14,7 @@ use super::{
     filter::CheckFilter,
     map::{parse_table_dump, AsPathEntry},
     peering::CheckPeering,
+    query::QueryDump as Dump,
     report::*,
     verbosity::{Verbosity, VerbosityReport},
 };

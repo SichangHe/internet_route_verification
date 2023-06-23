@@ -2,7 +2,6 @@ use crate::{
     lex::community::Call,
     parse::{
         address_prefix::{match_ips, AddrPfxRange, RangeOperator},
-        dump::Dump,
         filter::Filter::{self, *},
         set::RouteSetMember,
     },
@@ -10,6 +9,7 @@ use crate::{
 
 use super::{
     cmp::Compare,
+    query::QueryDump as Dump,
     report::*,
     verbosity::{Verbosity, VerbosityReport},
 };
@@ -141,17 +141,20 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
         }
-        let as_set = match self.dump.as_sets.get(name) {
+        let as_set_route = match self.dump.as_set_routes.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
+            None => return self.skip_any_report(|| SkipReason::AsSetRouteUnrecorded(name.into())),
         };
 
-        let mut aggregator = AnyReportAggregator::new();
-        for num in &as_set.members {
-            aggregator.join(self.filter_as_num(*num, op)?);
+        if match_ips(&self.compare.prefix, &as_set_route.routes, op) {
+            return None;
         }
-        for set in &as_set.set_members {
+        let mut aggregator = AnyReportAggregator::new();
+        for set in &as_set_route.set_members {
             aggregator.join(self.filter_as_set(set, op, depth - 1, visited)?);
+        }
+        for num in &as_set_route.unrecorded_nums {
+            aggregator.join(self.skip_any_report(|| SkipReason::AsRoutesUnrecorded(*num))?);
         }
         if aggregator.all_fail {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))

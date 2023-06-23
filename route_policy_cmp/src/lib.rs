@@ -2,7 +2,10 @@ use anyhow::{bail, Result};
 use log::debug;
 use rayon::prelude::*;
 
-use crate::{bgp::*, parse::dump::Dump};
+use crate::{
+    bgp::{query::QueryDump, *},
+    parse::dump::Dump,
+};
 
 pub mod bgp;
 pub mod cmd;
@@ -91,13 +94,16 @@ pub fn report(args: Vec<String>) -> Result<()> {
     let parsed = Dump::pal_read(parsed_dir)?;
     parsed.log_count();
 
+    let query = QueryDump::from_dump(parsed);
+    debug!("Converted Dump to QueryDump");
+
     let mut bgp_lines: Vec<Line> = parse_mrt(mrt_dir)?;
     debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
 
     const SIZE: usize = 0x10000;
     bgp_lines[..SIZE]
         .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check(&parsed)));
+        .for_each(|line| line.report = Some(line.compare.check(&query)));
     debug!("Generated {SIZE} reports");
 
     let n_error: usize = bgp_lines[..SIZE]

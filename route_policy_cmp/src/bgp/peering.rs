@@ -1,11 +1,11 @@
 use crate::parse::{
     aut_sys::AsName,
-    dump::Dump,
     peering::{AsExpr, Peering},
 };
 
 use super::{
     cmp::Compare,
+    query::QueryDump as Dump,
     report::*,
     verbosity::{Verbosity, VerbosityReport},
 };

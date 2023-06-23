@@ -8,6 +8,7 @@ pub mod wrapper;
 
 pub use {
     cmp::Compare,
+    report::{Report, ReportItem},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},
 };

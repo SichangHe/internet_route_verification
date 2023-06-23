@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(clippy::no_effect)]
 #![allow(unused_must_use)]
+#![allow(unused_variables)]
 
 use super::*;
 use crate as route_policy_cmp;
@@ -43,6 +44,44 @@ fn parse_bgp_lines() -> Result<()> {
     bgp_lines
         .par_iter_mut()
         .for_each(|line| line.report = Some(line.compare.check(&parsed)));
+
+    for (index, line) in bgp_lines[..].iter_mut().enumerate() {
+        let report = line.compare.check(&parsed);
+        if report.is_empty() {
+            line.report = Some(report);
+        } else {
+            line.report = Some(report);
+            println!("{index}: {line:#?}");
+            break;
+        }
+    }
+
+    bgp_lines[1].compare.verbosity = Verbosity::Detailed;
+    let report = bgp_lines[1].compare.check(&parsed);
+    let items: Option<Vec<ReportItem>> = if let Report::Bad(items) = &report[2] {
+        Some(items.clone())
+    } else {
+        None
+    };
+    let items: Vec<ReportItem> = items.unwrap();
+
+    println!(
+        "{:#?}",
+        &parsed.aut_nums.get(&3257).unwrap().imports.any.any[401..500]
+    );
+
+    // ---
+
+    for (index, line) in bgp_lines[1000..].iter_mut().enumerate() {
+        let report = line.compare.check(&parsed);
+        if report.is_empty() {
+            line.report = Some(report);
+        } else {
+            line.report = Some(report);
+            println!("{}: {line:#?}", index + 1000);
+            break;
+        }
+    }
 
     Ok(())
 }

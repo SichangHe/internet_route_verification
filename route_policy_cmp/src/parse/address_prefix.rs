@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{convert::identity, str::FromStr};
 
 use anyhow::{bail, Context, Ok};
 use ipnet::IpNet;
@@ -46,16 +46,22 @@ impl FromStr for AddrPfxRange {
 
 impl AddrPfxRange {
     pub fn contains(&self, other: &IpNet) -> bool {
-        match self.range_operator {
-            RangeOperator::NoOp => self.address_prefix == *other,
-            RangeOperator::Plus => self.address_prefix.contains(other),
-            RangeOperator::Minus => {
-                self.address_prefix.contains(other) && self.address_prefix != *other
-            }
-            RangeOperator::Num(n) => other.prefix_len() == n && self.address_prefix.contains(other),
-            RangeOperator::Range(n, m) => {
-                (n..=m).contains(&other.prefix_len()) && self.address_prefix.contains(other)
-            }
+        address_prefix_contains(&self.address_prefix, self.range_operator, other)
+    }
+}
+
+pub fn address_prefix_contains(
+    address_prefix: &IpNet,
+    range_operator: RangeOperator,
+    other: &IpNet,
+) -> bool {
+    match range_operator {
+        RangeOperator::NoOp => address_prefix == other,
+        RangeOperator::Plus => address_prefix.contains(other),
+        RangeOperator::Minus => address_prefix.contains(other) && address_prefix != other,
+        RangeOperator::Num(n) => other.prefix_len() == n && address_prefix.contains(other),
+        RangeOperator::Range(n, m) => {
+            (n..=m).contains(&other.prefix_len()) && address_prefix.contains(other)
         }
     }
 }
@@ -131,4 +137,38 @@ pub fn get_range_operator_num(s: &str) -> Option<(&str, &str)> {
 
 pub fn get_range_operator_range(s: &str) -> Option<(&str, &str, &str)> {
     regex_captures!(r"\^(\d{1,2})-(\d{1,2})", s)
+}
+
+/// `ips` must be sorted.
+/// Starting from the index of the closest element in `ips`, search right and
+/// left for address prefix that, combined with `range_operator`,
+/// contains `ip`.
+/// Stop searching either end when the index do not point to `ip`'s siblings.
+pub fn match_ips(ip: &IpNet, ips: &[IpNet], range_operator: RangeOperator) -> bool {
+    let mut left = ips.binary_search(ip).map_or_else(identity, identity);
+    let mut right = left - 1;
+    while right < ips.len() - 1 || left > 0 {
+        if right < ips.len() - 1 {
+            right += 1;
+            if ip.is_sibling(&ips[right]) {
+                if address_prefix_contains(&ips[right], range_operator, ip) {
+                    return true;
+                }
+            } else {
+                right = ips.len() - 1;
+            }
+        }
+
+        if left > 0 {
+            left -= 1;
+            if ip.is_sibling(&ips[left]) {
+                if address_prefix_contains(&ips[left], range_operator, ip) {
+                    return true;
+                }
+            } else {
+                left = 0;
+            }
+        }
+    }
+    false
 }

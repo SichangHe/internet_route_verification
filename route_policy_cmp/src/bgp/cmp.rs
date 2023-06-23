@@ -185,7 +185,19 @@ impl Compare {
     }
 
     pub fn check_entry(&self, dump: &Dump, entry: &Entry, accept_num: Option<usize>) -> AllReport {
-        let report = CheckFilter {
+        let peering_report = match accept_num {
+            Some(accept_num) => self
+                .check_peering_actions(dump, &entry.mp_peerings, accept_num)
+                .to_all()
+                .map_err(|mut report| {
+                    if self.verbosity == Verbosity::PerEntry {
+                        report.push(ReportItem::NoMatch(MatchProblem::Peering));
+                    }
+                    report
+                })?,
+            None => None,
+        };
+        let filter_report = CheckFilter {
             dump,
             compare: self,
             verbosity: self.verbosity,
@@ -198,20 +210,7 @@ impl Compare {
             }
             report
         })?;
-        match accept_num {
-            Some(accept_num) => report.join(
-                self.check_peering_actions(dump, &entry.mp_peerings, accept_num)
-                    .to_all()
-                    .map_err(|mut report| {
-                        if self.verbosity == Verbosity::PerEntry {
-                            report.push(ReportItem::NoMatch(MatchProblem::Peering));
-                        }
-                        report
-                    })?,
-            ),
-            None => report,
-        }
-        .to_all()
+        peering_report.join(filter_report).to_all()
     }
 
     pub fn check_peering_actions<'a, I>(

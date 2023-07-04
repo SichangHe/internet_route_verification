@@ -7,8 +7,9 @@ use rayon::prelude::*;
 use std::{fs::*, io::*, path::Path};
 
 use crate::{
+    bgp::{parse_mrt, QueryDump},
     irr::*,
-    parse::{dump::Dump, lex::parse_lexed},
+    parse::{parse_lexed, Dump},
 };
 
 pub fn parse(filename: &str, output_dir: &str) -> Result<()> {
@@ -52,6 +53,18 @@ pub fn parse_all(input_dir: &str) -> Result<Dump> {
     debug!("Starting to read and parse.");
     parse_dbs(readers)
 }
+pub fn parse_priority(priority_dir: &str, backup_dir: &str, output_dir: &str) -> Result<()> {
+    let priority = parse_all(priority_dir)?;
+    let backup = parse_all(backup_dir)?;
+    let parsed = backup.merge(priority);
+    parsed.log_count();
+
+    debug!("Starting to write the parsed dump.");
+    parsed.pal_write(output_dir)?;
+    debug!("Wrote the parsed dump.");
+
+    Ok(())
+}
 
 pub fn detect_file_encoding<P>(path: P) -> Result<&'static Encoding>
 where
@@ -87,4 +100,35 @@ where
             return Ok(encoding);
         }
     }
+}
+
+pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
+    let parsed = Dump::pal_read(parsed_dir)?;
+    parsed.log_count();
+
+    let query = QueryDump::from_dump(parsed);
+    debug!("Converted Dump to QueryDump");
+
+    let mut bgp_lines = parse_mrt(mrt_dir)?;
+    debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
+
+    const SIZE: usize = 0x10000;
+    bgp_lines[..SIZE]
+        .par_iter_mut()
+        .for_each(|line| line.report = Some(line.compare.check(&query)));
+    debug!("Generated {SIZE} reports");
+
+    let n_error: usize = bgp_lines[..SIZE]
+        .par_iter()
+        .map(|line| {
+            if line.report.as_ref().unwrap().is_empty() {
+                0
+            } else {
+                1
+            }
+        })
+        .sum();
+    println!("{n_error} errors reported in {SIZE} routes.");
+
+    Ok(())
 }

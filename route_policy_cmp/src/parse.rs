@@ -19,6 +19,7 @@ pub use {
     aut_sys::{parse_as_name, AsName},
     dump::Dump,
     filter::{parse_filter, Filter},
+    lex::parse_lexed,
     mp_import::Versions,
     peering::{parse_mp_peerings, AsExpr, Peering, PeeringAction},
     router_expr::{parse_router_expr, RouterExpr},

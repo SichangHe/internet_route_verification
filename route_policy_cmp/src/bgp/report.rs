@@ -9,10 +9,14 @@ use crate::{
 
 use super::map::AsPathEntry;
 
+/// Report about the validity of a route, according to the RPSL.
 /// Use this in an `Option`, and use `None` to indicate "good."
+///
+/// Composed of a vector of [`ReportItem`]s.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
     Good(Vec<ReportItem>),
+    /// No enough information to decide.
     Neutral(Vec<ReportItem>),
     Bad(Vec<ReportItem>),
 }
@@ -27,6 +31,7 @@ impl Report {
     }
 }
 
+/// Single item in [`Report`] to signal some status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
     Success(SuccessType),
@@ -230,6 +235,7 @@ impl ToAllReport for Option<ReportItems> {
     }
 }
 
+/// Useful to join multiple [`AnyReport`]s.
 pub struct AnyReportAggregator {
     pub report_items: ReportItems,
     pub all_fail: bool,

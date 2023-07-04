@@ -9,13 +9,13 @@ use crate::{
 
 use super::{
     cmp::Compare,
-    query::QueryDump as Dump,
+    query::QueryDump,
     report::*,
     verbosity::{Verbosity, VerbosityReport},
 };
 
 pub struct CheckFilter<'a> {
-    pub dump: &'a Dump,
+    pub dump: &'a QueryDump,
     pub compare: &'a Compare,
     pub verbosity: Verbosity,
 }

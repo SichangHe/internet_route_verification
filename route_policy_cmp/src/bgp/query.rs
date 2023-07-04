@@ -5,15 +5,18 @@ use rayon::prelude::*;
 
 use crate::parse::{aut_num::AutNum, dump::Dump, set::*};
 
+/// Routes for one AS set, including the unrecorded and sets.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsSetRoute {
-    /// This field should always be sorted.
+    /// Should always be sorted.
     pub routes: Vec<IpNet>,
     pub unrecorded_nums: Vec<usize>,
     pub set_members: Vec<String>,
 }
 
 impl AsSetRoute {
+    /// Clean up `routes` and `unrecorded_nums` so they are compact ordered
+    /// sets.
     pub fn clean_up(&mut self) {
         self.routes.sort_unstable();
         self.routes.dedup();
@@ -23,6 +26,8 @@ impl AsSetRoute {
         self.unrecorded_nums.shrink_to_fit();
     }
 
+    /// Fill in routes for the AS with `as_set` with routes in `as_routes`.
+    /// The process is done only once, and the result [`AsSetRoute`] is cleaned.
     pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<usize, Vec<IpNet>>) -> Self {
         let mut routes = Vec::with_capacity(as_set.members.len() << 2);
         let mut unrecorded_nums = Vec::new();
@@ -42,6 +47,7 @@ impl AsSetRoute {
     }
 }
 
+/// Cleaned RPSL dump ready for query.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct QueryDump {
     pub aut_nums: BTreeMap<usize, AutNum>,
@@ -56,6 +62,7 @@ pub struct QueryDump {
 }
 
 impl QueryDump {
+    /// Clean `dump` and use it to create a [`QueryDump`].
     pub fn from_dump(dump: Dump) -> Self {
         let Dump {
             aut_nums,
@@ -63,8 +70,13 @@ impl QueryDump {
             route_sets,
             peering_sets,
             filter_sets,
-            as_routes,
+            mut as_routes,
         } = dump;
+        as_routes.par_iter_mut().for_each(|(_, routes)| {
+            routes.sort();
+            routes.dedup();
+            routes.shrink_to_fit();
+        });
         let as_set_routes = as_sets
             .par_iter()
             .map(|(name, set)| (name.clone(), AsSetRoute::from_as_set(set, &as_routes)))

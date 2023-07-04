@@ -22,6 +22,7 @@ use super::{
     set::{AsSet, FilterSet, PeeringSet, RouteSet},
 };
 
+/// Parsed RPSL dump.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Dump {
     pub aut_nums: BTreeMap<usize, AutNum>,
@@ -93,13 +94,15 @@ impl Dump {
         .collect()
     }
 
-    /// Split self based on the number of CPU logic cores available × 4.
+    /// Split `self` based on the number of CPU logic cores available × 4.
     pub fn split_n_cpus(self) -> Result<Vec<Self>> {
         let n: usize = available_parallelism()?.into();
         Ok(self.split_n(n * 4))
     }
 
-    /// Quickly write self to `directory` in parallel.
+    /// Split `self` and write to `directory` in parallel.
+    /// Non-existent `directory` is automatically created;
+    /// otherwise, it is assumed empty.
     pub fn pal_write<P>(self, directory: P) -> Result<()>
     where
         P: AsRef<Path>,
@@ -108,7 +111,7 @@ impl Dump {
         pal_write_dump(&splits, directory)
     }
 
-    /// When both `Dump`s have the same keys, choose `other`'s value.
+    /// When both [`Dump`]s have the same keys, choose `other`'s value.
     pub fn merge(mut self, other: Self) -> Self {
         let Self {
             aut_nums,
@@ -127,6 +130,11 @@ impl Dump {
         self
     }
 
+    /// Read a [`Dump`] from `directory` in parallel.
+    /// All files need to JSON and serialized from [Dump],
+    /// presumably, they were written using [`pal_write`](#method.pal_write)
+    /// in the first place.
+    /// No guarantee about the priorities of the files.
     pub fn pal_read<P>(directory: P) -> Result<Self>
     where
         P: AsRef<Path>,
@@ -184,6 +192,7 @@ where
     Ok(())
 }
 
+/// Merge `dumps` into a single [`Dump`] in parallel, with no ordering guarantee.
 pub fn merge_dumps(dumps: Vec<Dump>) -> Dump {
     dumps.into_par_iter().reduce(Dump::default, Dump::merge)
 }

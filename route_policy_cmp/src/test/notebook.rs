@@ -1,3 +1,4 @@
+//! Notebook usage example snippets.
 #![allow(dead_code)]
 #![allow(clippy::no_effect)]
 #![allow(unused_must_use)]
@@ -42,9 +43,7 @@ fn parse_bgp_lines() -> Result<()> {
     // ---
     // Generate all the reports:
     let start = Instant::now();
-    bgp_lines
-        .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check(&query)));
+    bgp_lines.par_iter_mut().for_each(|line| line.check(&query));
     println!("Used {}ms", start.elapsed().as_millis());
 
     // ---

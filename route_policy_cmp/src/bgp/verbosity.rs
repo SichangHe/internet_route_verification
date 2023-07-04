@@ -1,11 +1,17 @@
 use super::report::*;
 
+/// Verbosity level.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Verbosity {
+    /// Only report errors. Stops at the first error.
     ErrOnly,
+    /// Report errors and success.
     Brief,
+    /// Report errors, success and skips.
     ShowSkips,
+    /// Report error information for each RPSL policy entry.
     PerEntry,
+    /// All errors.
     Detailed,
 }
 

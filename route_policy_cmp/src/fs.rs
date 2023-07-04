@@ -1,15 +1,13 @@
-use anyhow::Result;
 use chardetng::EncodingDetector;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
-use log::debug;
-use rayon::prelude::*;
 use std::{fs::*, io::*, path::Path};
 
-use crate::{
+use super::{
     bgp::{parse_mrt, QueryDump},
     irr::*,
     parse::{parse_lexed, Dump},
+    Result, *,
 };
 
 pub fn parse(filename: &str, output_dir: &str) -> Result<()> {

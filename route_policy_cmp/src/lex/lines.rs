@@ -1,9 +1,10 @@
 use std::borrow::Cow;
-use std::io::{BufRead, BufReader, Read, Result, Write};
+use std::io::{Result, *};
 use std::mem;
 
 use lazy_regex::regex_replace_all;
-use log::error;
+
+use super::*;
 
 const CONTINUATION_CHARS: [&str; 3] = [" ", "+", "\t"];
 

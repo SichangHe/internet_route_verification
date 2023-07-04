@@ -1,32 +1,23 @@
-pub mod worker;
-
 use std::{
-    collections::BTreeMap,
     io::{BufReader, Read},
     process::ChildStdout,
     sync::mpsc::Sender,
 };
 
-use crate::{
-    lex::{
-        dump::Dump,
-        lines::{
-            expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr,
-        },
-        rpsl_object::AsOrRouteSet,
-    },
+use lazy_regex::regex;
+
+use super::{
+    lex::*,
     parse::{
         dump::{self, merge_dumps},
-        lex::parse_lexed,
+        parse_lexed,
     },
+    *,
 };
 
-use anyhow::Result;
-use lazy_regex::regex;
-use log::{debug, error, warn};
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+pub mod worker;
 
-use self::worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
+use worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
 pub fn gather_members(body: &str) -> Vec<String> {
     let mut members = Vec::new();

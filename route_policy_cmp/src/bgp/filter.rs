@@ -7,12 +7,7 @@ use crate::{
     },
 };
 
-use super::{
-    cmp::Compare,
-    query::QueryDump,
-    report::*,
-    verbosity::{Verbosity, VerbosityReport},
-};
+use super::*;
 
 pub struct CheckFilter<'a> {
     pub dump: &'a QueryDump,

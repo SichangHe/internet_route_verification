@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 pub mod cmp;
 pub mod filter;
 pub mod map;
@@ -14,3 +16,10 @@ pub use {
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},
 };
+
+use filter::CheckFilter;
+use map::*;
+use peering::CheckPeering;
+use report::*;
+use verbosity::*;
+

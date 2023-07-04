@@ -7,7 +7,7 @@ use crate::{
     parse::{address_prefix::RangeOperator, aut_sys::AsName, set::RouteSetMember},
 };
 
-use super::map::AsPathEntry;
+use super::*;
 
 /// Report about the validity of a route, according to the RPSL.
 /// Use this in an `Option`, and use `None` to indicate "good."

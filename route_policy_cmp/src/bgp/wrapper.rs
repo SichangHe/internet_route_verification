@@ -5,8 +5,6 @@ use std::{
     process::Command,
 };
 
-use anyhow::Result;
-
 use crate::cmd::OutputChild;
 
 use super::*;

@@ -3,15 +3,10 @@ use crate::parse::{
     peering::{AsExpr, Peering},
 };
 
-use super::{
-    cmp::Compare,
-    query::QueryDump as Dump,
-    report::*,
-    verbosity::{Verbosity, VerbosityReport},
-};
+use super::*;
 
 pub struct CheckPeering<'a> {
-    pub dump: &'a Dump,
+    pub dump: &'a QueryDump,
     pub compare: &'a Compare,
     pub accept_num: usize,
     pub verbosity: Verbosity,

@@ -1,8 +1,8 @@
 use std::net::IpAddr;
 
-use serde::{Deserialize, Serialize};
-
 use crate::lex::peering::{self, ComplexAsExpr};
+
+use super::*;
 
 pub fn parse_router_expr(router_expr: peering::AsExpr) -> RouterExpr {
     match router_expr {

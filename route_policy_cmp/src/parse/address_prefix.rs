@@ -1,9 +1,8 @@
 use std::{convert::identity, str::FromStr};
 
-use anyhow::{bail, Context, Ok};
-use ipnet::IpNet;
 use lazy_regex::regex_captures;
-use serde::{Deserialize, Serialize};
+
+use super::*;
 
 /// An address prefix `IpNet` followed by an optional range operator `RangeOperator`.
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-5>.

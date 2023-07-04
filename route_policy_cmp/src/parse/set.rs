@@ -1,12 +1,6 @@
-use anyhow::{Context, Result};
 use lazy_regex::{regex_captures, regex_is_match};
-use serde::{Deserialize, Serialize};
 
-use super::{
-    address_prefix::{AddrPfxRange, RangeOperator},
-    filter::Filter,
-    peering::Peering,
-};
+use super::*;
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.1>
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

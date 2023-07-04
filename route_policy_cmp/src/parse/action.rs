@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
-
 use crate::lex::action;
+
+use super::*;
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-6.1.1>
 pub type Actions = BTreeMap<String, Action>;

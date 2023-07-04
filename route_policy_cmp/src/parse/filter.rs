@@ -1,17 +1,9 @@
 use lazy_regex::{regex_captures, regex_is_match};
-use log::error;
-use serde::{Deserialize, Serialize};
 
 use crate::lex::{community::Call, filter};
 
-use super::{
-    address_prefix::{
-        AddrPfxRange,
-        RangeOperator::{self, NoOp},
-    },
-    aut_sys::AsName,
-    peering::{AsExpr, Peering, PeeringAction},
-};
+use super::*;
+use RangeOperator::NoOp;
 
 pub fn parse_filter(mp_filter: filter::Filter, mp_peerings: &[PeeringAction]) -> Filter {
     use filter::Filter::*;

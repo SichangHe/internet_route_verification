@@ -1,18 +1,11 @@
-use std::collections::BTreeMap;
-
-use anyhow::{bail, Context, Error, Result};
-use ipnet::IpNet;
 use lazy_regex::regex_captures;
-use log::{debug, error};
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use super::{
-    aut_num::AutNum,
-    aut_sys::{is_as_set, parse_as_name, AsName},
-    dump::Dump,
+    aut_sys::{is_as_set, parse_as_name},
     mp_import::parse_imports,
     peering::{is_peering_set, parse_mp_peering},
-    set::{is_route_set_name, AsSet, FilterSet, PeeringSet, RouteSet},
+    set::is_route_set_name,
+    *,
 };
 use crate::{
     lex::{dump, rpsl_object},

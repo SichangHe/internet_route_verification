@@ -1,6 +1,4 @@
-use serde::{Deserialize, Serialize};
-
-use super::mp_import::Versions;
+use super::*;
 
 #[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AutNum {

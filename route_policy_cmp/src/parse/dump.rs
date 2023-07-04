@@ -1,26 +1,15 @@
 use std::{
-    collections::BTreeMap,
     fs::{create_dir_all, read_dir, File},
     io::{BufReader, Write},
     path::Path,
     thread::available_parallelism,
 };
 
-use anyhow::Result;
-use ipnet::IpNet;
 use itertools::izip;
-use log::debug;
-use rayon::prelude::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
-use serde::{Deserialize, Serialize};
 
 use crate::serde::from_reader;
 
-use super::{
-    aut_num::AutNum,
-    set::{AsSet, FilterSet, PeeringSet, RouteSet},
-};
+use super::*;
 
 /// Parsed RPSL dump.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

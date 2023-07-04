@@ -1,12 +1,12 @@
 use lazy_regex::{regex_captures, regex_is_match};
 
-use crate::lex::{community::Call, filter};
+use crate::lex::{self, Call};
 
 use super::*;
 use RangeOperator::NoOp;
 
-pub fn parse_filter(mp_filter: filter::Filter, mp_peerings: &[PeeringAction]) -> Filter {
-    use filter::Filter::*;
+pub fn parse_filter(mp_filter: lex::Filter, mp_peerings: &[PeeringAction]) -> Filter {
+    use lex::Filter::*;
     match mp_filter {
         Any => Filter::Any,
         And { left, right } => Filter::And {

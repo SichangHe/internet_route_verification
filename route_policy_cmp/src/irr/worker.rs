@@ -6,19 +6,9 @@ use std::{
     thread::{spawn, JoinHandle},
 };
 
-use anyhow::Result;
-use log::{debug, error, warn};
+use crate::{cmd::PipedChild, serialize::from_str};
 
-use crate::{
-    cmd::PipedChild,
-    lex::{
-        lines::RPSLObject,
-        rpsl_object::{AutNum, FilterSet, PeeringSet},
-    },
-    serialize::from_str,
-};
-
-use super::read_line_wait;
+use super::*;
 
 pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<Vec<AutNum>>>)> {
     let (send, recv) = channel();

@@ -14,14 +14,16 @@ pub mod set;
 
 pub use {
     action::{parse_actions, Actions},
-    address_prefix::{AddrPfxRange, RangeOperator},
+    address_prefix::{match_ips, AddrPfxRange, RangeOperator},
     aut_num::AutNum,
-    aut_sys::{parse_as_name, AsName},
+    aut_sys::{is_as_set, parse_as_name, AsName},
     dump::Dump,
-    filter::{parse_filter, Filter},
+    filter::{is_filter_set, parse_filter, Filter},
     lex::parse_lexed,
-    mp_import::Versions,
-    peering::{parse_mp_peerings, AsExpr, Peering, PeeringAction},
+    mp_import::{parse_imports, Casts, Entry, Versions},
+    peering::{
+        is_peering_set, parse_mp_peering, parse_mp_peerings, AsExpr, Peering, PeeringAction,
+    },
     router_expr::{parse_router_expr, RouterExpr},
-    set::{AsSet, FilterSet, PeeringSet, RouteSet},
+    set::{is_route_set_name, AsSet, FilterSet, PeeringSet, RouteSet, RouteSetMember},
 };

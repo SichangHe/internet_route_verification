@@ -1,5 +1,4 @@
-use crate::lex::peering;
-use crate::parse::peering::{is_peering_set, parse_mp_peering, AsExpr, Peering};
+use crate::{lex, parse::*};
 
 #[test]
 fn peering_set() {
@@ -21,9 +20,9 @@ fn peering_set() {
     assert!(!is_set);
 }
 
-fn peering_field(name: String) -> peering::Peering {
-    peering::Peering {
-        as_expr: peering::AsExpr::Field(name),
+fn peering_field(name: String) -> lex::Peering {
+    lex::Peering {
+        as_expr: lex::AsExpr::Field(name),
         router_expr1: None,
         router_expr2: None,
     }

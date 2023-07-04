@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, mem};
 
 use anyhow::{bail, Context, Error, Result};
 use ipnet::IpNet;

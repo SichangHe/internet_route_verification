@@ -1,6 +1,5 @@
 use std::{
     io::{self, BufRead},
-    mem,
     path::Path,
     process::Command,
 };

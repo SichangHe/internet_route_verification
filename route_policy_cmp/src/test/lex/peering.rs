@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-use crate::lex::peering::{AsExpr::*, ComplexAsExpr::*, Peering};
+use crate::lex::{AsExpr::*, ComplexAsExpr::*, Peering};
 
 use super::*;
 

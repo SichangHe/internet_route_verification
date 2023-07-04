@@ -1,6 +1,6 @@
 use std::iter::zip;
 
-use crate::lex::filter::Filter::{self, *};
+use crate::lex::Filter::{self, *};
 
 use super::*;
 

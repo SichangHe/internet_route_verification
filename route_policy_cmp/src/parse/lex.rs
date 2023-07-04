@@ -1,20 +1,11 @@
 use lazy_regex::regex_captures;
 
-use super::{
-    aut_sys::{is_as_set, parse_as_name},
-    mp_import::parse_imports,
-    peering::{is_peering_set, parse_mp_peering},
-    set::is_route_set_name,
-    *,
-};
-use crate::{
-    lex::{dump, rpsl_object},
-    parse::filter::{is_filter_set, parse_filter},
-};
+use super::*;
+use crate::lex;
 
-pub fn parse_lexed(lexed: dump::Dump) -> Dump {
+pub fn parse_lexed(lexed: lex::Dump) -> Dump {
     debug!("Start to parse lexed dump.");
-    let dump::Dump {
+    let lex::Dump {
         aut_nums,
         as_sets,
         route_sets,
@@ -34,16 +25,16 @@ pub fn parse_lexed(lexed: dump::Dump) -> Dump {
     dump
 }
 
-pub fn parse_lexed_aut_nums(lexed: Vec<rpsl_object::AutNum>) -> BTreeMap<usize, AutNum> {
+pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> BTreeMap<usize, AutNum> {
     lexed
         .into_par_iter()
         .filter_map(|l| parse_lexed_aut_num(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
 
-pub fn parse_lexed_aut_num(aut_num: rpsl_object::AutNum) -> Result<(usize, AutNum)> {
+pub fn parse_lexed_aut_num(aut_num: lex::AutNum) -> Result<(usize, AutNum)> {
     let num = parse_aut_num_name(&aut_num.name).context(format!("parsing {aut_num:?}"))?;
-    let rpsl_object::AutNum {
+    let lex::AutNum {
         name: _,
         body,
         imports,
@@ -70,14 +61,14 @@ pub fn parse_aut_num_name(name: &str) -> Result<usize> {
     }
 }
 
-pub fn parse_lexed_as_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, AsSet> {
+pub fn parse_lexed_as_sets(lexed: Vec<lex::AsOrRouteSet>) -> BTreeMap<String, AsSet> {
     lexed
         .into_par_iter()
         .filter_map(|l| parse_lexed_as_set(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
 
-pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, AsSet)> {
+pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
     if !is_as_set(&lexed.name) {
         bail!("invalid AS Set name in {lexed:?}");
     }
@@ -103,14 +94,14 @@ pub fn parse_lexed_as_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, A
     Ok((lexed.name, as_set))
 }
 
-pub fn parse_lexed_route_sets(lexed: Vec<rpsl_object::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {
+pub fn parse_lexed_route_sets(lexed: Vec<lex::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {
     lexed
         .into_par_iter()
         .filter_map(|l| parse_lexed_route_set(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
 
-pub fn parse_lexed_route_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String, RouteSet)> {
+pub fn parse_lexed_route_set(lexed: lex::AsOrRouteSet) -> Result<(String, RouteSet)> {
     if !is_route_set_name(&lexed.name) {
         bail!(
             "{} is an invalid route set name—parsing {lexed:?}",
@@ -132,16 +123,14 @@ pub fn parse_lexed_route_set(lexed: rpsl_object::AsOrRouteSet) -> Result<(String
     ))
 }
 
-pub fn parse_lexed_peering_sets(
-    lexed: Vec<rpsl_object::PeeringSet>,
-) -> BTreeMap<String, PeeringSet> {
+pub fn parse_lexed_peering_sets(lexed: Vec<lex::PeeringSet>) -> BTreeMap<String, PeeringSet> {
     lexed
         .into_par_iter()
         .filter_map(|l| parse_lexed_peering_set(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
 
-pub fn parse_lexed_peering_set(lexed: rpsl_object::PeeringSet) -> Result<(String, PeeringSet)> {
+pub fn parse_lexed_peering_set(lexed: lex::PeeringSet) -> Result<(String, PeeringSet)> {
     if !is_peering_set(&lexed.name) {
         bail!(
             "{} is an invalid peering set name—parsing {lexed:?}",
@@ -157,14 +146,14 @@ pub fn parse_lexed_peering_set(lexed: rpsl_object::PeeringSet) -> Result<(String
     ))
 }
 
-pub fn parse_lexed_filter_sets(lexed: Vec<rpsl_object::FilterSet>) -> BTreeMap<String, FilterSet> {
+pub fn parse_lexed_filter_sets(lexed: Vec<lex::FilterSet>) -> BTreeMap<String, FilterSet> {
     lexed
         .into_par_iter()
         .filter_map(|l| parse_lexed_filter_set(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
 
-pub fn parse_lexed_filter_set(lexed: rpsl_object::FilterSet) -> Result<(String, FilterSet)> {
+pub fn parse_lexed_filter_set(lexed: lex::FilterSet) -> Result<(String, FilterSet)> {
     if !is_filter_set(&lexed.name) {
         bail!(
             "{} is an invalid filter set name—parsing {lexed:?}",

@@ -1,22 +1,16 @@
-use std::collections::BTreeMap;
-
-use ipnet::IpNet;
 use maplit::btreemap;
 use net_literals::ip;
 
 use crate::{
     lex::action::Action::*,
     parse::{
-        address_prefix::{AddrPfxRange, RangeOperator::NoOp},
-        aut_num::AutNum,
-        aut_sys::AsName::*,
-        dump::Dump,
-        filter::Filter::*,
-        lex::{parse_aut_num_name, parse_lexed},
-        mp_import::{Casts, Entry, Versions},
-        peering::{AsExpr::*, Peering, PeeringAction},
-        router_expr::RouterExpr::*,
+        lex::parse_aut_num_name,
         set::{AsSet, FilterSet, PeeringSet, RouteSet, RouteSetMember::*},
+        AsExpr::*,
+        AsName::*,
+        Filter::*,
+        RangeOperator::NoOp,
+        RouterExpr::*,
     },
     test::lex::dump::expected_dump,
 };
@@ -197,7 +191,7 @@ fn expected_peering_sets() -> BTreeMap<String, PeeringSet> {
 }
 
 fn expected_filter_sets() -> BTreeMap<String, FilterSet> {
-    use crate::parse::{filter::Filter::*, set::FilterSet};
+    use crate::parse::{Filter::*, FilterSet};
 
     btreemap! {"FLTR-EUX".into()=> FilterSet { body: "filter: AS8785 AND AS13285\ndescr: test filter set 1\nmnt-by: MISTRALNOC\nadmin-c: DUMY-RIPE\ntech-c: DUMY-RIPE\ncreated: 2002-08-23T22:50:47Z\nlast-modified: 2005-10-10T11:47:30Z\nsource: RIPE\nremarks: ****************************\nremarks: * THIS OBJECT IS MODIFIED\nremarks: * Please note that all data that is generally regarded as personal\nremarks: * data has been removed from this object.\nremarks: * To view the original object, please query the RIPE Database at:\nremarks: * http://www.ripe.net/whois\nremarks: ****************************\n".into(), filters: vec![And { left: Box::new(AsNum(8785, NoOp)), right: Box::new(AsNum(13285, NoOp)) }] }}
 }

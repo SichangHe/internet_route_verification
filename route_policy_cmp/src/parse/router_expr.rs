@@ -1,13 +1,13 @@
 use std::net::IpAddr;
 
-use crate::lex::peering::{self, ComplexAsExpr};
+use crate::lex::{self, ComplexAsExpr};
 
 use super::*;
 
-pub fn parse_router_expr(router_expr: peering::AsExpr) -> RouterExpr {
+pub fn parse_router_expr(router_expr: lex::AsExpr) -> RouterExpr {
     match router_expr {
-        peering::AsExpr::Field(field) => parse_simple_router_expr(field),
-        peering::AsExpr::AsComp(comp) => parse_complex_router_expr(comp),
+        lex::AsExpr::Field(field) => parse_simple_router_expr(field),
+        lex::AsExpr::AsComp(comp) => parse_complex_router_expr(comp),
     }
 }
 

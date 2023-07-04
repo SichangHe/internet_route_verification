@@ -16,6 +16,6 @@ pub use {
     filter::Filter,
     lines::{expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr},
     mp_import::Versions,
-    peering::Peering,
+    peering::{AsExpr, ComplexAsExpr, Peering},
     rpsl_object::{AsOrRouteSet, AutNum, FilterSet, PeeringSet},
 };

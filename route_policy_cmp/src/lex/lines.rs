@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::io::{Result, *};
-use std::mem;
 
 use lazy_regex::regex_replace_all;
 

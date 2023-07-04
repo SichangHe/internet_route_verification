@@ -15,7 +15,7 @@ use crate::{
         lines::RPSLObject,
         rpsl_object::{AutNum, FilterSet, PeeringSet},
     },
-    serde::from_str,
+    serialize::from_str,
 };
 
 use super::read_line_wait;

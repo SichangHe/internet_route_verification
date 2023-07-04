@@ -1,6 +1,10 @@
-use anyhow::{bail, Result};
-use log::debug;
+use std::collections::BTreeMap;
+
+use anyhow::{bail, Context, Error, Result};
+use ipnet::IpNet;
+use log::{debug, error};
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     bgp::{query::QueryDump, *},
@@ -13,7 +17,7 @@ pub mod fs;
 pub mod irr;
 pub mod lex;
 pub mod parse;
-pub mod serde;
+pub mod serialize;
 
 pub fn parse(args: Vec<String>) -> Result<()> {
     if args.len() < 4 {

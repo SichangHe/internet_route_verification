@@ -7,7 +7,7 @@ use std::{
 
 use itertools::izip;
 
-use crate::serde::from_reader;
+use crate::serialize::from_reader;
 
 use super::*;
 

@@ -40,6 +40,14 @@ fn parse_bgp_lines() -> Result<()> {
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
     // ---
+    // Generate all the reports:
+    let start = Instant::now();
+    bgp_lines
+        .par_iter_mut()
+        .for_each(|line| line.report = Some(line.compare.check(&query)));
+    println!("Used {}ms", start.elapsed().as_millis());
+
+    // ---
     // Benchmark for `match_ips`:
     const SIZE: usize = 0x10000;
     let start = Instant::now();

@@ -26,6 +26,7 @@ pub struct Compare {
 
 impl Compare {
     pub fn new(prefix: IpNet, mut as_path: Vec<AsPathEntry>) -> Self {
+        as_path.dedup();
         as_path.shrink_to_fit();
         Self {
             prefix,

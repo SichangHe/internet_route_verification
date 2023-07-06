@@ -4,6 +4,8 @@ use crate::bgp::map::{parse_table_dump, AsPathEntry};
 
 use super::*;
 
+mod cmp;
+
 #[test]
 fn table_dump() -> Result<()> {
     let line = "TABLE_DUMP2|1619481601|B|94.156.252.18|34224|6.132.0.0/14|34224 6939 8003|IGP|94.156.252.18|0|0|34224:333 34224:334 34224:2040|NAG|||";

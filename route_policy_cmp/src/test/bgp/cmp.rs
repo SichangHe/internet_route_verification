@@ -25,7 +25,6 @@ fn selected_checks() -> Result<()> {
 
 fn reports() -> [Vec<Report>; 1] {
     [vec![
-        Bad(vec![NoMatch(NoExportRuleSingle(9583))]),
         Bad(vec![NoMatch(NoExportRule(9583, 2914))]),
         Bad(vec![NoMatch(NoImportRule(2914, 9583))]),
     ]]

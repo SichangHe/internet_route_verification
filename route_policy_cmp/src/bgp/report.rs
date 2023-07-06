@@ -247,7 +247,7 @@ impl AnyReportAggregator {
 
     pub fn join(&mut self, (report_items, fail): (ReportItems, bool)) {
         self.report_items.extend(report_items);
-        self.all_fail = self.all_fail || fail;
+        self.all_fail = self.all_fail && fail;
     }
 }
 

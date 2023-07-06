@@ -32,7 +32,7 @@ impl Compare {
             prefix,
             as_path,
             recursion_limit: RECURSION_LIMIT,
-            verbosity: Verbosity::ErrOnly,
+            verbosity: Verbosity::StopAtError,
         }
     }
 
@@ -54,7 +54,9 @@ impl Compare {
     /// If [`Verbosity::ErrOnly`], stops at the first erroneous AS pair.
     pub fn check(&self, dump: &QueryDump) -> Vec<Report> {
         let mut reports = Vec::with_capacity(self.as_path.len() * 2);
-        reports.extend(self.check_last_export(dump));
+        if self.as_path.len() == 1 {
+            reports.extend(self.check_last_export(dump));
+        }
 
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         let pairs = self
@@ -68,7 +70,7 @@ impl Compare {
                     r if r.is_empty() => (),
                     r => {
                         reports.extend(r);
-                        if self.verbosity <= Verbosity::ErrOnly {
+                        if self.verbosity <= Verbosity::StopAtError {
                             break;
                         }
                     }
@@ -96,11 +98,17 @@ impl Compare {
     }
 
     pub fn check_pair(&self, dump: &QueryDump, from: usize, to: usize) -> Vec<Report> {
-        let from_report = self
-            .get_aut_num_then(dump, from, |from_an| {
-                self.check_export(dump, from_an, from, Some(to))
-            })
-            .or_else(|| self.success_report(|| SuccessType::Export(from, to)));
+        let from_report = match self.get_aut_num_then(dump, from, |from_an| {
+            self.check_export(dump, from_an, from, Some(to))
+        }) {
+            Some(r) => {
+                if self.verbosity <= Verbosity::StopAtError {
+                    return vec![r];
+                }
+                Some(r)
+            }
+            None => self.success_report(|| SuccessType::Export(from, to)),
+        };
         let to_report = self
             .get_aut_num_then(dump, to, |to_an| self.check_import(dump, to_an, from, to))
             .or_else(|| self.success_report(|| SuccessType::Import(to, from)));

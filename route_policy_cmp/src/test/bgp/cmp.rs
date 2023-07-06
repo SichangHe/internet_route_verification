@@ -16,7 +16,8 @@ fn selected_checks() -> Result<()> {
     let query = QueryDump::from_dump(dump);
 
     for (expected_report, line) in reports().into_iter().zip(LINES) {
-        let compare = Compare::with_line_dump(line)?;
+        let mut compare = Compare::with_line_dump(line)?;
+        compare.verbosity = Verbosity::ErrOnly;
         let actual_report = compare.check(&query);
         assert_eq!(expected_report, actual_report);
     }

@@ -3,7 +3,9 @@ use super::report::*;
 /// Verbosity level.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Verbosity {
-    /// Only report errors. Stops at the first error.
+    /// Only report errors and stop at the first error.
+    StopAtError,
+    /// Only report errors.
     ErrOnly,
     /// Report errors and success.
     Brief,

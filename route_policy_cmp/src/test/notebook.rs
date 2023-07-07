@@ -46,6 +46,24 @@ fn parse_bgp_lines() -> Result<()> {
     bgp_lines.par_iter_mut().for_each(|line| line.check(&query));
     println!("Used {}ms", start.elapsed().as_millis());
 
+    // Statistics on number of bad/neutral/good routes.
+    let bad_neutral_good = bgp_lines
+        .par_iter_mut()
+        .map(|l| {
+            if let Some(report) = &l.report {
+                if !report.is_empty() {
+                    return (1, 0, 0);
+                }
+            }
+            l.compare.verbosity = Verbosity::ShowSkips;
+            let report = l.compare.check(&query);
+            match report.iter().any(|r| matches!(r, Report::Neutral(_))) {
+                true => (0, 1, 0),
+                false => (0, 0, 1),
+            }
+        })
+        .reduce(|| (0, 0, 0), |(x, y, z), (a, b, c)| (x + a, y + b, z + c));
+
     // ---
     // Benchmark for `match_ips`:
     const SIZE: usize = 0x10000;

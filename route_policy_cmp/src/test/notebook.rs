@@ -10,6 +10,7 @@ use crate as route_policy_cmp;
 use rayon::prelude::*;
 use route_policy_cmp::{bgp::*, parse::dump::Dump};
 use std::{
+    collections::BTreeMap,
     fs::File,
     io::{prelude::*, BufReader},
     time::Instant,
@@ -63,6 +64,46 @@ fn parse_bgp_lines() -> Result<()> {
             }
         })
         .reduce(|| (0, 0, 0), |(x, y, z), (a, b, c)| (x + a, y + b, z + c));
+
+    // Numbers of import and export errors for each AS.
+    fn increment(x: &mut usize) {
+        *x += 1;
+    }
+    let import_export_ns_err = bgp_lines
+        .par_iter_mut()
+        .map(|l| {
+            l.compare.verbosity = Verbosity::ShowSkips;
+            let reports = l.compare.check(&query);
+            let mut import_ns_err = BTreeMap::new();
+            let mut export_ns_err = BTreeMap::new();
+            for report in reports {
+                if let Report::Bad(items) = report {
+                    items.into_iter().for_each(|item| {
+                        if let ReportItem::NoMatch(problem) = item {
+                            match problem {
+                                MatchProblem::NoExportRule(n, _)
+                                | MatchProblem::NoExportRuleSingle(n) => {
+                                    export_ns_err.entry(n).and_modify(increment).or_insert(1);
+                                }
+                                MatchProblem::NoImportRule(n, _) => {
+                                    import_ns_err.entry(n).and_modify(increment).or_insert(1);
+                                }
+                                _ => (),
+                            }
+                        }
+                    })
+                }
+            }
+            (import_ns_err, export_ns_err)
+        })
+        .reduce(
+            || (BTreeMap::new(), BTreeMap::new()),
+            |(mut im, mut ex), (i, x)| {
+                im.extend(i);
+                ex.extend(x);
+                (im, ex)
+            },
+        );
 
     // ---
     // Benchmark for `match_ips`:

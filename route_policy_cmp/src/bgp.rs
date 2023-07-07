@@ -12,7 +12,7 @@ pub mod wrapper;
 pub use {
     cmp::Compare,
     query::QueryDump,
-    report::{Report, ReportItem},
+    report::{MatchProblem, Report, ReportItem, SkipReason, SuccessType},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},
 };

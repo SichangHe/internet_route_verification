@@ -127,7 +127,6 @@ impl<'a> CheckFilter<'a> {
         if visited.contains(&name) {
             return failed_any_report();
         }
-        visited.push(name);
 
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
@@ -140,13 +139,32 @@ impl<'a> CheckFilter<'a> {
         if match_ips(&self.compare.prefix, &as_set_route.routes, op) {
             return None;
         }
+
+        self.filter_as_set_members(name, op, depth, visited, as_set_route)
+    }
+
+    fn filter_as_set_members(
+        &self,
+        name: &'a str,
+        op: RangeOperator,
+        depth: isize,
+        visited: &mut Vec<&'a str>,
+        as_set_route: &'a AsSetRoute,
+    ) -> AnyReport {
+        visited.push(name);
+
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set_route.set_members {
             aggregator.join(self.filter_as_set(set, op, depth - 1, visited)?);
         }
-        for num in &as_set_route.unrecorded_nums {
-            aggregator.join(self.skip_any_report(|| SkipReason::AsRoutesUnrecorded(*num))?);
-        }
+
+        aggregator.join(self.skip_any_reports(|| {
+            as_set_route
+                .unrecorded_nums
+                .iter()
+                .map(|num| SkipReason::AsRoutesUnrecorded(*num))
+        })?);
+
         if aggregator.all_fail {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))
         } else {

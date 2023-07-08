@@ -61,6 +61,18 @@ pub trait VerbosityReport {
         }
     }
 
+    fn skip_any_reports<F, I>(&self, reasons: F) -> AnyReport
+    where
+        F: Fn() -> I,
+        I: IntoIterator<Item = SkipReason>,
+    {
+        if self.get_verbosity() >= Verbosity::ShowSkips {
+            skip_any_reports(reasons())
+        } else {
+            empty_skip_any_report()
+        }
+    }
+
     fn no_match_any_report<F>(&self, reason: F) -> AnyReport
     where
         F: Fn() -> MatchProblem,

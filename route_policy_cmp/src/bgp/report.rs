@@ -173,6 +173,14 @@ pub fn skip_any_report(reason: SkipReason) -> AnyReport {
     Some((skips, false))
 }
 
+pub fn skip_any_reports<I>(reasons: I) -> AnyReport
+where
+    I: IntoIterator<Item = SkipReason>,
+{
+    let skips = reasons.into_iter().map(Skip).collect();
+    Some((skips, false))
+}
+
 pub const fn empty_skip_any_report() -> AnyReport {
     Some((vec![], false))
 }

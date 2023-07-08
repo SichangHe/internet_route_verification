@@ -7,6 +7,12 @@
 use super::*;
 use crate as route_policy_cmp;
 
+// :opt 3
+// :dep route_policy_cmp = { path = "route_policy_cmp" }
+// :dep rayon
+// :dep polars = { version = "0.30.0", features = ["describe"] }
+
+use polars::prelude::*;
 use rayon::prelude::*;
 use route_policy_cmp::{bgp::*, parse::dump::Dump};
 use std::{
@@ -37,7 +43,7 @@ fn parse_bgp_lines() -> Result<()> {
     let parsed = Dump::pal_read("parsed_all")?;
     let query: QueryDump = QueryDump::from_dump(parsed);
 
-    query.aut_nums.iter().next();
+    println!("{:#?}", query.aut_nums.iter().next());
 
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
@@ -69,41 +75,62 @@ fn parse_bgp_lines() -> Result<()> {
     fn increment(x: &mut usize) {
         *x += 1;
     }
-    let import_export_ns_err = bgp_lines
-        .par_iter_mut()
-        .map(|l| {
-            l.compare.verbosity = Verbosity::ShowSkips;
-            let reports = l.compare.check(&query);
-            let mut import_ns_err = BTreeMap::new();
-            let mut export_ns_err = BTreeMap::new();
-            for report in reports {
-                if let Report::Bad(items) = report {
-                    items.into_iter().for_each(|item| {
-                        if let ReportItem::NoMatch(problem) = item {
-                            match problem {
-                                MatchProblem::NoExportRule(n, _)
-                                | MatchProblem::NoExportRuleSingle(n) => {
-                                    export_ns_err.entry(n).and_modify(increment).or_insert(1);
+    let (import_ns_err, export_ns_err): (BTreeMap<usize, usize>, BTreeMap<usize, usize>) =
+        bgp_lines
+            .par_iter_mut()
+            .map(|l| {
+                l.compare.verbosity = Verbosity::ShowSkips;
+                let reports = l.compare.check(&query);
+                let mut import_ns_err = BTreeMap::new();
+                let mut export_ns_err = BTreeMap::new();
+                for report in reports {
+                    if let Report::Bad(items) = report {
+                        items.into_iter().for_each(|item| {
+                            if let ReportItem::NoMatch(problem) = item {
+                                match problem {
+                                    MatchProblem::NoExportRule(n, _)
+                                    | MatchProblem::NoExportRuleSingle(n) => {
+                                        export_ns_err.entry(n).and_modify(increment).or_insert(1);
+                                    }
+                                    MatchProblem::NoImportRule(n, _) => {
+                                        import_ns_err.entry(n).and_modify(increment).or_insert(1);
+                                    }
+                                    _ => (),
                                 }
-                                MatchProblem::NoImportRule(n, _) => {
-                                    import_ns_err.entry(n).and_modify(increment).or_insert(1);
-                                }
-                                _ => (),
                             }
-                        }
-                    })
+                        })
+                    }
                 }
-            }
-            (import_ns_err, export_ns_err)
-        })
-        .reduce(
-            || (BTreeMap::new(), BTreeMap::new()),
-            |(mut im, mut ex), (i, x)| {
-                im.extend(i);
-                ex.extend(x);
-                (im, ex)
-            },
-        );
+                (import_ns_err, export_ns_err)
+            })
+            .reduce(
+                || (BTreeMap::new(), BTreeMap::new()),
+                |(mut im, mut ex), (i, x)| {
+                    im.extend(i);
+                    ex.extend(x);
+                    (im, ex)
+                },
+            );
+    let mut import_export_ns_err: BTreeMap<usize, [i32; 2]> = import_ns_err
+        .iter()
+        .map(|(k, v)| (*k, [*v as i32, 0]))
+        .collect::<BTreeMap<_, _>>();
+    export_ns_err.iter().for_each(|(k, v)| {
+        _ = import_export_ns_err
+            .entry(*k)
+            .and_modify(|e| e[1] = *v as i32)
+            .or_insert([0, *v as i32])
+    });
+    let mut err_df = DataFrame::new(
+        import_export_ns_err
+            .into_iter()
+            .map(|(k, v)| Series::new(&format!("AS{k}"), v))
+            .collect::<Vec<_>>(),
+    )?;
+    let description = err_df.describe(None)?;
+    println!("{description}");
+    let mut csv_writer = CsvWriter::new(File::create("import_export_err_per_as.csv")?);
+    csv_writer.finish(&mut err_df)?;
 
     // ---
     // Benchmark for `match_ips`:

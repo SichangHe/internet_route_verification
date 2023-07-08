@@ -72,54 +72,58 @@ fn parse_bgp_lines() -> Result<()> {
         .reduce(|| (0, 0, 0), |(x, y, z), (a, b, c)| (x + a, y + b, z + c));
 
     // Numbers of import and export errors for each AS.
-    fn increment(x: &mut usize) {
+    fn increment(x: &mut i32) {
         *x += 1;
     }
-    let (import_ns_err, export_ns_err): (BTreeMap<usize, usize>, BTreeMap<usize, usize>) =
-        bgp_lines
-            .par_iter_mut()
-            .map(|l| {
-                l.compare.verbosity = Verbosity::ShowSkips;
-                let reports = l.compare.check(&query);
-                let mut import_ns_err = BTreeMap::new();
-                let mut export_ns_err = BTreeMap::new();
-                for report in reports {
-                    if let Report::Bad(items) = report {
-                        items.into_iter().for_each(|item| {
-                            if let ReportItem::NoMatch(problem) = item {
-                                match problem {
-                                    MatchProblem::NoExportRule(n, _)
-                                    | MatchProblem::NoExportRuleSingle(n) => {
-                                        export_ns_err.entry(n).and_modify(increment).or_insert(1);
-                                    }
-                                    MatchProblem::NoImportRule(n, _) => {
-                                        import_ns_err.entry(n).and_modify(increment).or_insert(1);
-                                    }
-                                    _ => (),
+    fn merge_counts(
+        mut map1: BTreeMap<usize, i32>,
+        map2: BTreeMap<usize, i32>,
+    ) -> BTreeMap<usize, i32> {
+        for (key, value) in map2 {
+            map1.entry(key).and_modify(|v| *v += value).or_insert(value);
+        }
+        map1
+    }
+    let (import_ns_err, export_ns_err): (BTreeMap<usize, i32>, BTreeMap<usize, i32>) = bgp_lines
+        .par_iter_mut()
+        .map(|l| {
+            l.compare.verbosity = Verbosity::ShowSkips;
+            let reports = l.compare.check(&query);
+            let mut import_ns_err = BTreeMap::new();
+            let mut export_ns_err = BTreeMap::new();
+            for report in reports {
+                if let Report::Bad(items) = report {
+                    items.into_iter().for_each(|item| {
+                        if let ReportItem::NoMatch(problem) = item {
+                            match problem {
+                                MatchProblem::NoExportRule(n, _)
+                                | MatchProblem::NoExportRuleSingle(n) => {
+                                    export_ns_err.entry(n).and_modify(increment).or_insert(1);
                                 }
+                                MatchProblem::NoImportRule(n, _) => {
+                                    import_ns_err.entry(n).and_modify(increment).or_insert(1);
+                                }
+                                _ => (),
                             }
-                        })
-                    }
+                        }
+                    })
                 }
-                (import_ns_err, export_ns_err)
-            })
-            .reduce(
-                || (BTreeMap::new(), BTreeMap::new()),
-                |(mut im, mut ex), (i, x)| {
-                    im.extend(i);
-                    ex.extend(x);
-                    (im, ex)
-                },
-            );
+            }
+            (import_ns_err, export_ns_err)
+        })
+        .reduce(
+            || (BTreeMap::new(), BTreeMap::new()),
+            |(im, ex), (i, x)| (merge_counts(im, i), merge_counts(ex, x)),
+        );
     let mut import_export_ns_err: BTreeMap<usize, [i32; 2]> = import_ns_err
         .iter()
-        .map(|(k, v)| (*k, [*v as i32, 0]))
+        .map(|(k, v)| (*k, [*v, 0]))
         .collect::<BTreeMap<_, _>>();
     export_ns_err.iter().for_each(|(k, v)| {
         _ = import_export_ns_err
             .entry(*k)
-            .and_modify(|e| e[1] = *v as i32)
-            .or_insert([0, *v as i32])
+            .and_modify(|e| e[1] = *v)
+            .or_insert([0, *v])
     });
     let mut err_df = DataFrame::new(
         import_export_ns_err
@@ -131,6 +135,16 @@ fn parse_bgp_lines() -> Result<()> {
     println!("{description}");
     let mut csv_writer = CsvWriter::new(File::create("import_export_err_per_as.csv")?);
     csv_writer.finish(&mut err_df)?;
+
+    let err_df_t = err_df.transpose()?;
+    let description1 = err_df_t.describe(None)?;
+    println!("{description1}");
+    if let Some(n_import_err) = err_df_t[0].sum::<i32>() {
+        println!("Total import errors: {n_import_err}");
+    }
+    if let Some(n_export_err) = err_df_t[1].sum::<i32>() {
+        println!("Total export errors: {n_export_err}");
+    }
 
     // ---
     // Benchmark for `match_ips`:

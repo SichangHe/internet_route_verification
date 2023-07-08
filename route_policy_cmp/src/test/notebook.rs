@@ -131,6 +131,7 @@ fn parse_bgp_lines() -> Result<()> {
             .map(|(k, v)| Series::new(&format!("AS{k}"), v))
             .collect::<Vec<_>>(),
     )?;
+    println!("{err_df}");
     let description = err_df.describe(None)?;
     println!("{description}");
     let mut csv_writer = CsvWriter::new(File::create("import_export_err_per_as.csv")?);

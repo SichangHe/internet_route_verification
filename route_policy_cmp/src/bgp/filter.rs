@@ -22,7 +22,7 @@ impl<'a> CheckFilter<'a> {
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
-            AsSet(name, op) => self.filter_as_set(name, *op, depth, &mut Vec::new()),
+            AsSet(name, op) => self.filter_as_set(name, *op, depth, &mut HashSet::new()),
             AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
@@ -122,7 +122,7 @@ impl<'a> CheckFilter<'a> {
         name: &'a str,
         op: RangeOperator,
         depth: isize,
-        visited: &mut Vec<&'a str>,
+        visited: &mut HashSet<&'a str>,
     ) -> AnyReport {
         if visited.contains(&name) {
             return failed_any_report();
@@ -148,10 +148,10 @@ impl<'a> CheckFilter<'a> {
         name: &'a str,
         op: RangeOperator,
         depth: isize,
-        visited: &mut Vec<&'a str>,
+        visited: &mut HashSet<&'a str>,
         as_set_route: &'a AsSetRoute,
     ) -> AnyReport {
-        visited.push(name);
+        visited.insert(name);
 
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set_route.set_members {

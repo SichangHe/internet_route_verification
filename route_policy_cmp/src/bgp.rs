@@ -1,3 +1,5 @@
+use hashbrown::HashSet;
+
 use super::*;
 
 pub mod cmp;

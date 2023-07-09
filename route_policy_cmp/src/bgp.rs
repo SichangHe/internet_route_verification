@@ -9,6 +9,7 @@ pub mod peering;
 pub mod query;
 pub mod report;
 pub mod verbosity;
+mod visited;
 pub mod wrapper;
 
 pub use {
@@ -24,3 +25,4 @@ use map::*;
 use peering::CheckPeering;
 use report::*;
 use verbosity::*;
+use visited::VisitedSet;

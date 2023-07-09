@@ -49,13 +49,13 @@ impl AsSetRoute {
 /// Cleaned RPSL dump ready for query.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryDump {
-    pub aut_nums: BTreeMap<usize, AutNum>,
-    pub as_sets: BTreeMap<String, AsSet>,
-    pub route_sets: BTreeMap<String, RouteSet>,
-    pub peering_sets: BTreeMap<String, PeeringSet>,
-    pub filter_sets: BTreeMap<String, FilterSet>,
+    pub aut_nums: HashMap<usize, AutNum>,
+    pub as_sets: HashMap<String, AsSet>,
+    pub route_sets: HashMap<String, RouteSet>,
+    pub peering_sets: HashMap<String, PeeringSet>,
+    pub filter_sets: HashMap<String, FilterSet>,
     /// Each value should always be sorted.
-    pub as_routes: BTreeMap<usize, Vec<IpNet>>,
+    pub as_routes: HashMap<usize, Vec<IpNet>>,
     /// Each value should always be sorted.
     pub as_set_routes: HashMap<String, AsSetRoute>,
 }
@@ -82,6 +82,12 @@ impl QueryDump {
             .collect();
         let as_set_routes = flatten_as_set_routes(&as_set_routes);
         let as_set_routes = HashMap::from_iter(as_set_routes);
+        let aut_nums = HashMap::from_iter(aut_nums);
+        let as_sets = HashMap::from_iter(as_sets);
+        let route_sets = HashMap::from_iter(route_sets);
+        let peering_sets = HashMap::from_iter(peering_sets);
+        let filter_sets = HashMap::from_iter(filter_sets);
+        let as_routes = HashMap::from_iter(as_routes);
         Self {
             aut_nums,
             as_sets,

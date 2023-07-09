@@ -70,6 +70,10 @@ fn parse_bgp_lines() -> Result<()> {
             }
         })
         .reduce(|| (0, 0, 0), |(x, y, z), (a, b, c)| (x + a, y + b, z + c));
+    println!(
+        "Bad: {}, neutral: {}, good: {}.",
+        bad_neutral_good.0, bad_neutral_good.1, bad_neutral_good.2
+    );
 
     // Numbers of import and export errors for each AS.
     fn increment(x: &mut i32) {

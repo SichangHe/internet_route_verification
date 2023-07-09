@@ -1,3 +1,5 @@
+use hashbrown::HashMap;
+
 use crate::parse::*;
 
 use super::*;
@@ -45,7 +47,7 @@ impl AsSetRoute {
 }
 
 /// Cleaned RPSL dump ready for query.
-#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryDump {
     pub aut_nums: BTreeMap<usize, AutNum>,
     pub as_sets: BTreeMap<String, AsSet>,
@@ -55,7 +57,7 @@ pub struct QueryDump {
     /// Each value should always be sorted.
     pub as_routes: BTreeMap<usize, Vec<IpNet>>,
     /// Each value should always be sorted.
-    pub as_set_routes: BTreeMap<String, AsSetRoute>,
+    pub as_set_routes: HashMap<String, AsSetRoute>,
 }
 
 impl QueryDump {
@@ -79,6 +81,7 @@ impl QueryDump {
             .map(|(name, set)| (name.clone(), AsSetRoute::from_as_set(set, &as_routes)))
             .collect();
         let as_set_routes = flatten_as_set_routes(&as_set_routes);
+        let as_set_routes = HashMap::from_iter(as_set_routes);
         Self {
             aut_nums,
             as_sets,

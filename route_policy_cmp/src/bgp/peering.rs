@@ -45,7 +45,7 @@ impl<'a> CheckPeering<'a> {
         match as_name {
             AsName::Num(num) => self.check_remote_as_num(*num),
             AsName::Set(name) => {
-                self.check_remote_as_set(name, depth, &mut HashSet::with_capacity(1024))
+                self.check_remote_as_set(name, depth, &mut HashSet::with_capacity(2048))
             }
             AsName::Invalid(reason) => {
                 self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))

@@ -23,7 +23,7 @@ impl<'a> CheckFilter<'a> {
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
             AsSet(name, op) => {
-                self.filter_as_set(name, *op, depth, &mut HashSet::with_capacity(1024))
+                self.filter_as_set(name, *op, depth, &mut HashSet::with_capacity(16384))
             }
             AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right, depth).to_any(),

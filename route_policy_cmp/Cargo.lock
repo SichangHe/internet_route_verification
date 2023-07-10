@@ -1533,6 +1533,7 @@ dependencies = [
  "maplit",
  "net-literals",
  "polars",
+ "rand",
  "rayon",
  "serde",
  "serde_json",

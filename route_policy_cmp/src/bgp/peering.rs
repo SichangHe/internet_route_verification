@@ -94,6 +94,9 @@ impl<'a> CheckPeering<'a> {
         as_set: &'a AsSet,
     ) -> AnyReport {
         visited.insert(name);
+        if random() < 0.01 {
+            println!("check_remote_as_set_members: visited {}.", visited.len());
+        }
 
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set.set_members {

@@ -154,6 +154,9 @@ impl<'a> CheckFilter<'a> {
         as_set_route: &'a AsSetRoute,
     ) -> AnyReport {
         visited.insert(name);
+        if random() < 0.01 {
+            println!("filter_as_set_members: visited {}.", visited.len());
+        }
 
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set_route.set_members {

@@ -1,8 +1,9 @@
-use std::{collections::BTreeMap, mem};
+use std::{cell::RefCell, collections::BTreeMap, mem};
 
 use anyhow::{bail, Context, Error, Result};
 use ipnet::IpNet;
 use log::{debug, error, warn};
+use rand::{rngs::ThreadRng, thread_rng, Rng};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -14,6 +15,10 @@ pub mod irr;
 pub mod lex;
 pub mod parse;
 pub mod serialize;
+
+thread_local! {
+    static RNG: RefCell<ThreadRng> = RefCell::new(thread_rng());
+}
 
 pub fn parse(args: Vec<String>) -> Result<()> {
     if args.len() < 4 {
@@ -83,6 +88,11 @@ pub fn report(args: Vec<String>) -> Result<()> {
     debug!("Will read MRT file from {mrt_dir}.");
 
     fs::report(parsed_dir, mrt_dir)
+}
+
+/// Between 0.0 and 1.0.
+fn random() -> f64 {
+    RNG.with(|rng| rng.borrow_mut().gen())
 }
 
 #[cfg(test)]

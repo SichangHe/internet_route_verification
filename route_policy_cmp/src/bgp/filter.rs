@@ -126,10 +126,6 @@ impl<'a> CheckFilter<'a> {
         depth: isize,
         visited: &mut HashSet<&'a str>,
     ) -> AnyReport {
-        if visited.contains(&name) {
-            return failed_any_report();
-        }
-
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
         }
@@ -153,6 +149,10 @@ impl<'a> CheckFilter<'a> {
         visited: &mut HashSet<&'a str>,
         as_set_route: &'a AsSetRoute,
     ) -> AnyReport {
+        if visited.contains(&name) {
+            return failed_any_report();
+        }
+
         visited.insert(name);
 
         let mut aggregator = AnyReportAggregator::new();

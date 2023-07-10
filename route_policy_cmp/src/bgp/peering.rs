@@ -67,10 +67,6 @@ impl<'a> CheckPeering<'a> {
         depth: isize,
         visited: &mut HashSet<&'a str>,
     ) -> AnyReport {
-        if visited.contains(&name) {
-            return failed_any_report();
-        }
-
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemoteAsSet(name.into()));
         }
@@ -93,6 +89,10 @@ impl<'a> CheckPeering<'a> {
         visited: &mut HashSet<&'a str>,
         as_set: &'a AsSet,
     ) -> AnyReport {
+        if visited.contains(&name) {
+            return failed_any_report();
+        }
+
         visited.insert(name);
 
         let mut aggregator = AnyReportAggregator::new();

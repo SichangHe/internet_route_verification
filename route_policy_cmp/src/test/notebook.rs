@@ -34,8 +34,6 @@ fn read_parsed_rpsl() -> Result<()> {
     // Remove `;` in notebook.
     Compare::with_line_dump(&bgp_file[2])?.check(&query);
 
-    Verbosity::Brief > Verbosity::ErrOnly;
-
     Ok(())
 }
 
@@ -62,7 +60,10 @@ fn parse_bgp_lines() -> Result<()> {
                     return (1, 0, 0);
                 }
             }
-            l.compare.verbosity = Verbosity::ShowSkips;
+            l.compare.verbosity = Verbosity {
+                show_skips: true,
+                ..Verbosity::default()
+            };
             let report = l.compare.check(&query);
             match report.iter().any(|r| matches!(r, Report::Neutral(_))) {
                 true => (0, 1, 0),
@@ -91,7 +92,10 @@ fn parse_bgp_lines() -> Result<()> {
     let (import_ns_err, export_ns_err): (BTreeMap<usize, i32>, BTreeMap<usize, i32>) = bgp_lines
         .par_iter_mut()
         .map(|l| {
-            l.compare.verbosity = Verbosity::ShowSkips;
+            l.compare.verbosity = Verbosity {
+                show_skips: true,
+                ..Verbosity::default()
+            };
             let reports = l.compare.check(&query);
             let mut import_ns_err = BTreeMap::new();
             let mut export_ns_err = BTreeMap::new();
@@ -193,7 +197,10 @@ fn parse_bgp_lines() -> Result<()> {
         }
     }
 
-    bgp_lines[1].compare.verbosity = Verbosity::Detailed;
+    bgp_lines[1].compare.verbosity = Verbosity {
+        all_err: true,
+        ..Verbosity::default()
+    };
     let report = bgp_lines[1].compare.check(&query);
     let items: Option<Vec<ReportItem>> = if let Report::Bad(items) = &report[2] {
         Some(items.clone())

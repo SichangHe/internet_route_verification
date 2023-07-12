@@ -17,7 +17,10 @@ fn selected_checks() -> Result<()> {
 
     for (expected_report, line) in reports().into_iter().zip(LINES) {
         let mut compare = Compare::with_line_dump(line)?;
-        compare.verbosity = Verbosity::ErrOnly;
+        compare.verbosity = Verbosity {
+            stop_at_error: false,
+            ..Verbosity::default()
+        };
         let actual_report = compare.check(&query);
         assert_eq!(expected_report, actual_report);
     }

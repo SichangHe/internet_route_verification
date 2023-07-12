@@ -32,7 +32,7 @@ impl Compare {
             prefix,
             as_path,
             recursion_limit: RECURSION_LIMIT,
-            verbosity: Verbosity::StopAtError,
+            verbosity: Verbosity::default(),
         }
     }
 
@@ -70,7 +70,7 @@ impl Compare {
                     r if r.is_empty() => (),
                     r => {
                         reports.extend(r);
-                        if self.verbosity <= Verbosity::StopAtError {
+                        if self.verbosity.stop_at_error {
                             break;
                         }
                     }
@@ -102,7 +102,7 @@ impl Compare {
             self.check_export(dump, from_an, from, Some(to))
         }) {
             Some(r) => {
-                if self.verbosity <= Verbosity::StopAtError {
+                if self.verbosity.stop_at_error {
                     return vec![r];
                 }
                 Some(r)
@@ -211,7 +211,7 @@ impl Compare {
                 .check_peering_actions(dump, &entry.mp_peerings, accept_num)
                 .to_all()
                 .map_err(|mut report| {
-                    if self.verbosity == Verbosity::PerEntry {
+                    if self.verbosity.per_entry_err {
                         report.push(ReportItem::NoMatch(MatchProblem::Peering));
                     }
                     report
@@ -226,7 +226,7 @@ impl Compare {
         .check(&entry.mp_filter, self.recursion_limit)
         .to_all()
         .map_err(|mut report| {
-            if self.verbosity == Verbosity::PerEntry {
+            if self.verbosity.per_entry_err {
                 report.push(ReportItem::NoMatch(MatchProblem::Filter));
             }
             report

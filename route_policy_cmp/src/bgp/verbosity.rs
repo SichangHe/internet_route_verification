@@ -3,10 +3,8 @@ use super::report::*;
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Verbosity {
-    /// Stop at the first error.
-    pub stop_at_error: bool,
-    /// Report errors.
-    pub show_err: bool,
+    /// Stop checking the AS path at the first [`Report`].
+    pub stop_at_first: bool,
     /// Report skips.
     pub show_skips: bool,
     /// Report success.
@@ -21,8 +19,7 @@ impl std::fmt::Debug for Verbosity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = f.debug_set();
         let Verbosity {
-            stop_at_error,
-            show_err,
+            stop_at_first: stop_at_error,
             show_skips,
             show_success,
             per_entry_err,
@@ -30,7 +27,6 @@ impl std::fmt::Debug for Verbosity {
         } = self;
         for (is_true, tag) in [
             (stop_at_error, "stop_at_error"),
-            (show_err, "show_err"),
             (show_skips, "show_skips"),
             (show_success, "show_success"),
             (per_entry_err, "per_entry_err"),
@@ -47,15 +43,13 @@ impl std::fmt::Debug for Verbosity {
 impl Verbosity {
     pub fn new(
         stop_at_error: bool,
-        show_err: bool,
         show_skips: bool,
         show_success: bool,
         per_entry_err: bool,
         all_err: bool,
     ) -> Self {
         Self {
-            stop_at_error,
-            show_err,
+            stop_at_first: stop_at_error,
             show_skips,
             show_success,
             per_entry_err,
@@ -67,8 +61,7 @@ impl Verbosity {
 impl Default for Verbosity {
     fn default() -> Self {
         Self {
-            stop_at_error: true,
-            show_err: true,
+            stop_at_first: true,
             show_skips: false,
             show_success: false,
             per_entry_err: false,

@@ -6,6 +6,8 @@ use crate::parse::*;
 
 use super::*;
 
+use {MatchProblem::*, Report::*, ReportItem::*, SkipReason::*, SuccessType::*};
+
 pub const RECURSION_LIMIT: isize = 0x100;
 
 /// All information needed for a route to be compared to [`QueryDump`].
@@ -20,7 +22,6 @@ pub struct Compare {
     /// Default to [`RECURSION_LIMIT`]
     pub recursion_limit: isize,
     /// [`Verbosity`] level when generating report.
-    /// Default to [`Verbosity::ErrOnly`].
     pub verbosity: Verbosity,
 }
 
@@ -51,35 +52,27 @@ impl Compare {
     /// Check `self` against RPSL policy `dump` and generate reports.
     /// Depending on which [`Verbosity`] `self.verbose` is set to,
     /// the reports have different levels of details.
-    /// If [`Verbosity::ErrOnly`], stops at the first erroneous AS pair.
+    /// If `verbosity.stop_at_err`, stops at the first erroneous AS pair.
     pub fn check(&self, dump: &QueryDump) -> Vec<Report> {
         let mut reports = Vec::with_capacity(self.as_path.len() * 2);
         if self.as_path.len() == 1 {
             reports.extend(self.check_last_export(dump));
         }
 
+        let reverse_as_path = self.as_path.iter().rev();
         // Iterate the pairs in `as_path` from right to left, with overlaps.
-        let pairs = self
-            .as_path
-            .iter()
-            .rev()
-            .zip(self.as_path.iter().rev().skip(1));
-        for (from, to) in pairs {
+        for (from, to) in reverse_as_path.clone().zip(reverse_as_path.skip(1)) {
             if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
-                match self.check_pair(dump, *from, *to) {
-                    r if r.is_empty() => (),
-                    r => {
-                        reports.extend(r);
-                        if self.verbosity.stop_at_error {
-                            break;
-                        }
+                let r = self.check_pair(dump, *from, *to);
+                if !r.is_empty() {
+                    reports.extend(r);
+                    if self.verbosity.stop_at_first {
+                        break;
                     }
                 }
             } else {
-                reports.push(Report::skip(SkipReason::AsPathPairWithSet(
-                    from.clone(),
-                    to.clone(),
-                )));
+                let pair_report = self.skip_report(|| AsPathPairWithSet(from.clone(), to.clone()));
+                reports.extend(pair_report);
             }
         }
         reports.shrink_to_fit();
@@ -92,8 +85,8 @@ impl Compare {
                 .get_aut_num_then(dump, *from, |from_an| {
                     self.check_export(dump, from_an, *from, None)
                 })
-                .or_else(|| self.success_report(|| SuccessType::ExportSingle(*from))),
-            entry => self.skip_report(|| SkipReason::AsPathWithSet(entry.clone())),
+                .or_else(|| self.success_report(|| ExportSingle(*from))),
+            entry => self.skip_report(|| AsPathWithSet(entry.clone())),
         }
     }
 
@@ -101,17 +94,13 @@ impl Compare {
         let from_report = match self.get_aut_num_then(dump, from, |from_an| {
             self.check_export(dump, from_an, from, Some(to))
         }) {
-            Some(r) => {
-                if self.verbosity.stop_at_error {
-                    return vec![r];
-                }
-                Some(r)
-            }
-            None => self.success_report(|| SuccessType::Export(from, to)),
+            Some(r) if self.verbosity.stop_at_first => return vec![r],
+            None => self.success_report(|| Export(from, to)),
+            some => some,
         };
         let to_report = self
             .get_aut_num_then(dump, to, |to_an| self.check_import(dump, to_an, from, to))
-            .or_else(|| self.success_report(|| SuccessType::Import(to, from)));
+            .or_else(|| self.success_report(|| Import(to, from)));
         [from_report, to_report].into_iter().flatten().collect()
     }
 
@@ -121,7 +110,7 @@ impl Compare {
     {
         match dump.aut_nums.get(&aut_num) {
             Some(aut_num) => call(aut_num),
-            None => self.skip_report(|| SkipReason::AutNumUnrecorded(aut_num)),
+            None => self.skip_report(|| AutNumUnrecorded(aut_num)),
         }
     }
 
@@ -133,18 +122,18 @@ impl Compare {
         to: Option<usize>,
     ) -> Option<Report> {
         if from_an.exports.is_default() {
-            return self.skip_report(|| SkipReason::ExportEmpty);
+            return self.skip_report(|| ExportEmpty);
         }
-        let mut aggregator = self.check_compliant(dump, &from_an.exports, to)?;
-        if aggregator.all_fail {
+        let (mut items, fail) = self.check_compliant(dump, &from_an.exports, to)?;
+        if fail {
             let reason = match to {
-                Some(to) => MatchProblem::NoExportRule(from, to),
-                None => MatchProblem::NoExportRuleSingle(from),
+                Some(to) => NoExportRule(from, to),
+                None => NoExportRuleSingle(from),
             };
-            aggregator.join(no_match_any_report(reason).unwrap());
-            Some(Report::Bad(aggregator.report_items))
+            items.push(NoMatch(reason));
+            Some(Bad(items))
         } else {
-            self.skips_report(aggregator.report_items)
+            self.skips_report(items)
         }
     }
 
@@ -156,14 +145,14 @@ impl Compare {
         to: usize,
     ) -> Option<Report> {
         if to_an.imports.is_default() {
-            return self.skip_report(|| SkipReason::ImportEmpty);
+            return self.skip_report(|| ImportEmpty);
         }
-        let mut aggregator = self.check_compliant(dump, &to_an.imports, Some(from))?;
-        if aggregator.all_fail {
-            aggregator.join(no_match_any_report(MatchProblem::NoImportRule(to, from)).unwrap());
-            Some(Report::Bad(aggregator.report_items))
+        let (mut items, fail) = self.check_compliant(dump, &to_an.imports, Some(from))?;
+        if fail {
+            items.push(NoMatch(NoImportRule(to, from)));
+            Some(Bad(items))
         } else {
-            self.skips_report(aggregator.report_items)
+            self.skips_report(items)
         }
     }
 
@@ -172,14 +161,14 @@ impl Compare {
         dump: &QueryDump,
         policy: &Versions,
         accept_num: Option<usize>,
-    ) -> Option<AnyReportAggregator> {
+    ) -> AnyReport {
         let mut aggregator: AnyReportAggregator = match self.prefix {
             IpNet::V4(_) => self.check_casts(dump, &policy.ipv4, accept_num),
             IpNet::V6(_) => self.check_casts(dump, &policy.ipv6, accept_num),
         }?
         .into();
         aggregator.join(self.check_casts(dump, &policy.any, accept_num)?);
-        Some(aggregator)
+        aggregator.to_any()
     }
 
     pub fn check_casts(
@@ -189,10 +178,9 @@ impl Compare {
         accept_num: Option<usize>,
     ) -> AnyReport {
         let mut aggregator = AnyReportAggregator::new();
-        let specific_cast = if is_multicast(&self.prefix) {
-            &casts.multicast
-        } else {
-            &casts.unicast
+        let specific_cast = match is_multicast(&self.prefix) {
+            true => &casts.multicast,
+            false => &casts.unicast,
         };
         for entry in [specific_cast, &casts.any].into_iter().flatten() {
             aggregator.join(self.check_entry(dump, entry, accept_num).to_any()?);
@@ -212,7 +200,7 @@ impl Compare {
                 .to_all()
                 .map_err(|mut report| {
                     if self.verbosity.per_entry_err {
-                        report.push(ReportItem::NoMatch(MatchProblem::Peering));
+                        report.push(NoMatch(Peering));
                     }
                     report
                 })?,
@@ -227,7 +215,7 @@ impl Compare {
         .to_all()
         .map_err(|mut report| {
             if self.verbosity.per_entry_err {
-                report.push(ReportItem::NoMatch(MatchProblem::Filter));
+                report.push(NoMatch(Filter));
             }
             report
         })?;
@@ -245,10 +233,8 @@ impl Compare {
     {
         let mut aggregator = AnyReportAggregator::new();
         for peering_actions in peerings.into_iter() {
-            aggregator.join(
-                self.check_peering_action(dump, peering_actions, accept_num)
-                    .to_any()?,
-            );
+            let report = self.check_peering_action(dump, peering_actions, accept_num);
+            aggregator.join(report.to_any()?);
         }
         aggregator.to_any()
     }

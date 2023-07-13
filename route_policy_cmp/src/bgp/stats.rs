@@ -10,7 +10,7 @@ impl Compare {
             stop_at_first: false,
             show_skips: true,
             show_success: true,
-            ..self.verbosity
+            ..Verbosity::default()
         };
         let reports = self.check(dump);
         for report in reports {
@@ -49,13 +49,13 @@ impl Compare {
     }
 }
 
-/// Using [i32] so it is easy to put into a dataframe later.
+/// Using [u32] so it is easy to put into a dataframe later.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsStats {
-    pub import_ok: i32,
-    pub export_ok: i32,
-    pub import_skip: i32,
-    pub export_skip: i32,
-    pub import_err: i32,
-    pub export_err: i32,
+    pub import_ok: u32,
+    pub export_ok: u32,
+    pub import_skip: u32,
+    pub export_skip: u32,
+    pub import_err: u32,
+    pub export_err: u32,
 }

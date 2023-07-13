@@ -4,15 +4,22 @@
 #![allow(unused_imports)]
 #![allow(unused_must_use)]
 #![allow(unused_variables)]
+#![allow(clippy::type_complexity)]
 
 use super::*;
 use crate as route_policy_cmp;
 
-// :opt 3
-// :dep route_policy_cmp = { path = "route_policy_cmp" }
-// :dep rayon
-// :dep polars = { version = "0.30.0", features = ["describe"] }
+/*
+:opt 3
+:dep dashmap = "5.5.0"
+:dep route_policy_cmp = { path = "route_policy_cmp" }
+:dep rayon
+:dep polars = { version = "0.30.0", features = ["describe"] }
+:dep itertools = "0.11"
+*/
 
+use dashmap::DashMap;
+use itertools::multiunzip;
 use polars::prelude::*;
 use rayon::prelude::*;
 use route_policy_cmp::{bgp::*, parse::dump::Dump};
@@ -45,6 +52,64 @@ fn parse_bgp_lines() -> Result<()> {
     println!("{:#?}", query.aut_nums.iter().next());
 
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+
+    // ---
+    // Generate statistics for each AS:
+    let start = Instant::now();
+    let map: DashMap<usize, AsStats> = DashMap::new();
+    bgp_lines.par_iter_mut().for_each(|l| {
+        l.compare.as_stats(&query, &map);
+    });
+    let size = map.len();
+    println!(
+        "Generated stats for {size} AS in {}ms.",
+        start.elapsed().as_millis()
+    );
+    let (ans, ioks, eoks, isps, esps, iers, eers): (
+        Vec<u64>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+    ) = multiunzip(map.into_iter().map(
+        |(
+            an,
+            AsStats {
+                import_ok,
+                export_ok,
+                import_skip,
+                export_skip,
+                import_err,
+                export_err,
+            },
+        )| {
+            (
+                an as u64,
+                import_ok,
+                export_ok,
+                import_skip,
+                export_skip,
+                import_err,
+                export_err,
+            )
+        },
+    ));
+
+    let mut df = DataFrame::new(vec![
+        Series::new("aut_num", ans),
+        Series::new("import_ok", ioks),
+        Series::new("export_ok", eoks),
+        Series::new("import_skip", isps),
+        Series::new("export_skip", esps),
+        Series::new("import_err", iers),
+        Series::new("export_err", eers),
+    ])?;
+    println!("{df}");
+    println!("{}", df.describe(None)?);
+
+    CsvWriter::new(File::create("as_stats.csv")?).finish(&mut df)?;
 
     // ---
     // Generate all the reports:

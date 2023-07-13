@@ -1,6 +1,6 @@
-use hashbrown::HashSet;
-
 use super::*;
+
+use super::bloom::BloomHashSet;
 
 pub mod cmp;
 pub mod filter;

@@ -22,9 +22,12 @@ impl<'a> CheckFilter<'a> {
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
-            AsSet(name, op) => {
-                self.filter_as_set(name, *op, depth, &mut HashSet::with_capacity(16384))
-            }
+            AsSet(name, op) => self.filter_as_set(
+                name,
+                *op,
+                depth,
+                &mut BloomHashSet::with_capacity(16384, 131072),
+            ),
             AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
@@ -124,7 +127,7 @@ impl<'a> CheckFilter<'a> {
         name: &'a str,
         op: RangeOperator,
         depth: isize,
-        visited: &mut HashSet<&'a str>,
+        visited: &mut BloomHashSet<&'a str>,
     ) -> AnyReport {
         if visited.contains(&name) {
             return failed_any_report();
@@ -150,7 +153,7 @@ impl<'a> CheckFilter<'a> {
         name: &'a str,
         op: RangeOperator,
         depth: isize,
-        visited: &mut HashSet<&'a str>,
+        visited: &mut BloomHashSet<&'a str>,
         as_set_route: &'a AsSetRoute,
     ) -> AnyReport {
         visited.insert(name);

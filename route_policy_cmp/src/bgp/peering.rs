@@ -45,7 +45,7 @@ impl<'a> CheckPeering<'a> {
         match as_name {
             AsName::Num(num) => self.check_remote_as_num(*num),
             AsName::Set(name) => {
-                self.check_remote_as_set(name, depth, &mut HashSet::with_capacity(2048))
+                self.check_remote_as_set(name, depth, &mut BloomHashSet::with_capacity(2048, 16384))
             }
             AsName::Invalid(reason) => {
                 self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))
@@ -65,7 +65,7 @@ impl<'a> CheckPeering<'a> {
         &self,
         name: &'a str,
         depth: isize,
-        visited: &mut HashSet<&'a str>,
+        visited: &mut BloomHashSet<&'a str>,
     ) -> AnyReport {
         if visited.contains(&name) {
             return failed_any_report();
@@ -90,7 +90,7 @@ impl<'a> CheckPeering<'a> {
         &self,
         name: &'a str,
         depth: isize,
-        visited: &mut HashSet<&'a str>,
+        visited: &mut BloomHashSet<&'a str>,
         as_set: &'a AsSet,
     ) -> AnyReport {
         visited.insert(name);

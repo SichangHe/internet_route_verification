@@ -6,6 +6,48 @@ use core::{
 use bit_vec::BitVec;
 use hashbrown::{hash_map::DefaultHashBuilder, raw::RawTable};
 
+/// Faster `contains` check than `HashSet` when expectation for positives is low.
+///
+/// Use a *fixed-size* [Bloom filter][bloom_filter] *with `k = 1` hash functions*
+/// as a front end for the internal hash table.
+///
+/// # Probabilistic characteristics
+/// [`contains`](#method.contains) has a "false error rate" of
+/// *ε(m, n) = 1 - (1 - 1/m)^n ≈ ℯ^(-n/m)* where `m` is the Bloom filter's size,
+/// and `n` is the number of distinct elements inserted.
+/// Typical `ε` in correspondence with `m/n`:
+///
+/// `ε` | `m/n`
+/// --- | ---
+/// 0.63| 1
+/// 0.39| 2
+/// 0.22| 4
+/// 0.12| 8
+/// 0.06| 16
+/// 0.03| 32
+///
+/// *Note*: `m/n = 16` seems good enough.
+///
+/// When the Bloom filter gives positive results, the hash table is checked to
+/// guarantee correct results.
+///
+/// # Example usage
+/// We want to keep track of which names we've seen.
+/// Since we anticipate new names to be rare, [`BloomHashSet`] is suitable.
+/// We anticipate to see less than 1000 names in total,
+/// so we set the capacity of the hash table to 1024, and the size of the Bloom
+/// filter to 16x that.
+///
+/// ```rust
+/// # use route_policy_cmp::bloom::BloomHashSet;
+/// let mut seen = BloomHashSet::with_capacity(1024, 16 * 1024);
+/// let name = "Alice".to_owned();
+/// assert!(!seen.contains(&name));
+/// seen.insert(name.clone());
+/// assert!(seen.contains(&name));
+/// ```
+///
+/// [bloom_filter]: https://en.wikipedia.org/wiki/Bloom_filter
 pub struct BloomHashSet<K> {
     hash_builder: DefaultHashBuilder,
     table: RawTable<(K, ())>,
@@ -51,7 +93,8 @@ impl<K> BloomHashSet<K>
 where
     K: Eq + Hash,
 {
-    /// `nbits` has to be power of 2.
+    /// Internal hash table's `capacity`.
+    /// Bit vector's size `nbits` has to be power of 2.
     pub fn with_capacity(capacity: usize, nbits: usize) -> Self {
         Self {
             hash_builder: DefaultHashBuilder::default(),
@@ -83,6 +126,7 @@ where
         }
     }
 
+    /// Do not check whether `k` is already in the set.
     pub fn insert(&mut self, k: K) {
         let hash = self.make_hash(&k);
         self.bit_vec.set(hash as usize & self.bit_mask, true);

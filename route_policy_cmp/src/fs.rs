@@ -4,7 +4,7 @@ use encoding_rs_io::DecodeReaderBytesBuilder;
 use std::{fs::*, io::*, path::Path};
 
 use super::{
-    bgp::{parse_mrt, QueryDump},
+    bgp::*,
     irr::*,
     parse::{parse_lexed, Dump},
     Result, *,
@@ -111,9 +111,15 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
 
     const SIZE: usize = 0x10000;
-    bgp_lines[..SIZE]
-        .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check(&query)));
+    bgp_lines[..SIZE].par_iter_mut().for_each(|line| {
+        line.compare.verbosity = Verbosity {
+            stop_at_first: false,
+            show_skips: true,
+            show_success: true,
+            ..Verbosity::default()
+        };
+        line.check(&query);
+    });
     debug!("Generated {SIZE} reports");
 
     let n_error: usize = bgp_lines[..SIZE]

@@ -48,6 +48,13 @@ impl<K> BloomHashSet<K>
 where
     K: Eq + Hash,
 {
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            hash_builder: DefaultHashBuilder::default(),
+            table: RawTable::with_capacity(capacity),
+        }
+    }
+
     pub fn make_hash(&self, k: &K) -> u64 {
         make_hash::<K>(&self.hash_builder, k)
     }
@@ -65,5 +72,13 @@ where
         let hash = self.make_hash(&k);
         self.table
             .insert(hash, (k, ()), make_hasher::<K>(&self.hash_builder));
+    }
+
+    pub fn len(&self) -> usize {
+        self.table.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.table.is_empty()
     }
 }

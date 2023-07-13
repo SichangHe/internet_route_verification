@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 pub mod bgp;
+pub mod bloom;
 pub mod cmd;
 pub mod fs;
 pub mod irr;

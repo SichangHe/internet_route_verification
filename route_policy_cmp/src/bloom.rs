@@ -104,6 +104,9 @@ where
         }
     }
 
+    /// The hash can be used on [`contains_with_hash`](#method.contains_with_hash)
+    /// or [`insert_with_hash`](#method.insert_with_hash)
+    /// to avoid repeated computation.
     pub fn make_hash(&self, k: &K) -> u64 {
         make_hash::<K>(&self.hash_builder, k)
     }
@@ -126,9 +129,31 @@ where
         }
     }
 
+    pub fn contains_with_hash(&self, k: &K, hash: u64) -> bool {
+        if self.table.is_empty() {
+            false
+        } else {
+            // SAFETY: `self.bit_vec` has `self.bit_mask + 1` bits.
+            if unsafe {
+                self.bit_vec
+                    .get(hash as usize & self.bit_mask)
+                    .unwrap_unchecked()
+            } {
+                self.table.get(hash, equivalent_key(k)).is_some()
+            } else {
+                false
+            }
+        }
+    }
+
     /// Do not check whether `k` is already in the set.
     pub fn insert(&mut self, k: K) {
         let hash = self.make_hash(&k);
+        self.insert_with_hash(k, hash)
+    }
+
+    /// Do not check whether `k` is already in the set.
+    pub fn insert_with_hash(&mut self, k: K, hash: u64) {
         self.bit_vec.set(hash as usize & self.bit_mask, true);
         self.table
             .insert(hash, (k, ()), make_hasher::<K>(&self.hash_builder));

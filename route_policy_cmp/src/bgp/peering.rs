@@ -67,7 +67,8 @@ impl<'a> CheckPeering<'a> {
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
     ) -> AnyReport {
-        if visited.contains(&name) {
+        let hash = visited.make_hash(&name);
+        if visited.contains_with_hash(&name, hash) {
             return failed_any_report();
         }
 
@@ -83,7 +84,7 @@ impl<'a> CheckPeering<'a> {
             return None;
         }
 
-        self.check_remote_as_set_members(name, depth, visited, as_set)
+        self.check_remote_as_set_members(name, depth, visited, hash, as_set)
     }
 
     fn check_remote_as_set_members(
@@ -91,9 +92,10 @@ impl<'a> CheckPeering<'a> {
         name: &'a str,
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
+        hash: u64,
         as_set: &'a AsSet,
     ) -> AnyReport {
-        visited.insert(name);
+        visited.insert_with_hash(name, hash);
 
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set.set_members {

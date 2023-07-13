@@ -129,7 +129,8 @@ impl<'a> CheckFilter<'a> {
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
     ) -> AnyReport {
-        if visited.contains(&name) {
+        let hash = visited.make_hash(&name);
+        if visited.contains_with_hash(&name, hash) {
             return failed_any_report();
         }
 
@@ -145,7 +146,7 @@ impl<'a> CheckFilter<'a> {
             return None;
         }
 
-        self.filter_as_set_members(name, op, depth, visited, as_set_route)
+        self.filter_as_set_members(name, op, depth, visited, hash, as_set_route)
     }
 
     fn filter_as_set_members(
@@ -154,9 +155,10 @@ impl<'a> CheckFilter<'a> {
         op: RangeOperator,
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
+        hash: u64,
         as_set_route: &'a AsSetRoute,
     ) -> AnyReport {
-        visited.insert(name);
+        visited.insert_with_hash(name, hash);
 
         let mut aggregator = AnyReportAggregator::new();
         for set in &as_set_route.set_members {

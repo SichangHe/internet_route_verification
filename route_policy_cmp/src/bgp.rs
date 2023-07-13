@@ -14,7 +14,7 @@ pub mod wrapper;
 pub use {
     cmp::Compare,
     query::{AsSetRoute, QueryDump},
-    report::{MatchProblem, Report, ReportItem, SkipReason, SuccessType},
+    report::{MatchProblem, Report, ReportItem, SkipReason},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},
 };

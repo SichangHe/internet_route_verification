@@ -6,7 +6,7 @@ use crate::parse::*;
 
 use super::*;
 
-use {MatchProblem::*, Report::*, ReportItem::*, SkipReason::*, SuccessType::*};
+use {AsPathEntry::*, MatchProblem::*, Report::*, ReportItem::*, SkipReason::*};
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
@@ -62,7 +62,7 @@ impl Compare {
         let reverse_as_path = self.as_path.iter().rev();
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         for (from, to) in reverse_as_path.clone().zip(reverse_as_path.skip(1)) {
-            if let (AsPathEntry::Seq(from), AsPathEntry::Seq(to)) = (from, to) {
+            if let (Seq(from), Seq(to)) = (from, to) {
                 let r = self.check_pair(dump, *from, *to);
                 if !r.is_empty() {
                     reports.extend(r);
@@ -71,8 +71,10 @@ impl Compare {
                     }
                 }
             } else {
-                let pair_report = self.skip_report(|| AsPathPairWithSet(from.clone(), to.clone()));
-                reports.extend(pair_report);
+                reports.extend(self.verbosity.show_skips.then(|| AsPathPairWithSet {
+                    from: from.clone(),
+                    to: to.clone(),
+                }));
             }
         }
         reports.shrink_to_fit();
@@ -81,37 +83,40 @@ impl Compare {
 
     pub fn check_last_export(&self, dump: &QueryDump) -> Option<Report> {
         match self.as_path.last()? {
-            AsPathEntry::Seq(from) => self
-                .get_aut_num_then(dump, *from, |from_an| {
-                    self.check_export(dump, from_an, *from, None)
-                })
-                .or_else(|| self.success_report(|| ExportSingle(*from))),
-            entry => self.skip_report(|| AsPathWithSet(entry.clone())),
+            Seq(from) => match dump.aut_nums.get(from) {
+                Some(from_an) => self.check_export(dump, from_an, *from, None),
+                None => self.verbosity.show_skips.then(|| {
+                    let items = aut_num_unrecorded_items(*from);
+                    NeutralSingleExport { from: *from, items }
+                }),
+            },
+            Set(from) => self
+                .verbosity
+                .show_skips
+                .then(|| SetSingleExport { from: from.clone() }),
         }
     }
 
     pub fn check_pair(&self, dump: &QueryDump, from: usize, to: usize) -> Vec<Report> {
-        let from_report = match self.get_aut_num_then(dump, from, |from_an| {
-            self.check_export(dump, from_an, from, Some(to))
-        }) {
-            Some(r) if self.verbosity.stop_at_first => return vec![r],
-            None => self.success_report(|| Export(from, to)),
-            some => some,
+        let from_report = match dump.aut_nums.get(&from) {
+            Some(from_an) => self.check_export(dump, from_an, from, Some(to)),
+            None => self.verbosity.show_skips.then(|| {
+                let items = aut_num_unrecorded_items(from);
+                NeutralExport { from, to, items }
+            }),
         };
-        let to_report = self
-            .get_aut_num_then(dump, to, |to_an| self.check_import(dump, to_an, from, to))
-            .or_else(|| self.success_report(|| Import(to, from)));
+        let from_report = match (from_report, self.verbosity.stop_at_first) {
+            (Some(r), true) => return vec![r],
+            (from_report, _) => from_report,
+        };
+        let to_report = match dump.aut_nums.get(&to) {
+            Some(to_an) => self.check_import(dump, to_an, from, to),
+            None => self.verbosity.show_skips.then(|| {
+                let items = aut_num_unrecorded_items(to);
+                NeutralImport { from, to, items }
+            }),
+        };
         [from_report, to_report].into_iter().flatten().collect()
-    }
-
-    pub fn get_aut_num_then<F>(&self, dump: &QueryDump, aut_num: usize, call: F) -> Option<Report>
-    where
-        F: Fn(&AutNum) -> Option<Report>,
-    {
-        match dump.aut_nums.get(&aut_num) {
-            Some(aut_num) => call(aut_num),
-            None => self.skip_report(|| AutNumUnrecorded(aut_num)),
-        }
     }
 
     pub fn check_export(
@@ -122,18 +127,33 @@ impl Compare {
         to: Option<usize>,
     ) -> Option<Report> {
         if from_an.exports.is_default() {
-            return self.skip_report(|| ExportEmpty);
+            return self.verbosity.show_skips.then(|| {
+                let items = vec![Skip(ExportEmpty)];
+                match to {
+                    Some(to) => NeutralExport { from, to, items },
+                    None => NeutralSingleExport { from, items },
+                }
+            });
         }
-        let (mut items, fail) = self.check_compliant(dump, &from_an.exports, to)?;
+        let (items, fail) = match self.check_compliant(dump, &from_an.exports, to) {
+            None => {
+                return self.verbosity.show_success.then_some(match to {
+                    Some(to) => GoodExport { from, to },
+                    None => GoodSingleExport { from },
+                })
+            }
+            Some(report) => report,
+        };
         if fail {
-            let reason = match to {
-                Some(to) => NoExportRule(from, to),
-                None => NoExportRuleSingle(from),
-            };
-            items.push(NoMatch(reason));
-            Some(Bad(items))
+            Some(match to {
+                Some(to) => BadExport { from, to, items },
+                None => BadSingeExport { from, items },
+            })
         } else {
-            self.skips_report(items)
+            self.verbosity.show_skips.then_some(match to {
+                Some(to) => NeutralExport { from, to, items },
+                None => NeutralSingleExport { from, items },
+            })
         }
     }
 
@@ -145,14 +165,27 @@ impl Compare {
         to: usize,
     ) -> Option<Report> {
         if to_an.imports.is_default() {
-            return self.skip_report(|| ImportEmpty);
+            return self.verbosity.show_skips.then(|| NeutralImport {
+                from,
+                to,
+                items: vec![Skip(ImportEmpty)],
+            });
         }
-        let (mut items, fail) = self.check_compliant(dump, &to_an.imports, Some(from))?;
+        let (items, fail) = match self.check_compliant(dump, &to_an.imports, Some(from)) {
+            None => {
+                return self
+                    .verbosity
+                    .show_success
+                    .then_some(GoodImport { from, to })
+            }
+            Some(report) => report,
+        };
         if fail {
-            items.push(NoMatch(NoImportRule(to, from)));
-            Some(Bad(items))
+            Some(BadImport { from, to, items })
         } else {
-            self.skips_report(items)
+            self.verbosity
+                .show_skips
+                .then_some(NeutralImport { from, to, items })
         }
     }
 
@@ -291,4 +324,8 @@ pub fn is_multicast(prefix: &IpNet) -> bool {
             .expect("MULTICAST_V6 is for sure Ok")
             .contains(prefix),
     }
+}
+
+fn aut_num_unrecorded_items(aut_num: usize) -> Vec<ReportItem> {
+    vec![Skip(AutNumUnrecorded(aut_num))]
 }

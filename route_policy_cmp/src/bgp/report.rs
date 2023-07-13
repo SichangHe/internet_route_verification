@@ -1,4 +1,3 @@
-use Report::*;
 use ReportItem::*;
 
 use crate::{lex::Call, parse::*};
@@ -11,37 +10,69 @@ use super::*;
 /// Composed of a vector of [`ReportItem`]s.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
-    Good(Vec<ReportItem>),
-    /// No enough information to decide.
-    Neutral(Vec<ReportItem>),
-    Bad(Vec<ReportItem>),
-}
-
-impl Report {
-    pub fn success(reason: SuccessType) -> Self {
-        Good(vec![Success(reason)])
-    }
-
-    pub fn skip(reason: SkipReason) -> Self {
-        Neutral(vec![Skip(reason)])
-    }
+    GoodImport {
+        from: usize,
+        to: usize,
+    },
+    GoodExport {
+        from: usize,
+        to: usize,
+    },
+    GoodSingleExport {
+        from: usize,
+    },
+    NeutralImport {
+        from: usize,
+        to: usize,
+        items: Vec<ReportItem>,
+    },
+    NeutralExport {
+        from: usize,
+        to: usize,
+        items: Vec<ReportItem>,
+    },
+    NeutralSingleExport {
+        from: usize,
+        items: Vec<ReportItem>,
+    },
+    AsPathPairWithSet {
+        from: AsPathEntry,
+        to: AsPathEntry,
+    },
+    SetImport {
+        from: usize,
+        to: Vec<usize>,
+    },
+    SetExport {
+        from: Vec<usize>,
+        to: usize,
+    },
+    SetSingleExport {
+        from: Vec<usize>,
+    },
+    BadImport {
+        from: usize,
+        to: usize,
+        items: Vec<ReportItem>,
+    },
+    BadExport {
+        from: usize,
+        to: usize,
+        items: Vec<ReportItem>,
+    },
+    BadSingeExport {
+        from: usize,
+        items: Vec<ReportItem>,
+    },
 }
 
 /// Single item in [`Report`] to signal some status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
-    Success(SuccessType),
     Skip(SkipReason),
     NoMatch(MatchProblem),
     BadRpsl(RpslError),
     Recursion(RecurSrc),
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum SuccessType {
-    Export(usize, usize),
-    ExportSingle(usize),
-    Import(usize, usize),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -57,8 +88,6 @@ pub enum SkipReason {
     CommunityCheckUnimplemented(Call),
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,
-    AsPathPairWithSet(AsPathEntry, AsPathEntry),
-    AsPathWithSet(AsPathEntry),
     AutNumUnrecorded(usize),
     ImportEmpty,
     ExportEmpty,
@@ -66,11 +95,6 @@ pub enum SkipReason {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum MatchProblem {
-    /// Left side should not export to right side.
-    NoExportRule(usize, usize),
-    NoExportRuleSingle(usize),
-    /// Left side should not import from right side.
-    NoImportRule(usize, usize),
     Filter,
     FilterAsNum(usize, RangeOperator),
     FilterAsSet(String, RangeOperator),

@@ -1,5 +1,5 @@
 use crate::{
-    bgp::{report::MatchProblem::*, Report::*, ReportItem::*, *},
+    bgp::{Report::*, *},
     parse::*,
 };
 
@@ -29,7 +29,15 @@ fn selected_checks() -> Result<()> {
 
 fn reports() -> [Vec<Report>; 1] {
     [vec![
-        Bad(vec![NoMatch(NoExportRule(9583, 2914))]),
-        Bad(vec![NoMatch(NoImportRule(2914, 9583))]),
+        BadExport {
+            from: 9583,
+            to: 2914,
+            items: vec![],
+        },
+        BadImport {
+            from: 9583,
+            to: 2914,
+            items: vec![],
+        },
     ]]
 }

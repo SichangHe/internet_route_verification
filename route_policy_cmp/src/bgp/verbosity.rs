@@ -1,4 +1,4 @@
-use super::report::*;
+use super::*;
 
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -72,36 +72,6 @@ impl Default for Verbosity {
 
 pub trait VerbosityReport {
     fn get_verbosity(&self) -> Verbosity;
-
-    fn success_report<F>(&self, reason: F) -> Option<Report>
-    where
-        F: Fn() -> SuccessType,
-    {
-        if self.get_verbosity().show_success {
-            Some(Report::success(reason()))
-        } else {
-            None
-        }
-    }
-
-    fn skips_report(&self, skips: Vec<ReportItem>) -> Option<Report> {
-        if self.get_verbosity().show_skips {
-            Some(Report::Neutral(skips))
-        } else {
-            None
-        }
-    }
-
-    fn skip_report<F>(&self, reason: F) -> Option<Report>
-    where
-        F: Fn() -> SkipReason,
-    {
-        if self.get_verbosity().show_skips {
-            Some(Report::skip(reason()))
-        } else {
-            None
-        }
-    }
 
     fn skip_any_report<F>(&self, reason: F) -> AnyReport
     where

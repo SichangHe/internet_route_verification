@@ -284,7 +284,8 @@ impl AnyReportAggregator {
 }
 
 impl ToAnyReport for AnyReportAggregator {
-    fn to_any(self) -> AnyReport {
+    fn to_any(mut self) -> AnyReport {
+        self.report_items.shrink_to_fit();
         Some((self.report_items, self.all_fail))
     }
 }

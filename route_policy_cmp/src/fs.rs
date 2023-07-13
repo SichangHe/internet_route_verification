@@ -110,8 +110,8 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     let mut bgp_lines = parse_mrt(mrt_dir)?;
     debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
 
-    const SIZE: usize = 0x10000;
-    bgp_lines[..SIZE].par_iter_mut().for_each(|line| {
+    const SIZE: usize = 0x1000;
+    bgp_lines[..SIZE].iter_mut().for_each(|line| {
         line.compare.verbosity = Verbosity {
             stop_at_first: false,
             show_skips: true,

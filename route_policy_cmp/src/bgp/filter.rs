@@ -26,7 +26,7 @@ impl<'a> CheckFilter<'a> {
                 name,
                 *op,
                 depth,
-                &mut BloomHashSet::with_capacity(16384, 131072),
+                &mut BloomHashSet::with_capacity(16384, 262144),
             ),
             AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right, depth).to_any(),

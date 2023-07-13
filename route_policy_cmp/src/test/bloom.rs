@@ -2,7 +2,7 @@ use crate::bloom::BloomHashSet;
 
 #[test]
 fn test_insert() {
-    let mut m = BloomHashSet::with_capacity(10);
+    let mut m = BloomHashSet::with_capacity(8, 16);
     assert_eq!(m.len(), 0);
     assert!(!m.contains(&1));
     m.insert(1);

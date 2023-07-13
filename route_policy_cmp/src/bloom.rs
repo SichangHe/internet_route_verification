@@ -3,11 +3,14 @@ use core::{
     hash::{BuildHasher, Hash},
 };
 
+use bit_vec::BitVec;
 use hashbrown::{hash_map::DefaultHashBuilder, raw::RawTable};
 
 pub struct BloomHashSet<K> {
-    pub(crate) hash_builder: DefaultHashBuilder,
-    pub(crate) table: RawTable<(K, ())>,
+    hash_builder: DefaultHashBuilder,
+    table: RawTable<(K, ())>,
+    bit_vec: BitVec,
+    bit_mask: usize,
 }
 
 /// Ensures that a single closure type across uses of this which, in turn prevents multiple
@@ -48,10 +51,13 @@ impl<K> BloomHashSet<K>
 where
     K: Eq + Hash,
 {
-    pub fn with_capacity(capacity: usize) -> Self {
+    /// `nbits` has to be power of 2.
+    pub fn with_capacity(capacity: usize, nbits: usize) -> Self {
         Self {
             hash_builder: DefaultHashBuilder::default(),
             table: RawTable::with_capacity(capacity),
+            bit_vec: BitVec::from_elem(nbits, false),
+            bit_mask: nbits - 1,
         }
     }
 
@@ -64,12 +70,22 @@ where
             false
         } else {
             let hash = self.make_hash(k);
-            self.table.get(hash, equivalent_key(k)).is_some()
+            // SAFETY: `self.bit_vec` has `self.bit_mask + 1` bits.
+            if unsafe {
+                self.bit_vec
+                    .get(hash as usize & self.bit_mask)
+                    .unwrap_unchecked()
+            } {
+                self.table.get(hash, equivalent_key(k)).is_some()
+            } else {
+                false
+            }
         }
     }
 
     pub fn insert(&mut self, k: K) {
         let hash = self.make_hash(&k);
+        self.bit_vec.set(hash as usize & self.bit_mask, true);
         self.table
             .insert(hash, (k, ()), make_hasher::<K>(&self.hash_builder));
     }

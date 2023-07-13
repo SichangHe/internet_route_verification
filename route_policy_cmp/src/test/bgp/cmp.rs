@@ -1,5 +1,10 @@
+use std::collections::HashMap;
+
+use dashmap::DashMap;
+use maplit::hashmap;
+
 use crate::{
-    bgp::{Report::*, *},
+    bgp::{Report::*, ReportItem::*, SkipReason::*, *},
     parse::*,
 };
 
@@ -11,23 +16,21 @@ const LINES: [&str;1] = [
 ];
 
 #[test]
-fn selected_checks() -> Result<()> {
-    let dump: Dump = serde_json::from_str(DUMP)?;
-    let query = QueryDump::from_dump(dump);
-
-    for (expected_report, line) in reports().into_iter().zip(LINES) {
+fn err_only_checks() -> Result<()> {
+    let query = query()?;
+    for (expected, line) in expected_err_only_reports().into_iter().zip(LINES) {
         let mut compare = Compare::with_line_dump(line)?;
         compare.verbosity = Verbosity {
             stop_at_first: false,
             ..Verbosity::default()
         };
-        let actual_report = compare.check(&query);
-        assert_eq!(expected_report, actual_report);
+        let actual = compare.check(&query);
+        assert_eq!(expected, actual);
     }
     Ok(())
 }
 
-fn reports() -> [Vec<Report>; 1] {
+fn expected_err_only_reports() -> [Vec<Report>; 1] {
     [vec![
         BadExport {
             from: 9583,
@@ -40,4 +43,83 @@ fn reports() -> [Vec<Report>; 1] {
             items: vec![],
         },
     ]]
+}
+
+#[test]
+fn ok_skip_checks() -> Result<()> {
+    let query = query()?;
+    for (expected, line) in expected_ok_skip_checks().into_iter().zip(LINES) {
+        let mut compare = Compare::with_line_dump(line)?;
+        compare.verbosity = Verbosity {
+            stop_at_first: false,
+            show_skips: true,
+            show_success: true,
+            ..Verbosity::default()
+        };
+        let actual = compare.check(&query);
+        assert_eq!(expected, actual);
+    }
+    Ok(())
+}
+
+fn expected_ok_skip_checks() -> [Vec<Report>; 1] {
+    [vec![
+        BadExport {
+            from: 9583,
+            to: 2914,
+            items: vec![],
+        },
+        BadImport {
+            from: 9583,
+            to: 2914,
+            items: vec![],
+        },
+        NeutralExport {
+            from: 2914,
+            to: 1239,
+            items: vec![
+                Skip(AsSetUnrecorded("AS-ANY".into())),
+                Skip(AsSetRouteUnrecorded("AS2914:AS-GLOBAL".into())),
+            ],
+        },
+        NeutralImport {
+            from: 2914,
+            to: 1239,
+            items: vec![Skip(AutNumUnrecorded(1239))],
+        },
+        NeutralExport {
+            from: 1239,
+            to: 3130,
+            items: vec![Skip(AutNumUnrecorded(1239))],
+        },
+        NeutralImport {
+            from: 1239,
+            to: 3130,
+            items: vec![Skip(AutNumUnrecorded(3130))],
+        },
+    ]]
+}
+
+#[test]
+fn stats() -> Result<()> {
+    let query = query()?;
+    for (expected, line) in expected_stats().into_iter().zip(LINES) {
+        let map = DashMap::new();
+        let mut compare = Compare::with_line_dump(line)?;
+        compare.as_stats(&query, &map);
+        let actual = HashMap::from_iter(map.into_iter());
+        assert_eq!(expected, actual);
+    }
+    Ok(())
+}
+
+fn expected_stats() -> [HashMap<usize, AsStats>; 1] {
+    [
+        hashmap! {3130=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 0, import_err: 0, export_err: 0 }, 1239=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 1, import_err: 0, export_err: 0 }, 9583=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_err: 0, export_err: 1 }, 2914=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 1, import_err: 1, export_err: 0 }},
+    ]
+}
+
+fn query() -> Result<QueryDump> {
+    let dump: Dump = serde_json::from_str(DUMP)?;
+    Ok(QueryDump::from_dump(dump))
 }

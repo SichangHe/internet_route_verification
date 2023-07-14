@@ -142,6 +142,7 @@ impl JoinReportItems for Option<ReportItems> {
         match self {
             Some(mut self_reports) => match other {
                 Some(other_reports) => {
+                    self_reports.reserve(other_reports.len() << 4);
                     self_reports.extend(other_reports);
                     Some(self_reports)
                 }
@@ -272,20 +273,20 @@ pub struct AnyReportAggregator {
 impl AnyReportAggregator {
     pub fn new() -> Self {
         Self {
-            report_items: vec![],
+            report_items: Vec::with_capacity(64),
             all_fail: true,
         }
     }
 
     pub fn join(&mut self, (report_items, fail): (ReportItems, bool)) {
+        self.report_items.reserve(report_items.len() << 4);
         self.report_items.extend(report_items);
         self.all_fail = self.all_fail && fail;
     }
 }
 
 impl ToAnyReport for AnyReportAggregator {
-    fn to_any(mut self) -> AnyReport {
-        self.report_items.shrink_to_fit();
+    fn to_any(self) -> AnyReport {
         Some((self.report_items, self.all_fail))
     }
 }

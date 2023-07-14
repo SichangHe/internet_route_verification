@@ -54,11 +54,11 @@ impl Compare {
     /// the reports have different levels of details.
     /// If `verbosity.stop_at_err`, stops at the first erroneous AS pair.
     pub fn check(&self, dump: &QueryDump) -> Vec<Report> {
-        let mut reports = Vec::with_capacity(self.as_path.len() * 2);
         if self.as_path.len() == 1 {
-            reports.extend(self.check_last_export(dump));
+            return self.check_last_export(dump).into_iter().collect();
         }
 
+        let mut reports = Vec::with_capacity(self.as_path.len() << 4);
         let reverse_as_path = self.as_path.iter().rev();
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         for (from, to) in reverse_as_path.clone().zip(reverse_as_path.skip(1)) {
@@ -135,7 +135,7 @@ impl Compare {
                 }
             });
         }
-        let (items, fail) = match self.check_compliant(dump, &from_an.exports, to) {
+        let (mut items, fail) = match self.check_compliant(dump, &from_an.exports, to) {
             None => {
                 return self.verbosity.show_success.then_some(match to {
                     Some(to) => GoodExport { from, to },
@@ -144,6 +144,7 @@ impl Compare {
             }
             Some(report) => report,
         };
+        items.shrink_to_fit();
         if fail {
             Some(match to {
                 Some(to) => BadExport { from, to, items },
@@ -171,7 +172,7 @@ impl Compare {
                 items: vec![Skip(ImportEmpty)],
             });
         }
-        let (items, fail) = match self.check_compliant(dump, &to_an.imports, Some(from)) {
+        let (mut items, fail) = match self.check_compliant(dump, &to_an.imports, Some(from)) {
             None => {
                 return self
                     .verbosity
@@ -180,6 +181,7 @@ impl Compare {
             }
             Some(report) => report,
         };
+        items.shrink_to_fit();
         if fail {
             Some(BadImport { from, to, items })
         } else {

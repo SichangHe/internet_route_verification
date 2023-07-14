@@ -58,7 +58,7 @@ impl Compare {
             return self.check_last_export(dump).into_iter().collect();
         }
 
-        let mut reports = Vec::with_capacity(self.as_path.len() << 4);
+        let mut reports = Vec::with_capacity(self.as_path.len() << 1);
         let reverse_as_path = self.as_path.iter().rev();
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         for (from, to) in reverse_as_path.clone().zip(reverse_as_path.skip(1)) {

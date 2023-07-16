@@ -14,7 +14,7 @@ use crate as route_verification;
 :dep dashmap = "5.5.0"
 :dep route_verification = { path = "route_verification" }
 :dep rayon
-:dep polars = { version = "0.30.0", features = ["describe"] }
+:dep polars = { version = "0.31", features = ["describe"] }
 :dep itertools = "0.11"
 // */
 use dashmap::DashMap;

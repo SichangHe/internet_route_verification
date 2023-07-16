@@ -11,10 +11,10 @@ WIP
 - Maybe you want to enable logging:
 
     ```sh
-    export RUST_LOG=route_policy_cmp=trace
+    export RUST_LOG=route_verification=trace,route_verification_irr=trace,route_verification_lex=trace,route_verification_parse=trace
     ```
 
-- Run at `route_policy_cmp/`:
+- Run at `route_verification/`:
 
     ```sh
     cargo r --release -- parse ../data/ripe.db ../parsed
@@ -53,7 +53,7 @@ Decompress all files.
 
 ### Run the parser with `parse_priority`
 
-Run at `route_policy_cmp/`:
+Run at `route_verification/`:
 
 ```sh
 cargo r --release -- parse_priority ../data/irrs/priority/ ../data/irrs/backup/ ../parsed_all/
@@ -112,8 +112,8 @@ python3 -m rpsl_lexer.tests.export_w_db
 
 ## Test parser and comparator
 
-Run at `route_policy_cmp/`:
+Run at `route_verification/`:
 
 ```sh
-cargo t
+cargo t --workspace
 ```

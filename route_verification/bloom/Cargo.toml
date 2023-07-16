@@ -1,0 +1,8 @@
+[package]
+name = "route_verification_bloom"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bit-vec = "0.6.3"
+hashbrown = { version = "0.14.0", features = ["raw"] }

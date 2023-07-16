@@ -1,7 +1,9 @@
+use std::{fs::*, io::*, path::Path};
+
 use chardetng::EncodingDetector;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
-use std::{fs::*, io::*, path::Path};
+use rayon::prelude::*;
 
 use super::{
     bgp::*,

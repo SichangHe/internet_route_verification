@@ -1,7 +1,7 @@
+use std::env::args;
+
 use anyhow::{bail, Result};
 use route_verification::*;
-
-use std::env::args;
 
 fn main() -> Result<()> {
     // TODO: Make a shell.
@@ -11,7 +11,7 @@ fn main() -> Result<()> {
         bail!("Specify a command!");
     }
     match args[1].as_str() {
-        "parse" => parse(args),
+        "parse" => parse_one(args),
         "parse_all" => parse_all(args),
         "parse_priority" => parse_priority(args),
         "read" => read(args),

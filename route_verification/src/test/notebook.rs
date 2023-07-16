@@ -21,22 +21,25 @@ use dashmap::DashMap;
 use itertools::multiunzip;
 use polars::prelude::*;
 use rayon::prelude::*;
-use route_verification::{bgp::*, parse::dump::Dump};
+use route_verification::{bgp::*, parse::*};
 use std::{
-    collections::BTreeMap,
     fs::File,
     io::{prelude::*, BufReader},
     time::Instant,
 };
 
 fn read_parsed_rpsl() -> Result<()> {
+    let start = Instant::now();
     let parsed = Dump::pal_read("parsed_all")?;
+    println!("Read dump in {}ms.", start.elapsed().as_millis());
     let query = QueryDump::from_dump(parsed);
 
+    let start = Instant::now();
     let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt")?)
         .lines()
         .map(|l| l.unwrap())
         .collect();
+    println!("Read BGP file in {}ms.", start.elapsed().as_millis());
 
     // Remove `;` in notebook.
     Compare::with_line_dump(&bgp_file[2])?.check(&query);

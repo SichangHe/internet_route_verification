@@ -7,12 +7,12 @@
 #![allow(clippy::type_complexity)]
 
 use super::*;
-use crate as route_policy_cmp;
+use crate as route_verification;
 
 /* Copy from the next line until the end of `use`.
 :opt 3
 :dep dashmap = "5.5.0"
-:dep route_policy_cmp = { path = "route_policy_cmp" }
+:dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep polars = { version = "0.30.0", features = ["describe"] }
 :dep itertools = "0.11"
@@ -21,7 +21,7 @@ use dashmap::DashMap;
 use itertools::multiunzip;
 use polars::prelude::*;
 use rayon::prelude::*;
-use route_policy_cmp::{bgp::*, parse::dump::Dump};
+use route_verification::{bgp::*, parse::dump::Dump};
 use std::{
     collections::BTreeMap,
     fs::File,

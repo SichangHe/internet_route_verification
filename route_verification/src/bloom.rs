@@ -39,7 +39,7 @@ use hashbrown::{hash_map::DefaultHashBuilder, raw::RawTable};
 /// filter to 16x that.
 ///
 /// ```rust
-/// # use route_policy_cmp::bloom::BloomHashSet;
+/// # use route_verification::bloom::BloomHashSet;
 /// let mut seen = BloomHashSet::with_capacity(1024, 16 * 1024);
 /// let name = "Alice".to_owned();
 /// assert!(!seen.contains(&name));

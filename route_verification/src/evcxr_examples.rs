@@ -59,7 +59,7 @@ fn parse_bgp_lines() -> Result<()> {
     // ---
     // Generate statistics for each AS:
     let start = Instant::now();
-    let map: DashMap<usize, AsStats> = DashMap::new();
+    let map: DashMap<u64, AsStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
         l.compare.as_stats(&query, &map);
     });
@@ -89,7 +89,7 @@ fn parse_bgp_lines() -> Result<()> {
             },
         )| {
             (
-                an as u64,
+                an,
                 import_ok,
                 export_ok,
                 import_skip,

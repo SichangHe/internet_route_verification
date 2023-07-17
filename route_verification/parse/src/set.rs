@@ -7,12 +7,12 @@ use super::*;
 pub struct AsSet {
     pub body: String,
     /// AS numbers; should be kept sorted.
-    pub members: Vec<usize>,
+    pub members: Vec<u64>,
     pub set_members: Vec<String>,
 }
 
 impl AsSet {
-    pub fn new(mut body: String, mut members: Vec<usize>, mut set_members: Vec<String>) -> Self {
+    pub fn new(mut body: String, mut members: Vec<u64>, mut set_members: Vec<String>) -> Self {
         body.shrink_to_fit();
         members.shrink_to_fit();
         members.sort_unstable();

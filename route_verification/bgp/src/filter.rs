@@ -48,7 +48,7 @@ impl<'a> CheckFilter<'a> {
         aggregator.to_any()
     }
 
-    fn filter_as_num(&self, num: usize, op: RangeOperator) -> AnyReport {
+    fn filter_as_num(&self, num: u64, op: RangeOperator) -> AnyReport {
         let routes = match self.dump.as_routes.get(&num) {
             Some(r) => r,
             None => {

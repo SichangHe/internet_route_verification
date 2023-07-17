@@ -8,7 +8,7 @@ use super::*;
 pub struct AsSetRoute {
     /// Should always be sorted.
     pub routes: Vec<IpNet>,
-    pub unrecorded_nums: Vec<usize>,
+    pub unrecorded_nums: Vec<u64>,
     pub set_members: Vec<String>,
 }
 
@@ -26,7 +26,7 @@ impl AsSetRoute {
 
     /// Fill in routes for the AS with `as_set` with routes in `as_routes`.
     /// The process is done only once, and the result [`AsSetRoute`] is cleaned.
-    pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<usize, Vec<IpNet>>) -> Self {
+    pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<u64, Vec<IpNet>>) -> Self {
         let mut routes = Vec::with_capacity(as_set.members.len() << 2);
         let mut unrecorded_nums = Vec::new();
         for member in &as_set.members {
@@ -48,13 +48,13 @@ impl AsSetRoute {
 /// Cleaned RPSL dump ready for query.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryDump {
-    pub aut_nums: HashMap<usize, AutNum>,
+    pub aut_nums: HashMap<u64, AutNum>,
     pub as_sets: HashMap<String, AsSet>,
     pub route_sets: HashMap<String, RouteSet>,
     pub peering_sets: HashMap<String, PeeringSet>,
     pub filter_sets: HashMap<String, FilterSet>,
     /// Each value should always be sorted.
-    pub as_routes: HashMap<usize, Vec<IpNet>>,
+    pub as_routes: HashMap<u64, Vec<IpNet>>,
     /// Each value should always be sorted.
     pub as_set_routes: HashMap<String, AsSetRoute>,
 }

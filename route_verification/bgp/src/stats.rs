@@ -5,7 +5,7 @@ use super::*;
 use Report::*;
 
 impl Compare {
-    pub fn as_stats(&mut self, dump: &QueryDump, map: &DashMap<usize, AsStats>) {
+    pub fn as_stats(&mut self, dump: &QueryDump, map: &DashMap<u64, AsStats>) {
         self.verbosity = Verbosity {
             stop_at_first: false,
             show_skips: true,

@@ -12,19 +12,19 @@ mod tests;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct CollectorPeer {
-    pub asn: usize,
+    pub asn: u64,
     pub ip: IpAddr,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AsPathEntry {
-    Seq(usize),
-    Set(Vec<usize>),
+    Seq(u64),
+    Set(Vec<u64>),
 }
 
 impl AsPathEntry {
-    pub fn contains_num(&self, num: usize) -> bool {
+    pub fn contains_num(&self, num: u64) -> bool {
         match self {
             AsPathEntry::Seq(n) => num == *n,
             AsPathEntry::Set(ns) => ns.contains(&num),
@@ -49,7 +49,7 @@ impl Display for AsPathEntry {
 }
 
 impl IntoIterator for AsPathEntry {
-    type Item = usize;
+    type Item = u64;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {

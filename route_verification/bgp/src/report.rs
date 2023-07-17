@@ -12,28 +12,28 @@ use super::*;
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
     GoodImport {
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
     },
     GoodExport {
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
     },
     GoodSingleExport {
-        from: usize,
+        from: u64,
     },
     NeutralImport {
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
         items: Vec<ReportItem>,
     },
     NeutralExport {
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
         items: Vec<ReportItem>,
     },
     NeutralSingleExport {
-        from: usize,
+        from: u64,
         items: Vec<ReportItem>,
     },
     AsPathPairWithSet {
@@ -41,28 +41,28 @@ pub enum Report {
         to: AsPathEntry,
     },
     SetImport {
-        from: usize,
-        to: Vec<usize>,
+        from: u64,
+        to: Vec<u64>,
     },
     SetExport {
-        from: Vec<usize>,
-        to: usize,
+        from: Vec<u64>,
+        to: u64,
     },
     SetSingleExport {
-        from: Vec<usize>,
+        from: Vec<u64>,
     },
     BadImport {
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
         items: Vec<ReportItem>,
     },
     BadExport {
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
         items: Vec<ReportItem>,
     },
     BadSingeExport {
-        from: usize,
+        from: u64,
         items: Vec<ReportItem>,
     },
 }
@@ -79,7 +79,7 @@ pub enum ReportItem {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum SkipReason {
     FilterSetUnrecorded(String),
-    AsRoutesUnrecorded(usize),
+    AsRoutesUnrecorded(u64),
     RouteSetUnrecorded(String),
     AsSetUnrecorded(String),
     AsSetRouteUnrecorded(String),
@@ -89,7 +89,7 @@ pub enum SkipReason {
     CommunityCheckUnimplemented(Call),
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,
-    AutNumUnrecorded(usize),
+    AutNumUnrecorded(u64),
     ImportEmpty,
     ExportEmpty,
 }
@@ -97,11 +97,11 @@ pub enum SkipReason {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum MatchProblem {
     Filter,
-    FilterAsNum(usize, RangeOperator),
+    FilterAsNum(u64, RangeOperator),
     FilterAsSet(String, RangeOperator),
     FilterPrefixes,
     FilterRouteSet(String),
-    RemoteAsNum(usize),
+    RemoteAsNum(u64),
     RemoteAsSet(String),
     ExceptPeeringRightMatch,
     Peering,

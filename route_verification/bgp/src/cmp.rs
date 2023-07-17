@@ -96,7 +96,7 @@ impl Compare {
         }
     }
 
-    pub fn check_pair(&self, dump: &QueryDump, from: usize, to: usize) -> Vec<Report> {
+    pub fn check_pair(&self, dump: &QueryDump, from: u64, to: u64) -> Vec<Report> {
         let from_report = match dump.aut_nums.get(&from) {
             Some(from_an) => self.check_export(dump, from_an, from, Some(to)),
             None => self.verbosity.show_skips.then(|| {
@@ -122,8 +122,8 @@ impl Compare {
         &self,
         dump: &QueryDump,
         from_an: &AutNum,
-        from: usize,
-        to: Option<usize>,
+        from: u64,
+        to: Option<u64>,
     ) -> Option<Report> {
         if from_an.exports.is_default() {
             return self.verbosity.show_skips.then(|| {
@@ -161,8 +161,8 @@ impl Compare {
         &self,
         dump: &QueryDump,
         to_an: &AutNum,
-        from: usize,
-        to: usize,
+        from: u64,
+        to: u64,
     ) -> Option<Report> {
         if to_an.imports.is_default() {
             return self.verbosity.show_skips.then(|| NeutralImport {
@@ -194,7 +194,7 @@ impl Compare {
         &self,
         dump: &QueryDump,
         policy: &Versions,
-        accept_num: Option<usize>,
+        accept_num: Option<u64>,
     ) -> AnyReport {
         let mut aggregator: AnyReportAggregator = match self.prefix {
             IpNet::V4(_) => self.check_casts(dump, &policy.ipv4, accept_num),
@@ -209,7 +209,7 @@ impl Compare {
         &self,
         dump: &QueryDump,
         casts: &Casts,
-        accept_num: Option<usize>,
+        accept_num: Option<u64>,
     ) -> AnyReport {
         let mut aggregator = AnyReportAggregator::new();
         let specific_cast = match is_multicast(&self.prefix) {
@@ -226,7 +226,7 @@ impl Compare {
         &self,
         dump: &QueryDump,
         entry: &Entry,
-        accept_num: Option<usize>,
+        accept_num: Option<u64>,
     ) -> AllReport {
         let peering_report = match accept_num {
             Some(accept_num) => self
@@ -260,7 +260,7 @@ impl Compare {
         &self,
         dump: &QueryDump,
         peerings: I,
-        accept_num: usize,
+        accept_num: u64,
     ) -> AnyReport
     where
         I: IntoIterator<Item = &'a PeeringAction>,
@@ -277,7 +277,7 @@ impl Compare {
         &self,
         dump: &QueryDump,
         peering_actions: &PeeringAction,
-        accept_num: usize,
+        accept_num: u64,
     ) -> AllReport {
         CheckPeering {
             dump,
@@ -299,7 +299,7 @@ impl Compare {
         Ok(None)
     }
 
-    pub fn goes_through_num(&self, num: usize) -> bool {
+    pub fn goes_through_num(&self, num: u64) -> bool {
         self.as_path.iter().any(|p| p.contains_num(num))
     }
 }
@@ -327,6 +327,6 @@ pub fn is_multicast(prefix: &IpNet) -> bool {
     }
 }
 
-fn aut_num_unrecorded_items(aut_num: usize) -> Vec<ReportItem> {
+fn aut_num_unrecorded_items(aut_num: u64) -> Vec<ReportItem> {
     vec![Skip(AutNumUnrecorded(aut_num))]
 }

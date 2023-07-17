@@ -136,7 +136,7 @@ pub enum Filter {
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.3>.
     RouteSet(String, RangeOperator),
     /// An AS number.
-    AsNum(usize, RangeOperator),
+    AsNum(u64, RangeOperator),
     /// A name of an as-set object.
     AsSet(String, RangeOperator),
     /// An AS-path regular expression can be used as a policy filter by enclosing the expression in `<' and `>'.

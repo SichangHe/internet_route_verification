@@ -5,7 +5,7 @@ use super::*;
 pub struct CheckPeering<'a> {
     pub dump: &'a QueryDump,
     pub compare: &'a Compare,
-    pub accept_num: usize,
+    pub accept_num: u64,
     pub verbosity: Verbosity,
 }
 
@@ -53,7 +53,7 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_num(&self, num: usize) -> AnyReport {
+    fn check_remote_as_num(&self, num: u64) -> AnyReport {
         if self.accept_num == num {
             None
         } else {

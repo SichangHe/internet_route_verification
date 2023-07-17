@@ -25,14 +25,14 @@ pub fn parse_lexed(lexed: lex::Dump) -> Dump {
     dump
 }
 
-pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> BTreeMap<usize, AutNum> {
+pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> BTreeMap<u64, AutNum> {
     lexed
         .into_par_iter()
         .filter_map(|l| parse_lexed_aut_num(l).map_err(|e| error!("{e:#}")).ok())
         .collect()
 }
 
-pub fn parse_lexed_aut_num(aut_num: lex::AutNum) -> Result<(usize, AutNum)> {
+pub fn parse_lexed_aut_num(aut_num: lex::AutNum) -> Result<(u64, AutNum)> {
     let num = parse_aut_num_name(&aut_num.name).context(format!("parsing {aut_num:?}"))?;
     let lex::AutNum {
         name: _,
@@ -52,7 +52,7 @@ pub fn parse_lexed_aut_num(aut_num: lex::AutNum) -> Result<(usize, AutNum)> {
     ))
 }
 
-pub fn parse_aut_num_name(name: &str) -> Result<usize> {
+pub fn parse_aut_num_name(name: &str) -> Result<u64> {
     match regex_captures!(r"^AS(\d+)$"i, name) {
         Some((_, num)) => num
             .parse()
@@ -173,7 +173,7 @@ pub fn parse_lexed_filter_set(lexed: lex::FilterSet) -> Result<(String, FilterSe
 
 pub fn parse_lexed_as_routes(
     as_routes: BTreeMap<String, Vec<String>>,
-) -> BTreeMap<usize, Vec<IpNet>> {
+) -> BTreeMap<u64, Vec<IpNet>> {
     as_routes
         .into_iter()
         .filter_map(|as_route| {
@@ -184,7 +184,7 @@ pub fn parse_lexed_as_routes(
         .collect()
 }
 
-pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(usize, Vec<IpNet>)> {
+pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(u64, Vec<IpNet>)> {
     let num = parse_aut_num_name(name)?;
     let routes: Result<_> = routes.iter().map(|r| Ok(r.parse()?)).collect();
     let mut routes: Vec<_> = routes?;

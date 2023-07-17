@@ -1,9 +1,13 @@
 use super::*;
 
+/// Relationship between two Autonomous Systems.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Relationship {
+    /// Peer to customer.
     P2C,
+    /// Peer to peer.
     P2P,
+    /// Customer to peer.
     C2P,
 }
 

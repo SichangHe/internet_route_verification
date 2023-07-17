@@ -32,7 +32,7 @@ const FILE_LINES: &str = "141760|63927|0
 
 #[test]
 fn parse_mini_file() -> Result<()> {
-    let db = AsRelDB::from_lines(FILE_LINES.lines())?;
+    let db = AsRelDb::from_lines(FILE_LINES.lines())?;
     assert_eq!(db.get(203188, 12741), Some(P2P));
     assert_eq!(db.get(58430, 63927), Some(P2P));
     assert_eq!(db.get(1239, 4657), Some(P2C));

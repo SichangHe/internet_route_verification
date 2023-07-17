@@ -1,0 +1,14 @@
+[package]
+name = "route_verification_irr"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+lazy-regex = "3.0"
+log = "0.4"
+rayon = "1.7"
+
+lex = { package = "route_verification_lex", path = "../lex" }
+io = { package = "route_verification_io", path = "../io" }
+parse = { package = "route_verification_parse", path = "../parse" }

@@ -1,22 +1,11 @@
-use std::{collections::BTreeMap, mem};
+use anyhow::{bail, Result};
+use log::debug;
 
-use anyhow::{bail, Context, Error, Result};
-use ipnet::IpNet;
-use log::{debug, error, warn};
-use rayon::prelude::*;
-use serde::{Deserialize, Serialize};
-use serde_with::skip_serializing_none;
+pub use {bgp, bloom, io, irr, lex, parse};
 
-pub mod bgp;
-pub mod bloom;
-pub mod cmd;
-pub mod fs;
-pub mod irr;
-pub mod lex;
-pub mod parse;
-pub mod serialize;
+mod fs;
 
-pub fn parse(args: Vec<String>) -> Result<()> {
+pub fn parse_one(args: Vec<String>) -> Result<()> {
     if args.len() < 4 {
         bail!("Specify a file to read and a directory to write to!");
     }
@@ -87,4 +76,4 @@ pub fn report(args: Vec<String>) -> Result<()> {
 }
 
 #[cfg(test)]
-mod test;
+mod evcxr_examples;

@@ -1,0 +1,20 @@
+[package]
+name = "route_verification_lex"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lazy-regex = "3.0"
+log = "0.4"
+maplit = { version = "1.0", optional = true }
+rayon = "1.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_with = "3.0"
+
+[dev-dependencies]
+anyhow = "1.0"
+maplit = "1.0"
+serde_json = "1.0"
+
+[features]
+test_util = ["maplit"]

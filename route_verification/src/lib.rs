@@ -76,4 +76,4 @@ pub fn report(args: Vec<String>) -> Result<()> {
 }
 
 #[cfg(test)]
-mod test;
+mod evcxr_examples;

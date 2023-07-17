@@ -1,4 +1,4 @@
-//! Notebook usage example snippets.
+//! Evcxr usage example snippets.
 #![allow(dead_code)]
 #![allow(clippy::no_effect)]
 #![allow(unused_imports)]
@@ -41,8 +41,9 @@ fn read_parsed_rpsl() -> Result<()> {
         .collect();
     println!("Read BGP file in {}ms.", start.elapsed().as_millis());
 
-    // Remove `;` in notebook.
-    Compare::with_line_dump(&bgp_file[2])?.check(&query);
+    Compare::with_line_dump(&bgp_file[2])?.check(&query)
+    // Remove `;` when pasting.
+    ;
 
     Ok(())
 }

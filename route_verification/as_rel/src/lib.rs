@@ -99,3 +99,6 @@ impl Relationship {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

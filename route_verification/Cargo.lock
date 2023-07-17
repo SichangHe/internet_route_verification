@@ -1581,6 +1581,7 @@ dependencies = [
  "net-literals",
  "polars",
  "rayon",
+ "route_verification_as_rel",
  "route_verification_bgp",
  "route_verification_bloom",
  "route_verification_io",

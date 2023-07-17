@@ -15,6 +15,7 @@ env_logger = "0.10"
 log = "0.4"
 rayon = "1.7"
 
+as_rel = { package = "route_verification_as_rel", path = "./as_rel" }
 bgp = { package = "route_verification_bgp", path = "./bgp" }
 bloom = { package = "route_verification_bloom", path = "./bloom" }
 io = { package = "route_verification_io", path = "./io" }

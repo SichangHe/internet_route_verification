@@ -1,5 +1,5 @@
 [workspace]
-members = ["bgp", "bloom", "io", "irr", "lex", "parse"]
+members = ["bgp", "bgpmap", "bloom", "io", "irr", "lex", "parse"]
 
 [package]
 name = "route_verification"

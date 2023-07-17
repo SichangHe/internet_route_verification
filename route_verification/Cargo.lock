@@ -1579,12 +1579,23 @@ dependencies = [
  "lazy-regex",
  "maplit",
  "rayon",
+ "route_verification_bgpmap",
  "route_verification_bloom",
  "route_verification_io",
  "route_verification_lex",
  "route_verification_parse",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "route_verification_bgpmap"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ipnet",
+ "lazy-regex",
+ "serde",
 ]
 
 [[package]]

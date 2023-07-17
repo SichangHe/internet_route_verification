@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 
 pub mod cmp;
 pub mod filter;
-pub mod map;
 pub mod peering;
 pub mod query;
 pub mod report;
@@ -20,6 +19,7 @@ pub mod wrapper;
 
 pub use {
     cmp::Compare,
+    map,
     query::{AsSetRoute, QueryDump},
     report::{MatchProblem, Report, ReportItem, SkipReason},
     stats::AsStats,

@@ -7,6 +7,9 @@ use ipnet::IpNet;
 use lazy_regex::regex_captures;
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct CollectorPeer {
     pub asn: usize,

@@ -1,3 +1,3 @@
-pub mod notebook;
+mod notebook;
 
 use super::*;

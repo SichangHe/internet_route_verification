@@ -12,7 +12,7 @@ use crate::{
     RouterExpr::*,
 };
 
-pub use super::*;
+use super::*;
 
 #[test]
 fn parse_name() {

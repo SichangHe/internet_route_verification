@@ -52,7 +52,7 @@ impl Compare {
     /// Depending on which [`Verbosity`] `self.verbose` is set to,
     /// the reports have different levels of details.
     /// If `verbosity.stop_at_err`, stops at the first erroneous AS pair.
-    pub fn check(&self, dump: &QueryDump) -> Vec<Report> {
+    pub fn check(&self, dump: &QueryDump, db: Option<&AsRelDb>) -> Vec<Report> {
         if self.as_path.len() == 1 {
             return self.check_last_export(dump).into_iter().collect();
         }
@@ -62,7 +62,7 @@ impl Compare {
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         for (from, to) in reverse_as_path.clone().zip(reverse_as_path.skip(1)) {
             if let (Seq(from), Seq(to)) = (from, to) {
-                let r = self.check_pair(dump, *from, *to);
+                let r = self.check_pair(dump, db, *from, *to);
                 if !r.is_empty() {
                     reports.extend(r);
                     if self.verbosity.stop_at_first {
@@ -83,7 +83,7 @@ impl Compare {
     pub fn check_last_export(&self, dump: &QueryDump) -> Option<Report> {
         match self.as_path.last()? {
             Seq(from) => match dump.aut_nums.get(from) {
-                Some(from_an) => self.check_export(dump, from_an, *from, None),
+                Some(from_an) => self.check_export(dump, None, from_an, *from, None),
                 None => self.verbosity.show_skips.then(|| {
                     let items = aut_num_unrecorded_items(*from);
                     NeutralSingleExport { from: *from, items }
@@ -96,9 +96,15 @@ impl Compare {
         }
     }
 
-    pub fn check_pair(&self, dump: &QueryDump, from: usize, to: usize) -> Vec<Report> {
+    pub fn check_pair(
+        &self,
+        dump: &QueryDump,
+        db: Option<&AsRelDb>,
+        from: usize,
+        to: usize,
+    ) -> Vec<Report> {
         let from_report = match dump.aut_nums.get(&from) {
-            Some(from_an) => self.check_export(dump, from_an, from, Some(to)),
+            Some(from_an) => self.check_export(dump, db, from_an, from, Some(to)),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(from);
                 NeutralExport { from, to, items }
@@ -109,7 +115,7 @@ impl Compare {
             (from_report, _) => from_report,
         };
         let to_report = match dump.aut_nums.get(&to) {
-            Some(to_an) => self.check_import(dump, to_an, from, to),
+            Some(to_an) => self.check_import(dump, db, to_an, from, to),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(to);
                 NeutralImport { from, to, items }
@@ -121,6 +127,7 @@ impl Compare {
     pub fn check_export(
         &self,
         dump: &QueryDump,
+        db: Option<&AsRelDb>,
         from_an: &AutNum,
         from: usize,
         to: Option<usize>,
@@ -144,6 +151,11 @@ impl Compare {
             Some(report) => report,
         };
         items.shrink_to_fit();
+        if let (true, Some(to), Some(db)) = (fail, to, db) {
+            if let Some(P2C) = db.get(from as u64, to as u64) {
+                return Some(NeutralDownhillExport { from, to, items });
+            }
+        }
         if fail {
             Some(match to {
                 Some(to) => BadExport { from, to, items },
@@ -160,6 +172,7 @@ impl Compare {
     pub fn check_import(
         &self,
         dump: &QueryDump,
+        db: Option<&AsRelDb>,
         to_an: &AutNum,
         from: usize,
         to: usize,
@@ -181,6 +194,11 @@ impl Compare {
             Some(report) => report,
         };
         items.shrink_to_fit();
+        if let (true, Some(db)) = (fail, db) {
+            if let Some(P2C) = db.get(from as u64, to as u64) {
+                return Some(NeutralUphillImport { from, to, items });
+            }
+        }
         if fail {
             Some(BadImport { from, to, items })
         } else {

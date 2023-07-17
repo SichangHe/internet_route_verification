@@ -27,7 +27,17 @@ pub enum Report {
         to: usize,
         items: Vec<ReportItem>,
     },
+    NeutralUphillImport {
+        from: usize,
+        to: usize,
+        items: Vec<ReportItem>,
+    },
     NeutralExport {
+        from: usize,
+        to: usize,
+        items: Vec<ReportItem>,
+    },
+    NeutralDownhillExport {
         from: usize,
         to: usize,
         items: Vec<ReportItem>,

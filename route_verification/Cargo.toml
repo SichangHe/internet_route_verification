@@ -8,9 +8,9 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-chardetng = "0.1.17"
-encoding_rs = "0.8.32"
-encoding_rs_io = "0.1.7"
+chardetng = "0.1"
+encoding_rs = "0.8"
+encoding_rs_io = "0.1"
 env_logger = "0.10"
 log = "0.4"
 rayon = "1.7"
@@ -23,7 +23,7 @@ lex = { package = "route_verification_lex", path = "./lex" }
 parse = { package = "route_verification_parse", path = "./parse" }
 
 [dev-dependencies]
-dashmap = "5.5.0"
+dashmap = "5.5"
 itertools = "0.11"
-net-literals = "0.2.0"
+net-literals = "0.2"
 polars = { version = "0.31", features = ["describe"] }

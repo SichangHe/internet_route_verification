@@ -19,7 +19,7 @@ lex = { package = "route_verification_lex", path = "../lex" }
 
 [dev-dependencies]
 maplit = "1.0"
-net-literals = "0.2.0"
+net-literals = "0.2"
 
 lex = { package = "route_verification_lex", path = "../lex", features = [
     "test_util",

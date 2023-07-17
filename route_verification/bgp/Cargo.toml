@@ -20,4 +20,4 @@ lex = { package = "route_verification_lex", path = "../lex" }
 parse = { package = "route_verification_parse", path = "../parse" }
 
 [dev-dependencies]
-maplit = "1.0.2"
+maplit = "1.0"

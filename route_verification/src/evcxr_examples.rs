@@ -42,7 +42,7 @@ fn read_parsed_rpsl() -> Result<()> {
     println!("Read BGP file in {}ms.", start.elapsed().as_millis());
 
     Compare::with_line_dump(&bgp_file[2])?.check(&query)
-    // Remove `;` when pasting.
+    // Exclude `;` when copying.
     ;
 
     Ok(())

@@ -48,12 +48,7 @@ fn ok_skip_checks() -> Result<()> {
     let query = query()?;
     for (expected, line) in expected_ok_skip_checks().into_iter().zip(LINES) {
         let mut compare = Compare::with_line_dump(line)?;
-        compare.verbosity = Verbosity {
-            stop_at_first: false,
-            show_skips: true,
-            show_success: true,
-            ..Verbosity::default()
-        };
+        compare.verbosity = Verbosity::minimum_all();
         let actual = compare.check(&query);
         assert_eq!(expected, actual);
     }

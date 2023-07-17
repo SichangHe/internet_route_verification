@@ -114,12 +114,7 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
 
     const SIZE: usize = 0x1000;
     bgp_lines[..SIZE].iter_mut().for_each(|line| {
-        line.compare.verbosity = Verbosity {
-            stop_at_first: false,
-            show_skips: true,
-            show_success: true,
-            ..Verbosity::default()
-        };
+        line.compare.verbosity = Verbosity::minimum_all();
         line.check(&query);
     });
     debug!("Generated {SIZE} reports");

@@ -8,12 +8,7 @@ use Report::*;
 
 impl Compare {
     pub fn as_stats(&mut self, dump: &QueryDump, map: &DashMap<u64, AsStats>) {
-        self.verbosity = Verbosity {
-            stop_at_first: false,
-            show_skips: true,
-            show_success: true,
-            ..Verbosity::default()
-        };
+        self.verbosity = Verbosity::minimum_all();
         let reports = self.check(dump);
         for report in reports {
             match report {
@@ -51,10 +46,7 @@ impl Compare {
     }
 
     pub fn up_down_hill_stats(&mut self, dump: &QueryDump, db: &AsRelDb) -> UpDownHillStats {
-        self.verbosity = Verbosity {
-            stop_at_first: false,
-            ..Verbosity::default()
-        };
+        self.verbosity = Verbosity::minimum_all();
         let reports = self.check(dump);
         let mut result = UpDownHillStats::default();
         for report in reports.iter() {

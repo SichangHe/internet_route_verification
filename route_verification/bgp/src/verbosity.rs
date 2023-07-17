@@ -42,18 +42,29 @@ impl std::fmt::Debug for Verbosity {
 
 impl Verbosity {
     pub fn new(
-        stop_at_error: bool,
+        stop_at_first: bool,
         show_skips: bool,
         show_success: bool,
         per_entry_err: bool,
         all_err: bool,
     ) -> Self {
         Self {
-            stop_at_first: stop_at_error,
+            stop_at_first,
             show_skips,
             show_success,
             per_entry_err,
             all_err,
+        }
+    }
+
+    /// Report all errors, skips, and success but not the details.
+    pub const fn minimum_all() -> Self {
+        Self {
+            stop_at_first: false,
+            show_skips: true,
+            show_success: true,
+            per_entry_err: false,
+            all_err: false,
         }
     }
 }

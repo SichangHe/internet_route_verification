@@ -58,6 +58,7 @@ fn parse_bgp_lines() -> Result<()> {
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
     let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
+
     // ---
     // Generate statistics for up/downhill:
     let start = Instant::now();
@@ -70,6 +71,63 @@ fn parse_bgp_lines() -> Result<()> {
         "Generated stats of {total} reports in {}ms.",
         start.elapsed().as_millis()
     );
+
+    let mut up_down_hill_df = DataFrame::new(vec![
+        Series::new(
+            "quality",
+            vec![
+                "good", "good", "good", "good", "good", "good", "good", "good", "neutral",
+                "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "neutral", "bad",
+                "bad", "bad", "bad", "bad", "bad", "bad", "bad",
+            ],
+        ),
+        Series::new(
+            "hill",
+            vec![
+                "up", "down", "peer", "other", "up", "down", "peer", "other", "up", "down", "peer",
+                "other", "up", "down", "peer", "other", "up", "down", "peer", "other", "up",
+                "down", "peer", "other",
+            ],
+        ),
+        Series::new(
+            "port",
+            vec![
+                "import", "import", "import", "import", "export", "export", "export", "export",
+                "import", "import", "import", "import", "export", "export", "export", "export",
+                "import", "import", "import", "import", "export", "export", "export", "export",
+            ],
+        ),
+        Series::new(
+            "value",
+            vec![
+                up_down_hill_stats.good_up_import,
+                up_down_hill_stats.good_down_import,
+                up_down_hill_stats.good_peer_import,
+                up_down_hill_stats.good_other_import,
+                up_down_hill_stats.good_up_export,
+                up_down_hill_stats.good_down_export,
+                up_down_hill_stats.good_peer_export,
+                up_down_hill_stats.good_other_export,
+                up_down_hill_stats.neutral_up_import,
+                up_down_hill_stats.neutral_down_import,
+                up_down_hill_stats.neutral_peer_import,
+                up_down_hill_stats.neutral_other_import,
+                up_down_hill_stats.neutral_up_export,
+                up_down_hill_stats.neutral_down_export,
+                up_down_hill_stats.neutral_peer_export,
+                up_down_hill_stats.neutral_other_export,
+                up_down_hill_stats.bad_up_import,
+                up_down_hill_stats.bad_down_import,
+                up_down_hill_stats.bad_peer_import,
+                up_down_hill_stats.bad_other_import,
+                up_down_hill_stats.bad_up_export,
+                up_down_hill_stats.bad_down_export,
+                up_down_hill_stats.bad_peer_export,
+                up_down_hill_stats.bad_other_export,
+            ],
+        ),
+    ])?;
+    CsvWriter::new(File::create("up_down_hill_stats.csv")?).finish(&mut up_down_hill_df)?;
 
     // ---
     // Generate statistics for each AS:

@@ -1,6 +1,7 @@
 use std::{collections::BTreeMap, mem};
 
 use anyhow::Result;
+use as_rel::{AsRelDb, Relationship::*};
 use bloom::BloomHashSet;
 use ipnet::IpNet;
 use rayon::prelude::*;

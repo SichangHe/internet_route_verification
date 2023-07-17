@@ -21,10 +21,11 @@ use dashmap::DashMap;
 use itertools::multiunzip;
 use polars::prelude::*;
 use rayon::prelude::*;
-use route_verification::{bgp::*, parse::*};
+use route_verification::{as_rel::*, bgp::*, parse::*};
 use std::{
     fs::File,
     io::{prelude::*, BufReader},
+    ops::Add,
     time::Instant,
 };
 
@@ -55,6 +56,20 @@ fn parse_bgp_lines() -> Result<()> {
     println!("{:#?}", query.aut_nums.iter().next());
 
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+
+    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
+    // ---
+    // Generate statistics for up/downhill:
+    let start = Instant::now();
+    let up_down_hill_stats: UpDownHillStats = bgp_lines
+        .par_iter_mut()
+        .map(|l| l.compare.up_down_hill_stats(&query, &db))
+        .reduce(UpDownHillStats::default, Add::add);
+    let total = up_down_hill_stats.sum();
+    println!(
+        "Generated stats of {total} reports in {}ms.",
+        start.elapsed().as_millis()
+    );
 
     // ---
     // Generate statistics for each AS:

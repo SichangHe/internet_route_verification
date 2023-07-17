@@ -23,7 +23,7 @@ pub use {
     map,
     query::{AsSetRoute, QueryDump},
     report::{MatchProblem, Report, ReportItem, SkipReason},
-    stats::AsStats,
+    stats::{AsStats, UpDownHillStats},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},
 };

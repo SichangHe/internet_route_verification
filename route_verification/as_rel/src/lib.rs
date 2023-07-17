@@ -56,7 +56,7 @@ impl AsRelDb {
 
     fn do_load(path: &Path) -> Result<Self> {
         let file = File::open(path)?;
-        let reader = BufReader::new(BzDecoder::new(file));
+        let reader = BufReader::new(file);
         Self::from_maybe_lines(reader.lines())
     }
 
@@ -72,7 +72,7 @@ impl AsRelDb {
 
     fn do_load_bz(path: &Path) -> Result<Self> {
         let file = File::open(path)?;
-        let reader = BufReader::new(file);
+        let reader = BufReader::new(BzDecoder::new(file));
         Self::from_maybe_lines(reader.lines())
     }
 

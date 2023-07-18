@@ -11,37 +11,7 @@ impl Compare {
         self.verbosity = Verbosity::minimum_all();
         let reports = self.check(dump);
         for report in reports {
-            match report {
-                GoodImport { from: _, to } => map.entry(to).or_default().import_ok += 1,
-                GoodExport { from, to: _ } | GoodSingleExport { from } => {
-                    map.entry(from).or_default().export_ok += 1
-                }
-                NeutralImport {
-                    from: _,
-                    to,
-                    items: _,
-                } => map.entry(to).or_default().import_skip += 1,
-                NeutralExport {
-                    from,
-                    to: _,
-                    items: _,
-                }
-                | NeutralSingleExport { from, items: _ } => {
-                    map.entry(from).or_default().export_skip += 1
-                }
-                BadImport {
-                    from: _,
-                    to,
-                    items: _,
-                } => map.entry(to).or_default().import_err += 1,
-                BadExport {
-                    from,
-                    to: _,
-                    items: _,
-                }
-                | BadSingeExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
-                _ => (),
-            }
+            as_stats_one(map, report);
         }
     }
 
@@ -67,6 +37,37 @@ pub struct AsStats {
     pub export_err: u32,
 }
 
+fn as_stats_one(map: &DashMap<u64, AsStats>, report: Report) {
+    match report {
+        GoodImport { from: _, to } => map.entry(to).or_default().import_ok += 1,
+        GoodExport { from, to: _ } | GoodSingleExport { from } => {
+            map.entry(from).or_default().export_ok += 1
+        }
+        NeutralImport {
+            from: _,
+            to,
+            items: _,
+        } => map.entry(to).or_default().import_skip += 1,
+        NeutralExport {
+            from,
+            to: _,
+            items: _,
+        }
+        | NeutralSingleExport { from, items: _ } => map.entry(from).or_default().export_skip += 1,
+        BadImport {
+            from: _,
+            to,
+            items: _,
+        } => map.entry(to).or_default().import_err += 1,
+        BadExport {
+            from,
+            to: _,
+            items: _,
+        }
+        | BadSingeExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
+        _ => (),
+    }
+}
 fn up_down_hill_stats_one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
     match report {
         GoodImport { from, to } => match db.get(*from, *to) {

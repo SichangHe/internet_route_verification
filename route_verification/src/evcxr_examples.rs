@@ -24,6 +24,7 @@ use polars::prelude::*;
 use rayon::prelude::*;
 use route_verification::{as_rel::*, bgp::*, parse::*};
 use std::{
+    env,
     fs::File,
     io::{prelude::*, BufReader},
     ops::Add,
@@ -51,6 +52,10 @@ fn read_parsed_rpsl() -> Result<()> {
 }
 
 fn parse_bgp_lines() -> Result<()> {
+    // <https://pola-rs.github.io/polars/polars/index.html#config-with-env-vars>
+    env::set_var("POLARS_FMT_MAX_COLS", "32");
+    env::set_var("POLARS_TABLE_WIDTH", "160");
+
     let parsed = Dump::pal_read("parsed_all")?;
     let query: QueryDump = QueryDump::from_dump(parsed);
     println!("{:#?}", query.aut_nums.iter().next());
@@ -70,9 +75,67 @@ fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) ->
     });
     let size = map.len();
     println!(
-        "Generated stats of {size} reports in {}ms.",
+        "Generated stats of {size} AS pairs in {}ms.",
         start.elapsed().as_millis()
     );
+
+    let (froms, tos, ioks, eoks, isps, esps, iers, eers, rels): (
+        Vec<u64>,
+        Vec<u64>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<u32>,
+        Vec<String>,
+    ) = multiunzip(map.into_iter().map(
+        |(
+            (from, to),
+            AsPairStats {
+                import_ok,
+                export_ok,
+                import_skip,
+                export_skip,
+                import_err,
+                export_err,
+                relationship,
+            },
+        )| {
+            (
+                from,
+                to,
+                import_ok,
+                export_ok,
+                import_skip,
+                export_skip,
+                import_err,
+                export_err,
+                match relationship {
+                    Some(Relationship::P2C) => "down".into(),
+                    Some(Relationship::P2P) => "peer".into(),
+                    Some(Relationship::C2P) => "up".into(),
+                    None => "other".into(),
+                },
+            )
+        },
+    ));
+
+    let mut df = DataFrame::new(vec![
+        Series::new("from", froms),
+        Series::new("to", tos),
+        Series::new("import_ok", ioks),
+        Series::new("export_ok", eoks),
+        Series::new("import_skip", isps),
+        Series::new("export_skip", esps),
+        Series::new("import_err", iers),
+        Series::new("export_err", eers),
+        Series::new("relationship", rels),
+    ])?;
+    println!("{df}");
+    println!("{}", df.describe(None)?);
+
+    CsvWriter::new(File::create("as_pair_stats.csv")?).finish(&mut df)?;
 
     Ok(())
 }

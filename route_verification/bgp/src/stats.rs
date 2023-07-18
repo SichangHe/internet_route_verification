@@ -1,10 +1,15 @@
 use std::ops::Add;
 
+use as_rel::Relationship;
 use dashmap::DashMap;
 
 use super::*;
 
 use Report::*;
+
+mod as_pair;
+
+pub use as_pair::AsPairStats;
 
 impl Compare {
     pub fn as_stats(&mut self, dump: &QueryDump, map: &DashMap<u64, AsStats>) {
@@ -23,6 +28,19 @@ impl Compare {
             up_down_hill_stats_one(&mut result, report, db);
         }
         result
+    }
+
+    pub fn as_pair_stats(
+        &mut self,
+        dump: &QueryDump,
+        db: &AsRelDb,
+        map: &DashMap<(u64, u64), AsPairStats>,
+    ) {
+        self.verbosity = Verbosity::minimum_all();
+        let reports = self.check(dump);
+        for report in reports {
+            as_pair::one(db, map, report);
+        }
     }
 }
 
@@ -68,6 +86,7 @@ fn as_stats_one(map: &DashMap<u64, AsStats>, report: Report) {
         _ => (),
     }
 }
+
 fn up_down_hill_stats_one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
     match report {
         GoodImport { from, to } => match db.get(*from, *to) {

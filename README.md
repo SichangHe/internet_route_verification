@@ -11,7 +11,7 @@ WIP
 - Maybe you want to enable logging:
 
     ```sh
-    export RUST_LOG=route_verification=info,route_verification_as_rel=info,route_verification_irr=info,route_verification_lex=info,route_verification_parse=info
+    export RUST_LOG=route_verification=trace
     ```
 
 - Run at `route_verification/`:

@@ -60,6 +60,23 @@ fn parse_bgp_lines() -> Result<()> {
     Ok(())
 }
 
+/// Generate statistics for AS pairs.
+/// Copy this after running code from [`parse_bgp_lines`].
+fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+    let start = Instant::now();
+    let map: DashMap<(u64, u64), AsPairStats> = DashMap::new();
+    bgp_lines.par_iter_mut().for_each(|l| {
+        l.compare.as_pair_stats(&query, &db, &map);
+    });
+    let size = map.len();
+    println!(
+        "Generated stats of {size} reports in {}ms.",
+        start.elapsed().as_millis()
+    );
+
+    Ok(())
+}
+
 /// Generate statistics for up/downhill.
 /// Copy this after running code from [`parse_bgp_lines`].
 fn gen_up_down_hill_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {

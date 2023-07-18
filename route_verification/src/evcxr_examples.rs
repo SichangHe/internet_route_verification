@@ -5,17 +5,20 @@
 #![allow(unused_must_use)]
 #![allow(unused_variables)]
 #![allow(clippy::type_complexity)]
+#![allow(unused_mut)]
 
 use super::*;
 use crate as route_verification;
 
 /* Copy from the next line until the end of `use`.
 :opt 3
-:dep dashmap = "5.5.0"
+:dep dashmap
+:dep env_logger
+:dep log
 :dep route_verification = { path = "route_verification" }
 :dep rayon
-:dep polars = { version = "0.31", features = ["describe"] }
-:dep itertools = "0.11"
+:dep polars = { features = ["describe"] }
+:dep itertools
 // */
 use dashmap::DashMap;
 use itertools::multiunzip;
@@ -50,17 +53,22 @@ fn read_parsed_rpsl() -> Result<()> {
 }
 
 fn parse_bgp_lines() -> Result<()> {
+    env_logger::builder()
+        .filter(None, log::LevelFilter::Info)
+        .init();
+
     let parsed = Dump::pal_read("parsed_all")?;
     let query: QueryDump = QueryDump::from_dump(parsed);
-
     println!("{:#?}", query.aut_nums.iter().next());
-
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
-
     let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
 
-    // ---
-    // Generate statistics for up/downhill:
+    Ok(())
+}
+
+/// Generate statistics for up/downhill.
+/// Copy this after running code from [`parse_bgp_lines`].
+fn gen_up_down_hill_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     let start = Instant::now();
     let up_down_hill_stats: UpDownHillStats = bgp_lines
         .par_iter_mut()
@@ -129,8 +137,13 @@ fn parse_bgp_lines() -> Result<()> {
     ])?;
     CsvWriter::new(File::create("up_down_hill_stats.csv")?).finish(&mut up_down_hill_df)?;
 
-    // ---
-    // Generate statistics for each AS:
+    Ok(())
+}
+
+/// Generate statistics for each AS.
+/// Copy this after running code from [`parse_bgp_lines`],
+/// except maybe the `db` line.
+fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>) -> Result<()> {
     let start = Instant::now();
     let map: DashMap<u64, AsStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
@@ -187,14 +200,22 @@ fn parse_bgp_lines() -> Result<()> {
 
     CsvWriter::new(File::create("as_stats.csv")?).finish(&mut df)?;
 
-    // ---
-    // Generate all the reports:
+    Ok(())
+}
+
+/// Generate all the reports.
+/// Copy this after running code from [`parse_bgp_lines`],
+/// except maybe the `db` line.
+fn gen_all_reports(query: QueryDump, mut bgp_lines: Vec<Line>) {
     let start = Instant::now();
     bgp_lines.par_iter_mut().for_each(|line| line.check(&query));
     println!("Used {}ms", start.elapsed().as_millis());
+}
 
-    // ---
-    // Benchmark for `match_ips`:
+/// Benchmark for `match_ips`.
+/// Copy this after running code from [`parse_bgp_lines`],
+/// except maybe the `db` line.
+fn benchmark_match_ips(query: QueryDump, bgp_lines: Vec<Line>) {
     const SIZE: usize = 0x10000;
     let start = Instant::now();
     let n_error: usize = bgp_lines[..SIZE]
@@ -211,42 +232,4 @@ fn parse_bgp_lines() -> Result<()> {
         "Found {n_error} in {SIZE} routes in {}ms",
         start.elapsed().as_millis()
     );
-
-    // ---
-    // Older stuff.
-
-    bgp_lines.first();
-
-    bgp_lines[0].compare.check(&query);
-
-    // TODO: Below line maximizes out all CPUs and causes memory outage.
-    bgp_lines
-        .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check(&query)));
-
-    for (index, line) in bgp_lines[..].iter_mut().enumerate() {
-        let report = line.compare.check(&query);
-        if report.is_empty() {
-            line.report = Some(report);
-        } else {
-            line.report = Some(report);
-            println!("{index}: {line:#?}");
-            break;
-        }
-    }
-
-    // ---
-
-    for (index, line) in bgp_lines[1000..].iter_mut().enumerate() {
-        let report = line.compare.check(&query);
-        if report.is_empty() {
-            line.report = Some(report);
-        } else {
-            line.report = Some(report);
-            println!("{}: {line:#?}", index + 1000);
-            break;
-        }
-    }
-
-    Ok(())
 }

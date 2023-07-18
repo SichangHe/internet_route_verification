@@ -13,8 +13,6 @@ use crate as route_verification;
 /* Copy from the next line until the end of `use`.
 :opt 3
 :dep dashmap
-:dep env_logger
-:dep log
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep polars = { features = ["describe"] }
@@ -53,10 +51,6 @@ fn read_parsed_rpsl() -> Result<()> {
 }
 
 fn parse_bgp_lines() -> Result<()> {
-    env_logger::builder()
-        .filter(None, log::LevelFilter::Info)
-        .init();
-
     let parsed = Dump::pal_read("parsed_all")?;
     let query: QueryDump = QueryDump::from_dump(parsed);
     println!("{:#?}", query.aut_nums.iter().next());

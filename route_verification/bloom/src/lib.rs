@@ -1,3 +1,7 @@
+#![deny(missing_docs)]
+//! Hash set with Bloom filter front end, tailored for low positives expectation
+//! lookups.
+//! See [`BloomHashSet`] for usage.
 use core::{
     borrow::Borrow,
     hash::{BuildHasher, Hash},
@@ -14,8 +18,10 @@ mod tests;
 /// Use a *fixed-size* [Bloom filter][bloom_filter] *with `k = 1` hash functions*
 /// as a front end for the internal hash table.
 ///
-/// # Probabilistic characteristics
-/// [`contains`](#method.contains) has a "false error rate" of
+/// # Performance probabilistic characteristics
+/// [`contains`](#method.contains) first checks the Bloom filter.
+///
+/// The Bloom filter has a "false positive rate" of
 /// *ε(m, n) = 1 - (1 - 1/m)^n ≈ ℯ^(-n/m)* where `m` is the Bloom filter's size,
 /// and `n` is the number of distinct elements inserted.
 /// Typical `ε` in correspondence with `m/n`:
@@ -32,11 +38,12 @@ mod tests;
 /// *Note*: `m/n = 16` seems good enough.
 ///
 /// When the Bloom filter gives positive results, the hash table is checked to
-/// guarantee correct results.
+/// guarantee correctness.
 ///
 /// # Example usage
 /// We want to keep track of which names we've seen.
 /// Since we anticipate new names to be rare, [`BloomHashSet`] is suitable.
+///
 /// We anticipate to see less than 1000 names in total,
 /// so we set the capacity of the hash table to 1024, and the size of the Bloom
 /// filter to 16x that.
@@ -114,6 +121,7 @@ where
         make_hash::<K>(&self.hash_builder, k)
     }
 
+    /// Whether the set contains `k`.
     pub fn contains(&self, k: &K) -> bool {
         if self.table.is_empty() {
             false
@@ -132,6 +140,8 @@ where
         }
     }
 
+    /// Same as [`contains`](#method.contains) but use precomputed `hash` to
+    /// avoid recomputing it.
     pub fn contains_with_hash(&self, k: &K, hash: u64) -> bool {
         if self.table.is_empty() {
             false
@@ -149,23 +159,26 @@ where
         }
     }
 
-    /// Do not check whether `k` is already in the set.
+    /// Do not check whether `k` is already in the set, directly insert it.
     pub fn insert(&mut self, k: K) {
         let hash = self.make_hash(&k);
         self.insert_with_hash(k, hash)
     }
 
-    /// Do not check whether `k` is already in the set.
+    /// Same as [`insert`](#method.insert) but use precomputed `hash` to avoid
+    /// recomputing it.
     pub fn insert_with_hash(&mut self, k: K, hash: u64) {
         self.bit_vec.set(hash as usize & self.bit_mask, true);
         self.table
             .insert(hash, (k, ()), make_hasher::<K>(&self.hash_builder));
     }
 
+    /// Length of the hash table.
     pub fn len(&self) -> usize {
         self.table.len()
     }
 
+    /// Whether the hash table is empty.
     pub fn is_empty(&self) -> bool {
         self.table.is_empty()
     }

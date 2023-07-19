@@ -224,12 +224,11 @@ fn gen_up_down_hill_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelD
 
 /// Generate statistics for each AS.
 /// Copy this after running code from [`parse_bgp_lines`],
-/// except maybe the `db` line.
-fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>) -> Result<()> {
+fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     let start = Instant::now();
     let map: DashMap<u64, AsStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
-        l.compare.as_stats(&query, &map);
+        l.compare.as_stats(&query, &db, &map);
     });
     let size = map.len();
     println!(

@@ -7,6 +7,8 @@ use super::*;
 
 use {AsPathEntry::*, MatchProblem::*, Report::*, ReportItem::*, SkipReason::*};
 
+mod hill;
+
 pub const RECURSION_LIMIT: isize = 0x100;
 
 /// All information needed for a route to be compared to [`QueryDump`].

@@ -93,13 +93,19 @@ fn expected_ok_skip_checks() -> [Vec<Report>; 1] {
     ]]
 }
 
+const DB_FILE: &str = "1239|3130|-1
+1239|2914|0
+2914|9583|-1
+";
+
 #[test]
 fn stats() -> Result<()> {
     let query = query()?;
+    let db = AsRelDb::from_lines(DB_FILE.lines())?;
     for (expected, line) in expected_stats().into_iter().zip(LINES) {
         let map = DashMap::new();
         let mut compare = Compare::with_line_dump(line)?;
-        compare.as_stats(&query, &map);
+        compare.as_stats(&query, &db, &map);
         let actual = HashMap::from_iter(map.into_iter());
         assert_eq!(expected, actual);
     }
@@ -107,7 +113,9 @@ fn stats() -> Result<()> {
 }
 
 fn expected_stats() -> [HashMap<u64, AsStats>; 1] {
-    [hashmap! {9583=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_meh: 0, export_meh: 0, import_err: 0, export_err: 1 }, 1239=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 1, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 3130=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 0, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 2914=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 1, import_meh: 0, export_meh: 0, import_err: 1, export_err: 0 }}]
+    [
+        hashmap! {3130=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 0, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 2914=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 1, import_meh: 1, export_meh: 0, import_err: 0, export_err: 0 }, 1239=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 1, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 9583=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_meh: 0, export_meh: 1, import_err: 0, export_err: 0 }},
+    ]
 }
 
 fn query() -> Result<QueryDump> {

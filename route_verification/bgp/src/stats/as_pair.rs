@@ -14,8 +14,6 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
         BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
         BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
         AsPathPairWithSet { from: _, to: _ }
-        | SetImport { from: _, to: _ }
-        | SetExport { from: _, to: _ }
         | SetSingleExport { from: _ }
         | GoodSingleExport { from: _ }
         | NeutralSingleExport { from: _, items: _ }

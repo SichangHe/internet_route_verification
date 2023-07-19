@@ -40,14 +40,6 @@ pub enum Report {
         from: AsPathEntry,
         to: AsPathEntry,
     },
-    SetImport {
-        from: u64,
-        to: Vec<u64>,
-    },
-    SetExport {
-        from: Vec<u64>,
-        to: u64,
-    },
     SetSingleExport {
         from: Vec<u64>,
     },

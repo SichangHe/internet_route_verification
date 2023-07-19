@@ -16,8 +16,8 @@ pub struct Verbosity {
     pub per_entry_err: bool,
     /// All errors.
     pub all_err: bool,
-    /// Record [`AsPathPairWithSet`], [`SetImport`], [`SetExport`].
-    pub report_set: bool,
+    /// Record [`AsPathPairWithSet`], [`SetSingleExport`].
+    pub record_set: bool,
 }
 
 impl std::fmt::Debug for Verbosity {
@@ -29,7 +29,7 @@ impl std::fmt::Debug for Verbosity {
             show_success,
             per_entry_err,
             all_err,
-            report_set,
+            record_set: report_set,
         } = self;
         for (is_true, tag) in [
             (stop_at_error, "stop_at_error"),
@@ -62,7 +62,7 @@ impl Verbosity {
             show_success,
             per_entry_err,
             all_err,
-            report_set,
+            record_set: report_set,
         }
     }
 
@@ -83,7 +83,7 @@ impl Verbosity {
             show_success: false,
             per_entry_err: false,
             all_err: false,
-            report_set: false,
+            record_set: false,
         }
     }
 }

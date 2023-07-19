@@ -28,10 +28,7 @@ pub fn one(map: &DashMap<u64, AsStats>, report: Report) {
             items: _,
         }
         | BadSingeExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
-        AsPathPairWithSet { from: _, to: _ }
-        | SetImport { from: _, to: _ }
-        | SetExport { from: _, to: _ }
-        | SetSingleExport { from: _ } => (),
+        AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
     }
 }
 

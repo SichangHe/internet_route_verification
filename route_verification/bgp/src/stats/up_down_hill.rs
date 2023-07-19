@@ -41,10 +41,7 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
             None => stats.bad_other_export += 1,
         },
         BadSingeExport { from: _, items: _ } => stats.bad_other_export += 1,
-        AsPathPairWithSet { from: _, to: _ }
-        | SetImport { from: _, to: _ }
-        | SetExport { from: _, to: _ }
-        | SetSingleExport { from: _ } => (),
+        AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
     }
 }
 

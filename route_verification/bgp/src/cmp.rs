@@ -70,7 +70,7 @@ impl Compare {
                     }
                 }
             } else {
-                reports.extend(self.verbosity.show_skips.then(|| AsPathPairWithSet {
+                reports.extend(self.verbosity.record_set.then(|| AsPathPairWithSet {
                     from: from.clone(),
                     to: to.clone(),
                 }));
@@ -91,7 +91,7 @@ impl Compare {
             },
             Set(from) => self
                 .verbosity
-                .show_skips
+                .record_set
                 .then(|| SetSingleExport { from: from.clone() }),
         }
     }

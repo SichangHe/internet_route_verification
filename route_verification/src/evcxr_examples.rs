@@ -79,9 +79,11 @@ fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) ->
         start.elapsed().as_millis()
     );
 
-    let (froms, tos, ioks, eoks, isps, esps, iers, eers, rels): (
+    let (froms, tos, ioks, eoks, isps, esps, imhs, emhs, iers, eers, rels): (
         Vec<u64>,
         Vec<u64>,
+        Vec<u32>,
+        Vec<u32>,
         Vec<u32>,
         Vec<u32>,
         Vec<u32>,
@@ -97,6 +99,8 @@ fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) ->
                 export_ok,
                 import_skip,
                 export_skip,
+                import_meh,
+                export_meh,
                 import_err,
                 export_err,
                 relationship,
@@ -109,6 +113,8 @@ fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) ->
                 export_ok,
                 import_skip,
                 export_skip,
+                import_meh,
+                export_meh,
                 import_err,
                 export_err,
                 match relationship {
@@ -128,6 +134,8 @@ fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) ->
         Series::new("export_ok", eoks),
         Series::new("import_skip", isps),
         Series::new("export_skip", esps),
+        Series::new("import_meh", imhs),
+        Series::new("export_meh", emhs),
         Series::new("import_err", iers),
         Series::new("export_err", eers),
         Series::new("relationship", rels),
@@ -228,8 +236,10 @@ fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>) -> Result<()> {
         "Generated stats for {size} AS in {}ms.",
         start.elapsed().as_millis()
     );
-    let (ans, ioks, eoks, isps, esps, iers, eers): (
+    let (ans, ioks, eoks, isps, esps, imhs, emhs, iers, eers): (
         Vec<u64>,
+        Vec<u32>,
+        Vec<u32>,
         Vec<u32>,
         Vec<u32>,
         Vec<u32>,
@@ -244,6 +254,8 @@ fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>) -> Result<()> {
                 export_ok,
                 import_skip,
                 export_skip,
+                import_meh,
+                export_meh,
                 import_err,
                 export_err,
             },
@@ -254,6 +266,8 @@ fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>) -> Result<()> {
                 export_ok,
                 import_skip,
                 export_skip,
+                import_meh,
+                export_meh,
                 import_err,
                 export_err,
             )
@@ -266,6 +280,8 @@ fn gen_as_stats(query: QueryDump, mut bgp_lines: Vec<Line>) -> Result<()> {
         Series::new("export_ok", eoks),
         Series::new("import_skip", isps),
         Series::new("export_skip", esps),
+        Series::new("import_meh", imhs),
+        Series::new("export_meh", emhs),
         Series::new("import_err", iers),
         Series::new("export_err", eers),
     ])?;

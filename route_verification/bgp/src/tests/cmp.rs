@@ -107,9 +107,7 @@ fn stats() -> Result<()> {
 }
 
 fn expected_stats() -> [HashMap<u64, AsStats>; 1] {
-    [
-        hashmap! {3130=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 0, import_err: 0, export_err: 0 }, 1239=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 1, import_err: 0, export_err: 0 }, 9583=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_err: 0, export_err: 1 }, 2914=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 1, import_err: 1, export_err: 0 }},
-    ]
+    [hashmap! {9583=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_meh: 0, export_meh: 0, import_err: 0, export_err: 1 }, 1239=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 1, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 3130=> AsStats { import_ok: 0, export_ok: 0, import_skip: 1, export_skip: 0, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 2914=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 1, import_meh: 0, export_meh: 0, import_err: 1, export_err: 0 }}]
 }
 
 fn query() -> Result<QueryDump> {

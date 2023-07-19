@@ -43,6 +43,16 @@ pub enum Report {
     SetSingleExport {
         from: Vec<u64>,
     },
+    BadImportUp {
+        from: u64,
+        to: u64,
+        items: Vec<ReportItem>,
+    },
+    BadExportUp {
+        from: u64,
+        to: u64,
+        items: Vec<ReportItem>,
+    },
     BadImport {
         from: u64,
         to: u64,

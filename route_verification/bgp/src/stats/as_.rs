@@ -28,6 +28,8 @@ pub fn one(map: &DashMap<u64, AsStats>, report: Report) {
             items: _,
         }
         | BadSingeExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
+        BadImportUp { from: _, to, items: _ } => map.entry(to).or_default().import_meh += 1,
+        BadExportUp { from, to: _, items: _ } => map.entry(from).or_default().export_meh += 1,
         AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
     }
 }
@@ -39,6 +41,8 @@ pub struct AsStats {
     pub export_ok: u32,
     pub import_skip: u32,
     pub export_skip: u32,
+    pub import_meh: u32,
+    pub export_meh: u32,
     pub import_err: u32,
     pub export_err: u32,
 }

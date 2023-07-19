@@ -13,6 +13,8 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
         NeutralExport { from, to, items: _ } => entry(from, to).export_skip += 1,
         BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
         BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
+        BadImportUp { from, to, items: _ } => entry(from, to).import_meh += 1,
+        BadExportUp { from, to, items: _ } => entry(from, to).export_meh += 1,
         AsPathPairWithSet { from: _, to: _ }
         | SetSingleExport { from: _ }
         | GoodSingleExport { from: _ }
@@ -28,6 +30,8 @@ pub struct AsPairStats {
     pub export_ok: u32,
     pub import_skip: u32,
     pub export_skip: u32,
+    pub import_meh: u32,
+    pub export_meh: u32,
     pub import_err: u32,
     pub export_err: u32,
     pub relationship: Option<Relationship>,

@@ -28,18 +28,22 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
             None => stats.neutral_other_export += 1,
         },
         NeutralSingleExport { from: _, items: _ } => stats.neutral_other_export += 1,
-        BadImport { from, to, items: _ } => match db.get(*from, *to) {
-            Some(P2C) => stats.bad_down_import += 1,
-            Some(P2P) => stats.bad_peer_import += 1,
-            Some(C2P) => stats.bad_up_import += 1,
-            None => stats.bad_other_import += 1,
-        },
-        BadExport { from, to, items: _ } => match db.get(*from, *to) {
-            Some(P2C) => stats.bad_down_export += 1,
-            Some(P2P) => stats.bad_peer_export += 1,
-            Some(C2P) => stats.bad_up_export += 1,
-            None => stats.bad_other_export += 1,
-        },
+        BadImport { from, to, items: _ } | BadImportUp { from, to, items: _ } => {
+            match db.get(*from, *to) {
+                Some(P2C) => stats.bad_down_import += 1,
+                Some(P2P) => stats.bad_peer_import += 1,
+                Some(C2P) => stats.bad_up_import += 1,
+                None => stats.bad_other_import += 1,
+            }
+        }
+        BadExport { from, to, items: _ } | BadExportUp { from, to, items: _ } => {
+            match db.get(*from, *to) {
+                Some(P2C) => stats.bad_down_export += 1,
+                Some(P2P) => stats.bad_peer_export += 1,
+                Some(C2P) => stats.bad_up_export += 1,
+                None => stats.bad_other_export += 1,
+            }
+        }
         BadSingeExport { from: _, items: _ } => stats.bad_other_export += 1,
         AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
     }

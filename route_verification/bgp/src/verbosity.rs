@@ -1,5 +1,8 @@
 use super::*;
 
+#[allow(unused)] // For the doc.
+use Report::*;
+
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Verbosity {
@@ -13,6 +16,8 @@ pub struct Verbosity {
     pub per_entry_err: bool,
     /// All errors.
     pub all_err: bool,
+    /// Record [`AsPathPairWithSet`], [`SetImport`], [`SetExport`].
+    pub report_set: bool,
 }
 
 impl std::fmt::Debug for Verbosity {
@@ -24,6 +29,7 @@ impl std::fmt::Debug for Verbosity {
             show_success,
             per_entry_err,
             all_err,
+            report_set,
         } = self;
         for (is_true, tag) in [
             (stop_at_error, "stop_at_error"),
@@ -31,6 +37,7 @@ impl std::fmt::Debug for Verbosity {
             (show_success, "show_success"),
             (per_entry_err, "per_entry_err"),
             (all_err, "all_err"),
+            (report_set, "report_set"),
         ] {
             if *is_true {
                 result.entry(&tag);
@@ -47,6 +54,7 @@ impl Verbosity {
         show_success: bool,
         per_entry_err: bool,
         all_err: bool,
+        report_set: bool,
     ) -> Self {
         Self {
             stop_at_first,
@@ -54,6 +62,7 @@ impl Verbosity {
             show_success,
             per_entry_err,
             all_err,
+            report_set,
         }
     }
 
@@ -63,21 +72,25 @@ impl Verbosity {
             stop_at_first: false,
             show_skips: true,
             show_success: true,
-            per_entry_err: false,
-            all_err: false,
+            ..Self::const_default()
         }
     }
-}
 
-impl Default for Verbosity {
-    fn default() -> Self {
+    pub const fn const_default() -> Self {
         Self {
             stop_at_first: true,
             show_skips: false,
             show_success: false,
             per_entry_err: false,
             all_err: false,
+            report_set: false,
         }
+    }
+}
+
+impl Default for Verbosity {
+    fn default() -> Self {
+        Self::const_default()
     }
 }
 

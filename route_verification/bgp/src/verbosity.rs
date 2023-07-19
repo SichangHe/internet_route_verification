@@ -29,7 +29,7 @@ impl std::fmt::Debug for Verbosity {
             show_success,
             per_entry_err,
             all_err,
-            record_set: report_set,
+            record_set,
         } = self;
         for (is_true, tag) in [
             (stop_at_error, "stop_at_error"),
@@ -37,7 +37,7 @@ impl std::fmt::Debug for Verbosity {
             (show_success, "show_success"),
             (per_entry_err, "per_entry_err"),
             (all_err, "all_err"),
-            (report_set, "report_set"),
+            (record_set, "record_set"),
         ] {
             if *is_true {
                 result.entry(&tag);
@@ -48,24 +48,6 @@ impl std::fmt::Debug for Verbosity {
 }
 
 impl Verbosity {
-    pub fn new(
-        stop_at_first: bool,
-        show_skips: bool,
-        show_success: bool,
-        per_entry_err: bool,
-        all_err: bool,
-        report_set: bool,
-    ) -> Self {
-        Self {
-            stop_at_first,
-            show_skips,
-            show_success,
-            per_entry_err,
-            all_err,
-            record_set: report_set,
-        }
-    }
-
     /// Report all errors, skips, and success but not the details.
     pub const fn minimum_all() -> Self {
         Self {

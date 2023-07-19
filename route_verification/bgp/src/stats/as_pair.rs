@@ -13,7 +13,13 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
         NeutralExport { from, to, items: _ } => entry(from, to).export_skip += 1,
         BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
         BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
-        _ => (),
+        AsPathPairWithSet { from: _, to: _ }
+        | SetImport { from: _, to: _ }
+        | SetExport { from: _, to: _ }
+        | SetSingleExport { from: _ }
+        | GoodSingleExport { from: _ }
+        | NeutralSingleExport { from: _, items: _ }
+        | BadSingeExport { from: _, items: _ } => (),
     }
 }
 

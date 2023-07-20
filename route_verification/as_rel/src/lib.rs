@@ -40,7 +40,7 @@ use Relationship::*;
 /// See the **expected format** at [`from_lines`](#method.from_lines).
 #[derive(Clone, Debug, Default)]
 pub struct AsRelDb {
-    source2dest: HashMap<(u64, u64), Relationship>,
+    pub source2dest: HashMap<(u64, u64), Relationship>,
 }
 
 impl AsRelDb {

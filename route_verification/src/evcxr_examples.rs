@@ -8,6 +8,7 @@
 #![allow(unused_mut)]
 
 mod as_stats;
+mod as_route_stats;
 
 use super::*;
 use crate as route_verification;

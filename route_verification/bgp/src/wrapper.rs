@@ -39,6 +39,10 @@ impl Line {
     }
 
     pub fn display(&self) {
+        println!("{}", self.display_str())
+    }
+
+    pub fn display_str(&self) -> String {
         let reports = match &self.report {
             Some(reports) => reports
                 .iter()
@@ -47,7 +51,7 @@ impl Line {
                 .join("\n"),
             None => "".into(),
         };
-        println!(
+        format!(
             "{}:
     {} -> {:?}
 {reports}.
@@ -55,7 +59,7 @@ impl Line {
             self.raw.trim(),
             self.compare.prefix,
             self.compare.as_path
-        );
+        )
     }
 }
 

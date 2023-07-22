@@ -52,7 +52,9 @@ impl Line {
     {} -> {:?}
     {reports}.
 ",
-            self.raw, self.compare.prefix, self.compare.as_path
+            self.raw.trim(),
+            self.compare.prefix,
+            self.compare.as_path
         );
     }
 }

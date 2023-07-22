@@ -23,5 +23,12 @@ fn reports_for_paths_containing_certain_as(
         line.display();
     }
 
+    let mut all_display = filtered_bgp_lines
+        .par_iter()
+        .map(|line| line.display_str())
+        .collect::<Vec<_>>()
+        .join("\n");
+    File::create("AS139609_reports.txt")?.write_all(all_display.as_bytes());
+
     Ok(())
 }

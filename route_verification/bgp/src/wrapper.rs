@@ -37,6 +37,24 @@ impl Line {
     pub fn check(&mut self, dump: &QueryDump) {
         self.report = Some(self.compare.check(dump));
     }
+
+    pub fn display(&self) {
+        let reports = match &self.report {
+            Some(reports) => reports
+                .iter()
+                .map(|r| format!("{:?}", r))
+                .collect::<Vec<_>>()
+                .join("\n"),
+            None => "".into(),
+        };
+        println!(
+            "{}:
+    {} -> {:?}
+    {reports}.
+",
+            self.raw, self.compare.prefix, self.compare.as_path
+        );
+    }
 }
 
 /// Read MRT file at `path` using the `bgpdump` executable.

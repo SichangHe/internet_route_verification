@@ -7,8 +7,9 @@
 #![allow(clippy::type_complexity)]
 #![allow(unused_mut)]
 
-mod as_stats;
 mod as_route_stats;
+mod as_stats;
+mod filter_as;
 
 use super::*;
 use crate as route_verification;

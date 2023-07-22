@@ -20,7 +20,7 @@ pub mod wrapper;
 
 pub use {
     cmp::Compare,
-    map,
+    map::{self, AsPathEntry},
     query::{AsSetRoute, QueryDump},
     report::{MatchProblem, Report, ReportItem, SkipReason},
     stats::{AsPairStats, AsStats, UpDownHillStats},

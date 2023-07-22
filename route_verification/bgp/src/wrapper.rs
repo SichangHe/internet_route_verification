@@ -42,7 +42,7 @@ impl Line {
         let reports = match &self.report {
             Some(reports) => reports
                 .iter()
-                .map(|r| format!("{:?}", r))
+                .map(|r| format!("    {:?}", r))
                 .collect::<Vec<_>>()
                 .join("\n"),
             None => "".into(),
@@ -50,7 +50,7 @@ impl Line {
         println!(
             "{}:
     {} -> {:?}
-    {reports}.
+{reports}.
 ",
             self.raw.trim(),
             self.compare.prefix,

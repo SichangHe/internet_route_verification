@@ -15,9 +15,10 @@ fn reports_for_paths_containing_certain_as(
         })
         .collect();
     println!("{}", filtered_bgp_lines.len());
-    filtered_bgp_lines
-        .par_iter_mut()
-        .for_each(|line| line.report = Some(line.compare.check_hill(&query, &db)));
+    filtered_bgp_lines.par_iter_mut().for_each(|line| {
+        line.compare.verbosity = Verbosity::minimum_all();
+        line.report = Some(line.compare.check_hill(&query, &db))
+    });
 
     for line in &filtered_bgp_lines[..10] {
         line.display();
@@ -56,6 +57,8 @@ fn reports_for_paths_containing_certain_as(
         .collect::<Vec<_>>()
         .join("\n");
     File::create("AS139609_non_neutral_reports.txt")?.write_all(all_non_neutral.as_bytes());
+
+    let mut line = filtered_bgp_lines[0].clone();
 
     Ok(())
 }

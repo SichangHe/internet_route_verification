@@ -88,7 +88,7 @@ impl Compare {
                 Some(from_an) => self.check_export(dump, from_an, *from, None),
                 None => self.verbosity.show_skips.then(|| {
                     let items = aut_num_unrecorded_items(*from);
-                    NeutralSingleExport { from: *from, items }
+                    SkipSingleExport { from: *from, items }
                 }),
             },
             Set(from) => self
@@ -103,7 +103,7 @@ impl Compare {
             Some(from_an) => self.check_export(dump, from_an, from, Some(to)),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(from);
-                NeutralExport { from, to, items }
+                SkipExport { from, to, items }
             }),
         };
         let from_report = match (from_report, self.verbosity.stop_at_first) {
@@ -114,7 +114,7 @@ impl Compare {
             Some(to_an) => self.check_import(dump, to_an, from, to),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(to);
-                NeutralImport { from, to, items }
+                SkipImport { from, to, items }
             }),
         };
         [from_report, to_report].into_iter().flatten().collect()
@@ -131,16 +131,16 @@ impl Compare {
             return self.verbosity.show_skips.then(|| {
                 let items = vec![Skip(ExportEmpty)];
                 match to {
-                    Some(to) => NeutralExport { from, to, items },
-                    None => NeutralSingleExport { from, items },
+                    Some(to) => SkipExport { from, to, items },
+                    None => SkipSingleExport { from, items },
                 }
             });
         }
         let (mut items, fail) = match self.check_compliant(dump, &from_an.exports, to) {
             None => {
                 return self.verbosity.show_success.then_some(match to {
-                    Some(to) => GoodExport { from, to },
-                    None => GoodSingleExport { from },
+                    Some(to) => OkExport { from, to },
+                    None => OkSingleExport { from },
                 })
             }
             Some(report) => report,
@@ -153,8 +153,8 @@ impl Compare {
             })
         } else {
             self.verbosity.show_skips.then_some(match to {
-                Some(to) => NeutralExport { from, to, items },
-                None => NeutralSingleExport { from, items },
+                Some(to) => SkipExport { from, to, items },
+                None => SkipSingleExport { from, items },
             })
         }
     }
@@ -167,19 +167,14 @@ impl Compare {
         to: u64,
     ) -> Option<Report> {
         if to_an.imports.is_default() {
-            return self.verbosity.show_skips.then(|| NeutralImport {
+            return self.verbosity.show_skips.then(|| SkipImport {
                 from,
                 to,
                 items: vec![Skip(ImportEmpty)],
             });
         }
         let (mut items, fail) = match self.check_compliant(dump, &to_an.imports, Some(from)) {
-            None => {
-                return self
-                    .verbosity
-                    .show_success
-                    .then_some(GoodImport { from, to })
-            }
+            None => return self.verbosity.show_success.then_some(OkImport { from, to }),
             Some(report) => report,
         };
         items.shrink_to_fit();
@@ -188,7 +183,7 @@ impl Compare {
         } else {
             self.verbosity
                 .show_skips
-                .then_some(NeutralImport { from, to, items })
+                .then_some(SkipImport { from, to, items })
         }
     }
 

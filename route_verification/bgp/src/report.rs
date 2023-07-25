@@ -6,33 +6,33 @@ use parse::*;
 use super::*;
 
 /// Report about the validity of a route, according to the RPSL.
-/// Use this in an `Option`, and use `None` to indicate "good."
+/// Use this in an `Option`, and use `None` to indicate "ok."
 ///
 /// Composed of a vector of [`ReportItem`]s.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
-    GoodImport {
+    OkImport {
         from: u64,
         to: u64,
     },
-    GoodExport {
+    OkExport {
         from: u64,
         to: u64,
     },
-    GoodSingleExport {
+    OkSingleExport {
         from: u64,
     },
-    NeutralImport {
-        from: u64,
-        to: u64,
-        items: Vec<ReportItem>,
-    },
-    NeutralExport {
+    SkipImport {
         from: u64,
         to: u64,
         items: Vec<ReportItem>,
     },
-    NeutralSingleExport {
+    SkipExport {
+        from: u64,
+        to: u64,
+        items: Vec<ReportItem>,
+    },
+    SkipSingleExport {
         from: u64,
         items: Vec<ReportItem>,
     },

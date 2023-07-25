@@ -7,18 +7,18 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
     };
 
     match report {
-        GoodImport { from, to } => entry(from, to).import_ok += 1,
-        GoodExport { from, to } => entry(from, to).export_ok += 1,
-        NeutralImport { from, to, items: _ } => entry(from, to).import_skip += 1,
-        NeutralExport { from, to, items: _ } => entry(from, to).export_skip += 1,
+        OkImport { from, to } => entry(from, to).import_ok += 1,
+        OkExport { from, to } => entry(from, to).export_ok += 1,
+        SkipImport { from, to, items: _ } => entry(from, to).import_skip += 1,
+        SkipExport { from, to, items: _ } => entry(from, to).export_skip += 1,
         BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
         BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
         BadImportUp { from, to, items: _ } => entry(from, to).import_meh += 1,
         BadExportUp { from, to, items: _ } => entry(from, to).export_meh += 1,
         AsPathPairWithSet { from: _, to: _ }
         | SetSingleExport { from: _ }
-        | GoodSingleExport { from: _ }
-        | NeutralSingleExport { from: _, items: _ }
+        | OkSingleExport { from: _ }
+        | SkipSingleExport { from: _, items: _ }
         | BadSingeExport { from: _, items: _ } => (),
     }
 }

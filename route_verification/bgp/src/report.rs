@@ -5,6 +5,9 @@ use parse::*;
 
 use super::*;
 
+use OkTBad::*;
+use SkipFBad::*;
+
 /// Report about the validity of a route, according to the RPSL.
 /// Use this in an `Option`, and use `None` to indicate "ok."
 ///
@@ -189,6 +192,52 @@ pub const fn failed_all_report() -> AllReport {
     Err(vec![])
 }
 
+pub enum SkipFBad {
+    SkipF(ReportItems),
+    MehF(ReportItems),
+    BadF(ReportItems),
+}
+
+impl SkipFBad {
+    pub fn join(self, other: Self) -> Self {
+        match self {
+            SkipF(mut items) => {
+                let extra = match other {
+                    SkipF(i) => i,
+                    MehF(i) => i,
+                    BadF(i) => i,
+                };
+                items.extend(extra);
+                SkipF(items)
+            }
+            MehF(mut items) => match other {
+                SkipF(i) => {
+                    items.extend(i);
+                    SkipF(items)
+                }
+                MehF(i) | BadF(i) => {
+                    items.extend(i);
+                    SkipF(items)
+                }
+            },
+            BadF(mut items) => match other {
+                SkipF(i) => {
+                    items.extend(i);
+                    SkipF(items)
+                }
+                MehF(i) => {
+                    items.extend(i);
+                    MehF(items)
+                }
+                BadF(i) => {
+                    items.extend(i);
+                    BadF(items)
+                }
+            },
+        }
+    }
+}
+
 /// Useful if any of the reports succeeding is enough.
 /// - `Some((errors, true))` indicates failure.
 /// - `Some((skips, false))` indicates skip.
@@ -230,6 +279,38 @@ pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
 /// Empty failed `AnyReport`.
 pub const fn failed_any_report() -> AnyReport {
     Some((vec![], true))
+}
+
+pub enum OkTBad {
+    OkT,
+    SkipT(ReportItems),
+    BadT(ReportItems),
+}
+
+impl OkTBad {
+    pub fn join(self, other: Self) -> Self {
+        match self {
+            OkT => other,
+            SkipT(mut items) => {
+                match other {
+                    OkT => (),
+                    SkipT(i) | BadT(i) => items.extend(i),
+                };
+                SkipT(items)
+            }
+            BadT(mut items) => match other {
+                OkT => BadT(items),
+                SkipT(i) => {
+                    items.extend(i);
+                    SkipT(items)
+                }
+                BadT(i) => {
+                    items.extend(i);
+                    BadT(items)
+                }
+            },
+        }
+    }
 }
 
 pub trait ToAnyReport {

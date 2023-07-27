@@ -3,16 +3,8 @@ use parse::{Filter::*, *};
 
 use super::*;
 
-use SkipFBad::*;
-
-pub struct CheckFilter<'a> {
-    pub dump: &'a QueryDump,
-    pub compare: &'a Compare,
-    pub verbosity: Verbosity,
-}
-
-impl<'a> CheckFilter<'a> {
-    pub fn check(&self, filter: &'a Filter, depth: isize) -> AnyReport {
+impl<'a> Compliance<'a> {
+    pub fn check_filter(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::CheckFilter);
         }
@@ -32,7 +24,7 @@ impl<'a> CheckFilter<'a> {
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
             Not(filter) => self.filter_not(filter, depth),
-            Group(filter) => self.check(filter, depth),
+            Group(filter) => self.check_filter(filter, depth),
             Community(community) => self.filter_community(community),
             Invalid(reason) => self.invalid_filter(reason),
         }
@@ -45,7 +37,7 @@ impl<'a> CheckFilter<'a> {
         };
         let mut report = SkipFBad::const_default();
         for filter in &filter_set.filters {
-            report |= self.check(filter, depth - 1)?;
+            report |= self.check_filter(filter, depth - 1)?;
         }
         Some(report)
     }
@@ -54,17 +46,17 @@ impl<'a> CheckFilter<'a> {
         let routes = match self.dump.as_routes.get(&num) {
             Some(r) => r,
             None => {
-                return match self.compare.goes_through_num(num) {
+                return match self.cmp.goes_through_num(num) {
                     true => self.skip_any_report(|| SkipReason::AsRoutesUnrecorded(num)),
                     false => empty_skip_any_report(),
                 }
             }
         };
-        if match_ips(&self.compare.prefix, routes, op) {
-            None
-        } else {
-            self.no_match_any_report(|| MatchProblem::FilterAsNum(num, op))
+        if match_ips(&self.cmp.prefix, routes, op) {
+            return None;
         }
+        // TODO: Check exporting customers.
+        self.no_match_any_report(|| MatchProblem::FilterAsNum(num, op))
     }
 
     fn filter_prefixes<I>(&self, prefixes: I) -> AnyReport
@@ -73,7 +65,7 @@ impl<'a> CheckFilter<'a> {
     {
         if prefixes
             .into_iter()
-            .all(|prefix| !prefix.contains(&self.compare.prefix))
+            .all(|prefix| !prefix.contains(&self.cmp.prefix))
         {
             self.no_match_any_report(|| MatchProblem::FilterPrefixes)
         } else {
@@ -142,7 +134,7 @@ impl<'a> CheckFilter<'a> {
             None => return self.skip_any_report(|| SkipReason::AsSetRouteUnrecorded(name.into())),
         };
 
-        if match_ips(&self.compare.prefix, &as_set_route.routes, op) {
+        if match_ips(&self.cmp.prefix, &as_set_route.routes, op) {
             return None;
         }
 
@@ -188,21 +180,22 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_all_report(RecurSrc::FilterAnd);
         }
-        Ok(self.check(left, depth - 1).to_all()? & self.check(right, depth).to_all()?)
+        Ok(self.check_filter(left, depth - 1).to_all()?
+            & self.check_filter(right, depth).to_all()?)
     }
 
     fn filter_or(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterOr);
         }
-        Some(self.check(left, depth - 1)? | self.check(right, depth)?)
+        Some(self.check_filter(left, depth - 1)? | self.check_filter(right, depth)?)
     }
 
     fn filter_not(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterNot);
         }
-        match self.check(filter, depth) {
+        match self.check_filter(filter, depth) {
             Some(report @ SkipF(_)) | Some(report @ MehF(_)) => {
                 Some(report | self.no_match_any_report(|| MatchProblem::Filter)?)
             }
@@ -219,11 +212,5 @@ impl<'a> CheckFilter<'a> {
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {
         self.bad_rpsl_any_report(|| RpslError::InvalidFilter(reason.into()))
-    }
-}
-
-impl<'a> VerbosityReport for CheckFilter<'a> {
-    fn get_verbosity(&self) -> Verbosity {
-        self.verbosity
     }
 }

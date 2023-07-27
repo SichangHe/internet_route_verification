@@ -23,9 +23,9 @@ pub fn make_customer_pseudo_set(db: &AsRelDb) -> BTreeMap<String, AsSet> {
             large
         })
         .into_par_iter()
-        .map(|(an, customers)| {
+        .map(|(aut_num, customers)| {
             (
-                format!("c#{an}"),
+                customer_set(aut_num),
                 AsSet {
                     body: "".into(),
                     members: customers,
@@ -34,4 +34,9 @@ pub fn make_customer_pseudo_set(db: &AsRelDb) -> BTreeMap<String, AsSet> {
             )
         })
         .collect()
+}
+
+/// Name of the customer pseudo set corresponding to `aut_num`.
+pub fn customer_set(aut_num: u64) -> String {
+    format!("c#{aut_num}")
 }

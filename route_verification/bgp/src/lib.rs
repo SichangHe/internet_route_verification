@@ -9,8 +9,6 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub mod cmp;
-pub mod filter;
-pub mod peering;
 pub mod query;
 pub mod report;
 pub mod stats;
@@ -29,8 +27,6 @@ pub use {
     wrapper::{parse_mrt, Line},
 };
 
-use filter::CheckFilter;
 use map::*;
-use peering::CheckPeering;
 use report::*;
 use verbosity::*;

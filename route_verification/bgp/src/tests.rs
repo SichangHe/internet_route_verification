@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
 use super::*;
 
-mod cmp;
+pub mod cmp;
+mod query;

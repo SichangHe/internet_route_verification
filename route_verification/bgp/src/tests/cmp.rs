@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use dashmap::DashMap;
 use maplit::hashmap;
 use parse::*;
@@ -96,12 +94,13 @@ fn expected_ok_skip_checks() -> [Vec<Report>; 1] {
 const DB_FILE: &str = "1239|3130|-1
 1239|2914|0
 2914|9583|-1
+2914|4096|-1
 ";
 
 #[test]
 fn stats() -> Result<()> {
     let query = query()?;
-    let db = AsRelDb::from_lines(DB_FILE.lines())?;
+    let db = as_relationship_db()?;
     for (expected, line) in expected_stats().into_iter().zip(LINES) {
         let map = DashMap::new();
         let mut compare = Compare::with_line_dump(line)?;
@@ -118,7 +117,14 @@ fn expected_stats() -> [HashMap<u64, AsStats>; 1] {
     ]
 }
 
-fn query() -> Result<QueryDump> {
-    let dump: Dump = serde_json::from_str(DUMP)?;
-    Ok(QueryDump::from_dump(dump))
+pub fn dump() -> Result<Dump> {
+    Ok(serde_json::from_str(DUMP)?)
+}
+
+pub fn query() -> Result<QueryDump> {
+    Ok(QueryDump::from_dump(dump()?))
+}
+
+pub fn as_relationship_db() -> Result<AsRelDb> {
+    AsRelDb::from_lines(DB_FILE.lines())
 }

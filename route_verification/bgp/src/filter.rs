@@ -204,7 +204,6 @@ impl<'a> CheckFilter<'a> {
         }
         match self.check(filter, depth) {
             Some(report @ SkipF(_)) | Some(report @ MehF(_)) => {
-                // FIX: This looks off.
                 Some(report | self.no_match_any_report(|| MatchProblem::Filter)?)
             }
             Some(BadF(_)) => None,

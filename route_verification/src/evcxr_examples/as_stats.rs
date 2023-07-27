@@ -97,7 +97,7 @@ fn gen_up_down_hill_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelD
         start.elapsed().as_millis()
     );
 
-    let mut up_down_hill_df = DataFrame::new(vec![
+    let mut up_down_hill_df: DataFrame = DataFrame::new(vec![
         Series::new(
             "quality",
             vec![

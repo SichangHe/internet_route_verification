@@ -106,7 +106,7 @@ impl<'a> CheckPeering<'a> {
         if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::RemoteAsSet(name.into()))
         } else {
-            report.to_any()
+            Some(report)
         }
     }
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
@@ -121,17 +121,15 @@ impl<'a> CheckPeering<'a> {
         for peering in &peering_set.peerings {
             report |= self.check(peering, depth - 1).to_any()?;
         }
-        report.to_any()
+        Some(report)
     }
 
     fn check_and(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
             return recursion_all_report(RecurSrc::PeeringAnd);
         }
-        self.check_remote_as(left, depth - 1)
-            .to_all()?
-            .join(self.check_remote_as(right, depth).to_all()?)
-            .to_all()
+        Ok(self.check_remote_as(left, depth - 1).to_all()?
+            & self.check_remote_as(right, depth).to_all()?)
     }
 
     fn check_or(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AnyReport {

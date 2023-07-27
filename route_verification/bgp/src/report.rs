@@ -151,25 +151,6 @@ pub enum RecurSrc {
 
 pub type ReportItems = Vec<ReportItem>;
 
-pub trait JoinReportItems {
-    fn join(self, other: Option<ReportItems>) -> Self;
-}
-
-impl JoinReportItems for Option<ReportItems> {
-    fn join(self, other: Option<ReportItems>) -> Self {
-        match self {
-            Some(mut self_reports) => match other {
-                Some(other_reports) => {
-                    self_reports.extend(other_reports);
-                    Some(self_reports)
-                }
-                None => Some(self_reports),
-            },
-            None => other,
-        }
-    }
-}
-
 /// Useful if all of the reports need to succeed.
 /// - `Ok(Some(skips))` indicates skip.
 /// - `Ok(None)` indicates success.
@@ -233,10 +214,6 @@ impl OkTBad {
                 }
             },
         }
-    }
-
-    pub fn to_all(self) -> AllReport {
-        Ok(self)
     }
 }
 
@@ -353,10 +330,6 @@ impl SkipFBad {
             MehF(items) => items.shrink_to_fit(),
             BadF(items) => items.shrink_to_fit(),
         }
-    }
-
-    pub fn to_any(self) -> AnyReport {
-        Some(self)
     }
 }
 

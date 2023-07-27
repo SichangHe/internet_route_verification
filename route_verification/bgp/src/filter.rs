@@ -47,7 +47,7 @@ impl<'a> CheckFilter<'a> {
         for filter in &filter_set.filters {
             report |= self.check(filter, depth - 1)?;
         }
-        report.to_any()
+        Some(report)
     }
 
     fn filter_as_num(&self, num: u64, op: RangeOperator) -> AnyReport {
@@ -96,7 +96,7 @@ impl<'a> CheckFilter<'a> {
         if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::FilterRouteSet(name.into()))
         } else {
-            report.to_any()
+            Some(report)
         }
     }
 
@@ -175,7 +175,7 @@ impl<'a> CheckFilter<'a> {
         if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))
         } else {
-            report.to_any()
+            Some(report)
         }
     }
 
@@ -188,10 +188,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_all_report(RecurSrc::FilterAnd);
         }
-        self.check(left, depth - 1)
-            .to_all()?
-            .join(self.check(right, depth).to_all()?)
-            .to_all()
+        Ok(self.check(left, depth - 1).to_all()? & self.check(right, depth).to_all()?)
     }
 
     fn filter_or(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AnyReport {

@@ -203,11 +203,12 @@ impl Compare {
         policy: &Versions,
         accept_num: Option<u64>,
     ) -> AnyReport {
-        (match self.prefix {
-            IpNet::V4(_) => self.check_casts(dump, &policy.ipv4, accept_num),
-            IpNet::V6(_) => self.check_casts(dump, &policy.ipv6, accept_num),
-        }? | self.check_casts(dump, &policy.any, accept_num)?)
-        .to_any()
+        Some(
+            match self.prefix {
+                IpNet::V4(_) => self.check_casts(dump, &policy.ipv4, accept_num),
+                IpNet::V6(_) => self.check_casts(dump, &policy.ipv6, accept_num),
+            }? | self.check_casts(dump, &policy.any, accept_num)?,
+        )
     }
 
     pub fn check_casts(
@@ -224,7 +225,7 @@ impl Compare {
         for entry in [specific_cast, &casts.any].into_iter().flatten() {
             report |= self.check_entry(dump, entry, accept_num).to_any()?;
         }
-        report.to_any()
+        Some(report)
     }
 
     pub fn check_entry(
@@ -258,7 +259,7 @@ impl Compare {
             }
             report
         })?;
-        peering_report.join(filter_report).to_all()
+        Ok(peering_report & filter_report)
     }
 
     pub fn check_peering_actions<'a, I>(
@@ -275,7 +276,7 @@ impl Compare {
             let new = self.check_peering_action(dump, peering_actions, accept_num);
             report |= new.to_any()?;
         }
-        report.to_any()
+        Some(report)
     }
 
     pub fn check_peering_action(

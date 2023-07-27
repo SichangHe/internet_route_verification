@@ -8,6 +8,8 @@ use Report::*;
 pub struct Verbosity {
     /// Stop checking the AS path at the first [`Report`].
     pub stop_at_first: bool,
+    /// Report meh, or special cases.
+    pub show_meh: bool,
     /// Report skips.
     pub show_skips: bool,
     /// Report success.
@@ -24,7 +26,8 @@ impl std::fmt::Debug for Verbosity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = f.debug_set();
         let Verbosity {
-            stop_at_first: stop_at_error,
+            stop_at_first,
+            show_meh,
             show_skips,
             show_success,
             per_entry_err,
@@ -32,7 +35,8 @@ impl std::fmt::Debug for Verbosity {
             record_set,
         } = self;
         for (is_true, tag) in [
-            (stop_at_error, "stop_at_error"),
+            (stop_at_first, "stop_at_first"),
+            (show_meh, "show_meh"),
             (show_skips, "show_skips"),
             (show_success, "show_success"),
             (per_entry_err, "per_entry_err"),
@@ -52,6 +56,7 @@ impl Verbosity {
     pub const fn minimum_all() -> Self {
         Self {
             stop_at_first: false,
+            show_meh: true,
             show_skips: true,
             show_success: true,
             ..Self::const_default()
@@ -61,6 +66,7 @@ impl Verbosity {
     pub const fn const_default() -> Self {
         Self {
             stop_at_first: true,
+            show_meh: false,
             show_skips: false,
             show_success: false,
             per_entry_err: false,
@@ -99,6 +105,17 @@ pub trait VerbosityReport {
             skip_any_reports(reasons())
         } else {
             empty_skip_any_report()
+        }
+    }
+
+    fn special_any_report<F>(&self, reason: F) -> AnyReport
+    where
+        F: Fn() -> SpecialCase,
+    {
+        if self.get_verbosity().show_skips {
+            special_any_report(reason())
+        } else {
+            empty_meh_any_report()
         }
     }
 

@@ -13,12 +13,13 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
         SkipExport { from, to, items: _ } => entry(from, to).export_skip += 1,
         BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
         BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
-        BadImportUp { from, to, items: _ } => entry(from, to).import_meh += 1,
-        BadExportUp { from, to, items: _ } => entry(from, to).export_meh += 1,
+        MehImport { from, to, items: _ } => entry(from, to).import_meh += 1,
+        MehExport { from, to, items: _ } => entry(from, to).export_meh += 1,
         AsPathPairWithSet { from: _, to: _ }
         | SetSingleExport { from: _ }
         | OkSingleExport { from: _ }
         | SkipSingleExport { from: _, items: _ }
+        | MehSingleExport { from: _, items: _ }
         | BadSingeExport { from: _, items: _ } => (),
     }
 }

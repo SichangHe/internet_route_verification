@@ -1,3 +1,5 @@
+use std::ops::{BitAnd, BitOr, BitOrAssign};
+
 use ReportItem::*;
 
 use ::lex::Call;
@@ -46,15 +48,19 @@ pub enum Report {
     SetSingleExport {
         from: Vec<u64>,
     },
-    BadImportUp {
+    MehImport {
         from: u64,
         to: u64,
-        items: Vec<ReportItem>,
+        items: ReportItems,
     },
-    BadExportUp {
+    MehExport {
         from: u64,
         to: u64,
-        items: Vec<ReportItem>,
+        items: ReportItems,
+    },
+    MehSingleExport {
+        from: u64,
+        items: ReportItems,
     },
     BadImport {
         from: u64,
@@ -76,6 +82,7 @@ pub enum Report {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
     Skip(SkipReason),
+    Special(SpecialCase),
     NoMatch(MatchProblem),
     BadRpsl(RpslError),
     Recursion(RecurSrc),
@@ -97,6 +104,11 @@ pub enum SkipReason {
     AutNumUnrecorded(u64),
     ImportEmpty,
     ExportEmpty,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum SpecialCase {
+    Uphill,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -162,15 +174,15 @@ impl JoinReportItems for Option<ReportItems> {
 /// - `Ok(Some(skips))` indicates skip.
 /// - `Ok(None)` indicates success.
 /// - `Err(errors)` indicates failure.
-pub type AllReport = Result<Option<ReportItems>, ReportItems>;
+pub type AllReport = Result<OkTBad, ReportItems>;
 
 pub fn skip_all_report(reason: SkipReason) -> AllReport {
     let skips = vec![Skip(reason)];
-    Ok(Some(skips))
+    Ok(SkipT(skips))
 }
 
 pub const fn empty_skip_all_report() -> AllReport {
-    Ok(Some(vec![]))
+    Ok(SkipT(vec![]))
 }
 
 pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
@@ -192,6 +204,100 @@ pub const fn failed_all_report() -> AllReport {
     Err(vec![])
 }
 
+pub enum OkTBad {
+    OkT,
+    SkipT(ReportItems),
+    MehT(ReportItems),
+}
+
+impl OkTBad {
+    pub fn join(self, other: Self) -> Self {
+        match self {
+            OkT => other,
+            SkipT(mut items) => {
+                match other {
+                    OkT => (),
+                    SkipT(i) | MehT(i) => items.extend(i),
+                };
+                SkipT(items)
+            }
+            MehT(mut items) => match other {
+                OkT => MehT(items),
+                SkipT(i) => {
+                    items.extend(i);
+                    SkipT(items)
+                }
+                MehT(i) => {
+                    items.extend(i);
+                    MehT(items)
+                }
+            },
+        }
+    }
+
+    pub fn to_all(self) -> AllReport {
+        Ok(self)
+    }
+}
+
+impl BitAnd for OkTBad {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        self.join(rhs)
+    }
+}
+
+/// Useful if any of the reports succeeding is enough.
+/// - `None` indicates success.
+pub type AnyReport = Option<SkipFBad>;
+
+pub fn skip_any_report(reason: SkipReason) -> AnyReport {
+    let skips = vec![Skip(reason)];
+    Some(SkipF(skips))
+}
+
+pub fn skip_any_reports<I>(reasons: I) -> AnyReport
+where
+    I: IntoIterator<Item = SkipReason>,
+{
+    let skips = reasons.into_iter().map(Skip).collect();
+    Some(SkipF(skips))
+}
+
+pub const fn empty_skip_any_report() -> AnyReport {
+    Some(SkipF(vec![]))
+}
+
+pub fn special_any_report(reason: SpecialCase) -> AnyReport {
+    let specials = vec![Special(reason)];
+    Some(MehF(specials))
+}
+
+pub const fn empty_meh_any_report() -> AnyReport {
+    Some(MehF(vec![]))
+}
+
+pub fn no_match_any_report(reason: MatchProblem) -> AnyReport {
+    let errors = vec![NoMatch(reason)];
+    Some(BadF(errors))
+}
+
+pub fn bad_rpsl_any_report(reason: RpslError) -> AnyReport {
+    let errors = vec![BadRpsl(reason)];
+    Some(BadF(errors))
+}
+
+pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
+    let errors = vec![Recursion(reason)];
+    Some(BadF(errors))
+}
+
+/// Empty failed `AnyReport`.
+pub const fn failed_any_report() -> AnyReport {
+    Some(BadF(vec![]))
+}
+
 pub enum SkipFBad {
     SkipF(ReportItems),
     MehF(ReportItems),
@@ -199,6 +305,10 @@ pub enum SkipFBad {
 }
 
 impl SkipFBad {
+    pub const fn const_default() -> Self {
+        BadF(Vec::new())
+    }
+
     pub fn join(self, other: Self) -> Self {
         match self {
             SkipF(mut items) => {
@@ -236,80 +346,37 @@ impl SkipFBad {
             },
         }
     }
-}
 
-/// Useful if any of the reports succeeding is enough.
-/// - `Some((errors, true))` indicates failure.
-/// - `Some((skips, false))` indicates skip.
-/// - `None` indicates success.
-pub type AnyReport = Option<(ReportItems, bool)>;
-
-pub fn skip_any_report(reason: SkipReason) -> AnyReport {
-    let skips = vec![Skip(reason)];
-    Some((skips, false))
-}
-
-pub fn skip_any_reports<I>(reasons: I) -> AnyReport
-where
-    I: IntoIterator<Item = SkipReason>,
-{
-    let skips = reasons.into_iter().map(Skip).collect();
-    Some((skips, false))
-}
-
-pub const fn empty_skip_any_report() -> AnyReport {
-    Some((vec![], false))
-}
-
-pub fn no_match_any_report(reason: MatchProblem) -> AnyReport {
-    let errors = vec![NoMatch(reason)];
-    Some((errors, true))
-}
-
-pub fn bad_rpsl_any_report(reason: RpslError) -> AnyReport {
-    let errors = vec![BadRpsl(reason)];
-    Some((errors, true))
-}
-
-pub fn recursion_any_report(reason: RecurSrc) -> AnyReport {
-    let errors = vec![Recursion(reason)];
-    Some((errors, true))
-}
-
-/// Empty failed `AnyReport`.
-pub const fn failed_any_report() -> AnyReport {
-    Some((vec![], true))
-}
-
-pub enum OkTBad {
-    OkT,
-    SkipT(ReportItems),
-    BadT(ReportItems),
-}
-
-impl OkTBad {
-    pub fn join(self, other: Self) -> Self {
+    pub fn shrink_to_fit(&mut self) {
         match self {
-            OkT => other,
-            SkipT(mut items) => {
-                match other {
-                    OkT => (),
-                    SkipT(i) | BadT(i) => items.extend(i),
-                };
-                SkipT(items)
-            }
-            BadT(mut items) => match other {
-                OkT => BadT(items),
-                SkipT(i) => {
-                    items.extend(i);
-                    SkipT(items)
-                }
-                BadT(i) => {
-                    items.extend(i);
-                    BadT(items)
-                }
-            },
+            SkipF(items) => items.shrink_to_fit(),
+            MehF(items) => items.shrink_to_fit(),
+            BadF(items) => items.shrink_to_fit(),
         }
+    }
+
+    pub fn to_any(self) -> AnyReport {
+        Some(self)
+    }
+}
+
+impl Default for SkipFBad {
+    fn default() -> Self {
+        Self::const_default()
+    }
+}
+
+impl BitOr for SkipFBad {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        self.join(rhs)
+    }
+}
+
+impl BitOrAssign for SkipFBad {
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = mem::take(self) | rhs;
     }
 }
 
@@ -320,9 +387,10 @@ pub trait ToAnyReport {
 impl ToAnyReport for AllReport {
     fn to_any(self) -> AnyReport {
         match self {
-            Ok(Some(skips)) => Some((skips, false)),
-            Ok(None) => None,
-            Err(errors) => Some((errors, true)),
+            Ok(OkT) => None,
+            Ok(SkipT(items)) => Some(SkipF(items)),
+            Ok(MehT(items)) => Some(MehF(items)),
+            Err(items) => Some(BadF(items)),
         }
     }
 }
@@ -334,56 +402,10 @@ pub trait ToAllReport {
 impl ToAllReport for AnyReport {
     fn to_all(self) -> AllReport {
         match self {
-            Some((errors, true)) => Err(errors),
-            Some((skips, false)) => Ok(Some(skips)),
-            None => Ok(None),
-        }
-    }
-}
-
-impl ToAllReport for Option<ReportItems> {
-    fn to_all(self) -> AllReport {
-        Ok(self)
-    }
-}
-
-/// Useful to join multiple [`AnyReport`]s.
-pub struct AnyReportAggregator {
-    pub report_items: ReportItems,
-    pub all_fail: bool,
-}
-
-impl AnyReportAggregator {
-    pub fn new() -> Self {
-        Self {
-            report_items: Vec::new(),
-            all_fail: true,
-        }
-    }
-
-    pub fn join(&mut self, (report_items, fail): (ReportItems, bool)) {
-        self.report_items.extend(report_items);
-        self.all_fail = self.all_fail && fail;
-    }
-}
-
-impl ToAnyReport for AnyReportAggregator {
-    fn to_any(self) -> AnyReport {
-        Some((self.report_items, self.all_fail))
-    }
-}
-
-impl Default for AnyReportAggregator {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<(ReportItems, bool)> for AnyReportAggregator {
-    fn from((report_items, all_fail): (ReportItems, bool)) -> Self {
-        Self {
-            report_items,
-            all_fail,
+            Some(SkipF(items)) => Ok(SkipT(items)),
+            Some(MehF(items)) => Ok(MehT(items)),
+            Some(BadF(items)) => Err(items),
+            None => Ok(OkT),
         }
     }
 }

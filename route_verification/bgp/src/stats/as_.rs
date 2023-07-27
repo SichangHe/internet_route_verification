@@ -28,16 +28,17 @@ pub fn one(map: &DashMap<u64, AsStats>, report: Report) {
             items: _,
         }
         | BadSingeExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
-        BadImportUp {
+        MehImport {
             from: _,
             to,
             items: _,
         } => map.entry(to).or_default().import_meh += 1,
-        BadExportUp {
+        MehExport {
             from,
             to: _,
             items: _,
-        } => map.entry(from).or_default().export_meh += 1,
+        }
+        | MehSingleExport { from, items: _ } => map.entry(from).or_default().export_meh += 1,
         AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
     }
 }

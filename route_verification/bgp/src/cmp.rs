@@ -5,7 +5,10 @@ use parse::*;
 
 use super::*;
 
-use {AsPathEntry::*, MatchProblem::*, Report::*, ReportItem::*, SkipReason::*};
+use {
+    AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
+    SkipReason::*,
+};
 
 mod hill;
 
@@ -136,7 +139,7 @@ impl Compare {
                 }
             });
         }
-        let (mut items, fail) = match self.check_compliant(dump, &from_an.exports, to) {
+        let mut report = match self.check_compliant(dump, &from_an.exports, to) {
             None => {
                 return self.verbosity.show_success.then_some(match to {
                     Some(to) => OkExport { from, to },
@@ -145,17 +148,20 @@ impl Compare {
             }
             Some(report) => report,
         };
-        items.shrink_to_fit();
-        if fail {
-            Some(match to {
-                Some(to) => BadExport { from, to, items },
-                None => BadSingeExport { from, items },
-            })
-        } else {
-            self.verbosity.show_skips.then_some(match to {
+        report.shrink_to_fit();
+        match report {
+            SkipF(items) => self.verbosity.show_skips.then_some(match to {
                 Some(to) => SkipExport { from, to, items },
                 None => SkipSingleExport { from, items },
-            })
+            }),
+            MehF(items) => self.verbosity.show_meh.then_some(match to {
+                Some(to) => MehExport { from, to, items },
+                None => MehSingleExport { from, items },
+            }),
+            BadF(items) => Some(match to {
+                Some(to) => BadExport { from, to, items },
+                None => BadSingeExport { from, items },
+            }),
         }
     }
 
@@ -173,17 +179,21 @@ impl Compare {
                 items: vec![Skip(ImportEmpty)],
             });
         }
-        let (mut items, fail) = match self.check_compliant(dump, &to_an.imports, Some(from)) {
+        let mut report = match self.check_compliant(dump, &to_an.imports, Some(from)) {
             None => return self.verbosity.show_success.then_some(OkImport { from, to }),
             Some(report) => report,
         };
-        items.shrink_to_fit();
-        if fail {
-            Some(BadImport { from, to, items })
-        } else {
-            self.verbosity
+        report.shrink_to_fit();
+        match report {
+            SkipF(items) => self
+                .verbosity
                 .show_skips
-                .then_some(SkipImport { from, to, items })
+                .then_some(SkipImport { from, to, items }),
+            MehF(items) => self
+                .verbosity
+                .show_meh
+                .then_some(MehImport { from, to, items }),
+            BadF(items) => Some(BadImport { from, to, items }),
         }
     }
 
@@ -193,13 +203,11 @@ impl Compare {
         policy: &Versions,
         accept_num: Option<u64>,
     ) -> AnyReport {
-        let mut aggregator: AnyReportAggregator = match self.prefix {
+        (match self.prefix {
             IpNet::V4(_) => self.check_casts(dump, &policy.ipv4, accept_num),
             IpNet::V6(_) => self.check_casts(dump, &policy.ipv6, accept_num),
-        }?
-        .into();
-        aggregator.join(self.check_casts(dump, &policy.any, accept_num)?);
-        aggregator.to_any()
+        }? | self.check_casts(dump, &policy.any, accept_num)?)
+        .to_any()
     }
 
     pub fn check_casts(
@@ -208,15 +216,15 @@ impl Compare {
         casts: &Casts,
         accept_num: Option<u64>,
     ) -> AnyReport {
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         let specific_cast = match is_multicast(&self.prefix) {
             true => &casts.multicast,
             false => &casts.unicast,
         };
         for entry in [specific_cast, &casts.any].into_iter().flatten() {
-            aggregator.join(self.check_entry(dump, entry, accept_num).to_any()?);
+            report |= self.check_entry(dump, entry, accept_num).to_any()?;
         }
-        aggregator.to_any()
+        report.to_any()
     }
 
     pub fn check_entry(
@@ -235,7 +243,7 @@ impl Compare {
                     }
                     report
                 })?,
-            None => None,
+            None => OkT,
         };
         let filter_report = CheckFilter {
             dump,
@@ -262,12 +270,12 @@ impl Compare {
     where
         I: IntoIterator<Item = &'a PeeringAction>,
     {
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         for peering_actions in peerings.into_iter() {
-            let report = self.check_peering_action(dump, peering_actions, accept_num);
-            aggregator.join(report.to_any()?);
+            let new = self.check_peering_action(dump, peering_actions, accept_num);
+            report |= new.to_any()?;
         }
-        aggregator.to_any()
+        report.to_any()
     }
 
     pub fn check_peering_action(
@@ -293,7 +301,7 @@ impl Compare {
     /// We skip community checks, but this could be an enhancement.
     /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
-        Ok(None)
+        Ok(OkT)
     }
 
     pub fn goes_through_num(&self, num: u64) -> bool {

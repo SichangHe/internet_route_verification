@@ -2,6 +2,8 @@ use parse::*;
 
 use super::*;
 
+use {OkTBad::*, SkipFBad::*};
+
 pub struct CheckPeering<'a> {
     pub dump: &'a QueryDump,
     pub compare: &'a Compare,
@@ -97,14 +99,14 @@ impl<'a> CheckPeering<'a> {
     ) -> AnyReport {
         visited.insert_with_hash(name, hash);
 
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         for set in &as_set.set_members {
-            aggregator.join(self.check_remote_as_set(set, depth - 1, visited)?);
+            report |= self.check_remote_as_set(set, depth - 1, visited)?;
         }
-        if aggregator.all_fail {
+        if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::RemoteAsSet(name.into()))
         } else {
-            aggregator.to_any()
+            report.to_any()
         }
     }
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
@@ -115,11 +117,11 @@ impl<'a> CheckPeering<'a> {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::PeeringSetUnrecorded(name.into())),
         };
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         for peering in &peering_set.peerings {
-            aggregator.join(self.check(peering, depth - 1).to_any()?);
+            report |= self.check(peering, depth - 1).to_any()?;
         }
-        aggregator.to_any()
+        report.to_any()
     }
 
     fn check_and(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
@@ -136,25 +138,22 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::PeeringOr);
         }
-        let mut report: AnyReportAggregator = self.check_remote_as(left, depth - 1)?.into();
-        report.join(self.check_remote_as(right, depth)?);
-        report.to_any()
+        Some(self.check_remote_as(left, depth - 1)? | self.check_remote_as(right, depth)?)
     }
 
     fn check_except(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
             return recursion_all_report(RecurSrc::PeeringExcept);
         }
-        let left_report = self.check_remote_as(left, depth - 1).to_all()?;
-        let right_report = match self.check_remote_as(right, depth) {
-            Some((_, true)) => Ok(None),
-            report @ Some((_, false)) => report
-                .to_all()?
-                .join(self.skip_all_report(|| SkipReason::SkippedExceptPeeringResult)?)
-                .to_all(),
-            None => self.no_match_all_report(|| MatchProblem::ExceptPeeringRightMatch),
-        };
-        left_report.join(right_report?).to_all()
+        Ok(self.check_remote_as(left, depth - 1).to_all()?
+            & match self.check_remote_as(right, depth) {
+                report @ Some(SkipF(_)) | report @ Some(MehF(_)) => {
+                    report.to_all()?
+                        & self.skip_all_report(|| SkipReason::SkippedExceptPeeringResult)?
+                }
+                Some(BadF(_)) => OkT,
+                None => self.no_match_all_report(|| MatchProblem::ExceptPeeringRightMatch)?,
+            })
     }
 }
 

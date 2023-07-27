@@ -3,6 +3,8 @@ use parse::{Filter::*, *};
 
 use super::*;
 
+use SkipFBad::*;
+
 pub struct CheckFilter<'a> {
     pub dump: &'a QueryDump,
     pub compare: &'a Compare,
@@ -41,11 +43,11 @@ impl<'a> CheckFilter<'a> {
             Some(f) => f,
             None => return self.skip_any_report(|| SkipReason::FilterSetUnrecorded(name.into())),
         };
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         for filter in &filter_set.filters {
-            aggregator.join(self.check(filter, depth - 1)?);
+            report |= self.check(filter, depth - 1)?;
         }
-        aggregator.to_any()
+        report.to_any()
     }
 
     fn filter_as_num(&self, num: u64, op: RangeOperator) -> AnyReport {
@@ -87,14 +89,14 @@ impl<'a> CheckFilter<'a> {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::RouteSetUnrecorded(name.into())),
         };
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         for member in &route_set.members {
-            aggregator.join(self.filter_route_set_member(member, op, depth - 1)?);
+            report |= self.filter_route_set_member(member, op, depth - 1)?;
         }
-        if aggregator.all_fail {
+        if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::FilterRouteSet(name.into()))
         } else {
-            aggregator.to_any()
+            report.to_any()
         }
     }
 
@@ -158,22 +160,22 @@ impl<'a> CheckFilter<'a> {
     ) -> AnyReport {
         visited.insert_with_hash(name, hash);
 
-        let mut aggregator = AnyReportAggregator::new();
+        let mut report = SkipFBad::const_default();
         for set in &as_set_route.set_members {
-            aggregator.join(self.filter_as_set(set, op, depth - 1, visited)?);
+            report |= self.filter_as_set(set, op, depth - 1, visited)?;
         }
 
-        aggregator.join(self.skip_any_reports(|| {
+        report |= self.skip_any_reports(|| {
             as_set_route
                 .unrecorded_nums
                 .iter()
                 .map(|num| SkipReason::AsRoutesUnrecorded(*num))
-        })?);
+        })?;
 
-        if aggregator.all_fail {
+        if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))
         } else {
-            aggregator.to_any()
+            report.to_any()
         }
     }
 
@@ -196,9 +198,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterOr);
         }
-        let mut report: AnyReportAggregator = self.check(left, depth - 1)?.into();
-        report.join(self.check(right, depth)?);
-        report.to_any()
+        Some(self.check(left, depth - 1)? | self.check(right, depth)?)
     }
 
     fn filter_not(&self, filter: &'a Filter, depth: isize) -> AnyReport {
@@ -206,12 +206,11 @@ impl<'a> CheckFilter<'a> {
             return recursion_any_report(RecurSrc::FilterNot);
         }
         match self.check(filter, depth) {
-            Some((_errors, true)) => None,
-            Some(report @ (_, false)) => {
-                let mut aggregator: AnyReportAggregator = report.into();
-                aggregator.join(self.no_match_any_report(|| MatchProblem::Filter)?);
-                aggregator.to_any()
+            Some(report @ SkipF(_)) | Some(report @ MehF(_)) => {
+                // FIX: This looks off.
+                Some(report | self.no_match_any_report(|| MatchProblem::Filter)?)
             }
+            Some(BadF(_)) => None,
             None => self.no_match_any_report(|| MatchProblem::Filter),
         }
     }

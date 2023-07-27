@@ -7,19 +7,27 @@ impl Compare {
             match report {
                 BadImport { from, to, items } => {
                     if let Some(P2C) = db.get(*to, *from) {
-                        *report = BadImportUp {
+                        let mut items = mem::take(items);
+                        if self.verbosity.show_meh {
+                            items.push(Special(SpecialCase::Uphill))
+                        }
+                        *report = MehImport {
                             from: *from,
                             to: *to,
-                            items: mem::take(items),
+                            items,
                         };
                     }
                 }
                 BadExport { from, to, items } => {
                     if let Some(P2C) = db.get(*to, *from) {
-                        *report = BadExportUp {
+                        let mut items = mem::take(items);
+                        if self.verbosity.show_meh {
+                            items.push(Special(SpecialCase::Uphill))
+                        }
+                        *report = MehExport {
                             from: *from,
                             to: *to,
-                            items: mem::take(items),
+                            items,
                         }
                     }
                 }

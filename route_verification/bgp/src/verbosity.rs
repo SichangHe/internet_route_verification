@@ -117,7 +117,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> SpecialCase,
     {
-        if self.get_verbosity().show_skips {
+        if self.get_verbosity().show_meh {
             special_any_report(reason())
         } else {
             empty_meh_any_report()

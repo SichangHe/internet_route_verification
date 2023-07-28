@@ -14,12 +14,7 @@ impl<'a> Compliance<'a> {
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
-            AsSet(name, op) => self.filter_as_set(
-                name,
-                *op,
-                depth,
-                &mut BloomHashSet::with_capacity(16384, 262144),
-            ),
+            AsSet(name, op) => self.filter_as_set(name, *op, depth, &mut visited()),
             AsPathRE(expr) => self.filter_as_regex(expr),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
@@ -55,8 +50,25 @@ impl<'a> Compliance<'a> {
         if match_ips(&self.cmp.prefix, routes, op) {
             return None;
         }
-        // TODO: Check exporting customers.
-        self.no_match_any_report(|| MatchProblem::FilterAsNum(num, op))
+        if self.maybe_filter_customers(num, op) {
+            self.special_any_report(|| ExportCustomers)
+        } else {
+            self.no_match_any_report(|| MatchProblem::FilterAsNum(num, op))
+        }
+    }
+
+    fn maybe_filter_customers(&self, num: u64, op: RangeOperator) -> bool {
+        if self.export && self.cmp.verbosity.check_customer && num == self.self_num {
+            self.filter_as_set(
+                &customer_set(num),
+                op,
+                self.cmp.recursion_limit,
+                &mut visited(),
+            )
+            .is_none()
+        } else {
+            false
+        }
     }
 
     fn filter_prefixes<I>(&self, prefixes: I) -> AnyReport
@@ -213,4 +225,8 @@ impl<'a> Compliance<'a> {
     fn invalid_filter(&self, reason: &str) -> AnyReport {
         self.bad_rpsl_any_report(|| RpslError::InvalidFilter(reason.into()))
     }
+}
+
+fn visited<'a>() -> BloomHashSet<&'a str> {
+    BloomHashSet::with_capacity(16384, 262144)
 }

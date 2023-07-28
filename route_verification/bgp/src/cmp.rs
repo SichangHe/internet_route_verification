@@ -7,7 +7,7 @@ use super::*;
 
 use {
     AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
-    SkipReason::*,
+    SkipReason::*, SpecialCase::*,
 };
 
 mod compliance;

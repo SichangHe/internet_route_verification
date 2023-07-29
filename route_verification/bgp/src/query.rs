@@ -103,7 +103,7 @@ impl QueryDump {
 
     /// Same as [`from_dump`](#method.from_dump),
     /// but with customer pseudo sets injected under names `c#{aut_num}`.
-    pub fn from_dump_and_as_relations(mut dump: Dump, db: &AsRelDb) -> Self {
+    pub fn from_dump_and_as_relationship(mut dump: Dump, db: &AsRelDb) -> Self {
         let pseudo_sets = make_customer_pseudo_set(db);
         dump.as_sets.extend(pseudo_sets);
         Self::from_dump(dump)

@@ -50,5 +50,5 @@ fn db() -> Result<AsRelDb> {
 }
 
 fn query() -> Result<QueryDump> {
-    Ok(QueryDump::from_dump_and_as_relations(dump()?, &db()?))
+    Ok(QueryDump::from_dump_and_as_relationship(dump()?, &db()?))
 }

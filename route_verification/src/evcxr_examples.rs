@@ -15,14 +15,22 @@ use super::*;
 use crate as route_verification;
 
 /* Copy from the next line until the end of `use`.
+If polars is needed.
+```fish
+set -gx RUSTFLAGS --cfg=fuzzing
+```
+before running Evcxr is also needed.
+
 :opt 3
 :dep dashmap
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools
+:dep polars = { features = ["describe"] }
 // */
 use dashmap::DashMap;
 use itertools::multiunzip;
+use polars::prelude::*;
 use rayon::prelude::*;
 use route_verification::{as_rel::*, bgp::*, parse::*};
 use std::{
@@ -32,16 +40,6 @@ use std::{
     ops::Add,
     time::Instant,
 };
-
-/* If polars is needed.
-```fish
-set -gx RUSTFLAGS --cfg=fuzzing
-```
-before running Evcxr is also needed.
-
-:dep polars = { features = ["describe"] }
-// */
-use polars::prelude::*;
 
 fn read_parsed_rpsl() -> Result<()> {
     let start = Instant::now();

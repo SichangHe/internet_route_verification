@@ -62,7 +62,7 @@ fn gen_as_pair_stats(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) ->
         },
     ));
 
-    let mut df = DataFrame::new(vec![
+    let mut df: DataFrame = DataFrame::new(vec![
         Series::new("from", froms),
         Series::new("to", tos),
         Series::new("import_ok", ioks),

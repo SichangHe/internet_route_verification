@@ -94,7 +94,7 @@ impl SkipFBad {
                 }
                 MehF(i) | BadF(i) => {
                     items.extend(i);
-                    SkipF(items)
+                    MehF(items)
                 }
             },
             BadF(mut items) => match other {

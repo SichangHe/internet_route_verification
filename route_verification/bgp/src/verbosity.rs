@@ -20,6 +20,8 @@ pub struct Verbosity {
     pub all_err: bool,
     /// Record [`AsPathPairWithSet`], [`SetSingleExport`].
     pub record_set: bool,
+    /// Check for pseudo customer sets.
+    pub check_customer: bool,
 }
 
 impl std::fmt::Debug for Verbosity {
@@ -33,6 +35,7 @@ impl std::fmt::Debug for Verbosity {
             per_entry_err,
             all_err,
             record_set,
+            check_customer,
         } = self;
         for (is_true, tag) in [
             (stop_at_first, "stop_at_first"),
@@ -42,6 +45,7 @@ impl std::fmt::Debug for Verbosity {
             (per_entry_err, "per_entry_err"),
             (all_err, "all_err"),
             (record_set, "record_set"),
+            (check_customer, "check_customer"),
         ] {
             if *is_true {
                 result.entry(&tag);
@@ -72,6 +76,7 @@ impl Verbosity {
             per_entry_err: false,
             all_err: false,
             record_set: false,
+            check_customer: false,
         }
     }
 }
@@ -112,7 +117,7 @@ pub trait VerbosityReport {
     where
         F: Fn() -> SpecialCase,
     {
-        if self.get_verbosity().show_skips {
+        if self.get_verbosity().show_meh {
             special_any_report(reason())
         } else {
             empty_meh_any_report()

@@ -68,11 +68,11 @@ fn parse_bgp_lines() -> Result<()> {
     env::set_var("POLARS_FMT_MAX_COLS", "32");
     env::set_var("POLARS_TABLE_WIDTH", "160");
 
+    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
     let parsed = Dump::pal_read("parsed_all")?;
-    let query: QueryDump = QueryDump::from_dump(parsed);
+    let query: QueryDump = QueryDump::from_dump_and_as_relationship(parsed, &db);
     println!("{:#?}", query.aut_nums.iter().next());
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
-    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
 
     Ok(())
 }

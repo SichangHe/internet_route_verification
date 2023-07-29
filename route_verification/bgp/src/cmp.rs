@@ -7,10 +7,15 @@ use super::*;
 
 use {
     AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
-    SkipReason::*,
+    SkipReason::*, SpecialCase::*,
 };
 
+mod compliance;
+mod filter;
 mod hill;
+mod peering;
+
+pub use {compliance::*, filter::*, peering::*};
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
@@ -139,7 +144,15 @@ impl Compare {
                 }
             });
         }
-        let mut report = match self.check_compliant(dump, &from_an.exports, to) {
+        let mut report = match (Compliance {
+            cmp: self,
+            dump,
+            accept_num: to,
+            self_num: from,
+            export: true,
+        })
+        .check(&from_an.exports)
+        {
             None => {
                 return self.verbosity.show_success.then_some(match to {
                     Some(to) => OkExport { from, to },
@@ -179,7 +192,15 @@ impl Compare {
                 items: vec![Skip(ImportEmpty)],
             });
         }
-        let mut report = match self.check_compliant(dump, &to_an.imports, Some(from)) {
+        let mut report = match (Compliance {
+            cmp: self,
+            dump,
+            accept_num: Some(from),
+            self_num: to,
+            export: false,
+        })
+        .check(&to_an.imports)
+        {
             None => return self.verbosity.show_success.then_some(OkImport { from, to }),
             Some(report) => report,
         };
@@ -195,114 +216,6 @@ impl Compare {
                 .then_some(MehImport { from, to, items }),
             BadF(items) => Some(BadImport { from, to, items }),
         }
-    }
-
-    pub fn check_compliant(
-        &self,
-        dump: &QueryDump,
-        policy: &Versions,
-        accept_num: Option<u64>,
-    ) -> AnyReport {
-        Some(
-            match self.prefix {
-                IpNet::V4(_) => self.check_casts(dump, &policy.ipv4, accept_num),
-                IpNet::V6(_) => self.check_casts(dump, &policy.ipv6, accept_num),
-            }? | self.check_casts(dump, &policy.any, accept_num)?,
-        )
-    }
-
-    pub fn check_casts(
-        &self,
-        dump: &QueryDump,
-        casts: &Casts,
-        accept_num: Option<u64>,
-    ) -> AnyReport {
-        let mut report = SkipFBad::const_default();
-        let specific_cast = match is_multicast(&self.prefix) {
-            true => &casts.multicast,
-            false => &casts.unicast,
-        };
-        for entry in [specific_cast, &casts.any].into_iter().flatten() {
-            report |= self.check_entry(dump, entry, accept_num).to_any()?;
-        }
-        Some(report)
-    }
-
-    pub fn check_entry(
-        &self,
-        dump: &QueryDump,
-        entry: &Entry,
-        accept_num: Option<u64>,
-    ) -> AllReport {
-        let peering_report = match accept_num {
-            Some(accept_num) => self
-                .check_peering_actions(dump, &entry.mp_peerings, accept_num)
-                .to_all()
-                .map_err(|mut report| {
-                    if self.verbosity.per_entry_err {
-                        report.push(NoMatch(Peering));
-                    }
-                    report
-                })?,
-            None => OkT,
-        };
-        let filter_report = CheckFilter {
-            dump,
-            compare: self,
-            verbosity: self.verbosity,
-        }
-        .check(&entry.mp_filter, self.recursion_limit)
-        .to_all()
-        .map_err(|mut report| {
-            if self.verbosity.per_entry_err {
-                report.push(NoMatch(Filter));
-            }
-            report
-        })?;
-        Ok(peering_report & filter_report)
-    }
-
-    pub fn check_peering_actions<'a, I>(
-        &self,
-        dump: &QueryDump,
-        peerings: I,
-        accept_num: u64,
-    ) -> AnyReport
-    where
-        I: IntoIterator<Item = &'a PeeringAction>,
-    {
-        let mut report = SkipFBad::const_default();
-        for peering_actions in peerings.into_iter() {
-            let new = self.check_peering_action(dump, peering_actions, accept_num);
-            report |= new.to_any()?;
-        }
-        Some(report)
-    }
-
-    pub fn check_peering_action(
-        &self,
-        dump: &QueryDump,
-        peering_actions: &PeeringAction,
-        accept_num: u64,
-    ) -> AllReport {
-        CheckPeering {
-            dump,
-            compare: self,
-            accept_num,
-            verbosity: self.verbosity,
-        }
-        .check(&peering_actions.mp_peering, self.recursion_limit)
-        // Skipped.
-        /* ?
-        .join(self.check_actions(&peering_actions.actions)?)
-        .to_all()
-        */
-    }
-
-    /// We skip community checks, but this could be an enhancement.
-    /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
-    pub fn check_actions(&self, _actions: &Actions) -> AllReport {
-        Ok(OkT)
     }
 
     pub fn goes_through_num(&self, num: u64) -> bool {

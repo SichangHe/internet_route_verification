@@ -2,16 +2,39 @@ use parse::*;
 
 use super::*;
 
-use {OkTBad::*, SkipFBad::*};
-
 pub struct CheckPeering<'a> {
-    pub dump: &'a QueryDump,
-    pub compare: &'a Compare,
+    pub c: &'a Compliance<'a>,
     pub accept_num: u64,
-    pub verbosity: Verbosity,
 }
 
 impl<'a> CheckPeering<'a> {
+    pub fn check_peering_actions<'b, I>(&self, peerings: I) -> AnyReport
+    where
+        I: IntoIterator<Item = &'b PeeringAction>,
+    {
+        let mut report = SkipFBad::const_default();
+        for peering_actions in peerings.into_iter() {
+            let new = self.check_peering_action(peering_actions);
+            report |= new.to_any()?;
+        }
+        Some(report)
+    }
+
+    pub fn check_peering_action(&self, peering_actions: &PeeringAction) -> AllReport {
+        self.check(&peering_actions.mp_peering, self.c.cmp.recursion_limit)
+        // Skipped.
+        /* ?
+        .join(self.check_actions(&peering_actions.actions)?)
+        .to_all()
+        */
+    }
+
+    /// We skip community checks, but this could be an enhancement.
+    /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
+    pub fn check_actions(&self, _actions: &Actions) -> AllReport {
+        Ok(OkT)
+    }
+
     /// Do not check `remote_router` or `local_router` because we do not have
     /// the router information needed.
     pub fn check(
@@ -77,7 +100,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemoteAsSet(name.into()));
         }
-        let as_set = match self.dump.as_sets.get(name) {
+        let as_set = match self.c.dump.as_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
@@ -113,7 +136,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemotePeeringSet(name.into()));
         }
-        let peering_set = match self.dump.peering_sets.get(name) {
+        let peering_set = match self.c.dump.peering_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::PeeringSetUnrecorded(name.into())),
         };
@@ -157,6 +180,6 @@ impl<'a> CheckPeering<'a> {
 
 impl<'a> VerbosityReport for CheckPeering<'a> {
     fn get_verbosity(&self) -> Verbosity {
-        self.verbosity
+        self.c.cmp.verbosity
     }
 }

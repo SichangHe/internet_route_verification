@@ -63,6 +63,7 @@ impl Verbosity {
             show_meh: true,
             show_skips: true,
             show_success: true,
+            check_customer: true,
             ..Self::const_default()
         }
     }

@@ -10,15 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - id: install
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
       - name: Cache Rust registry based on lock file
         uses: actions/cache@v3
         with:
           path: ~/.cargo/registry/cache/
           key: rust-${{ hashFiles('route_verification/Cargo.lock') }}
-      - name: sccache based on rustc
-        uses: mozilla-actions/sccache-action@v0.0.3
+      - uses: mozilla-actions/sccache-action@v0.0.3
       - run: |
           cd route_verification/
           cargo test --workspace

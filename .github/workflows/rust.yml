@@ -1,0 +1,27 @@
+on:
+  push:
+    paths:
+      - '.github/workflows/rust.yml'
+      - '**.rs'
+      - '**Cargo.toml'
+jobs:
+  rust:
+    name: Rust checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust registry based on lock file
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry/cache/
+          key: rust-${{ hashFiles('route_verification/Cargo.lock') }}
+      - uses: mozilla-actions/sccache-action@v0.0.3
+      - run: |
+          cd route_verification/
+          cargo test --workspace
+          RUSTFLAGS="-Dwarnings" cargo clippy --workspace
+          cargo fmt -- --check
+        env:
+          SCCACHE_GHA_ENABLED: true
+          RUSTC_WRAPPER: sccache

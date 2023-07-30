@@ -18,7 +18,7 @@ jobs:
           path: |
             ~/.cargo/registry/cache/
             route_verification/target/
-          key: ${{ runner.os }}-rust
+          key: ${{ runner.os }}-rust-{{ env.GITHUB_SHA }}
       - run: |
           export CARGO_INCREMENTAL=1
           cd route_verification/

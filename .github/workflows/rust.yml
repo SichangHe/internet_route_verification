@@ -11,12 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache Rust registry and build artifacts
+        id: cache-rust
+        uses: actions/cache@v3
         with:
-          workspaces: route_verification/ -> target/
-          cache-on-failure: true
+          path: |
+            ~/.cargo/registry/cache/
+            route_verification/target/
+          key: ${{ runner.os }}-rust
       - run: |
-          export CARGO_INCREMENTAL=1
           cd route_verification/
           cargo test --workspace
           RUSTFLAGS="-Dwarnings" cargo clippy --workspace

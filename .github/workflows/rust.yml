@@ -30,4 +30,3 @@ jobs:
           cargo test --workspace
           RUSTFLAGS="-Dwarnings" cargo clippy --workspace
           cargo fmt -- --check
-

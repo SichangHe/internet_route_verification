@@ -16,6 +16,7 @@ jobs:
           workspaces: route_verification/ -> target/
           cache-on-failure: true
       - run: |
+          export CARGO_INCREMENTAL=1
           cd route_verification/
           cargo test --workspace
           RUSTFLAGS="-Dwarnings" cargo clippy --workspace

@@ -16,10 +16,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cargo/registry/cache/
-          key: rust-${{ hashFiles('route_verification/Cargo.lock') }}-${{ github.run_id }}
-          restore-keys: rust-${{ hashFiles('route_verification/Cargo.lock') }}
+          key: rust-${{ hashFiles('route_verification/Cargo.lock') }}
       - name: sccache based on rustc
-        uses: mozilla-actions/sccache-action
+        uses: mozilla-actions/sccache-action@v0.0.3
       - run: |
           cd route_verification/
           cargo test --workspace

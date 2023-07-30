@@ -18,15 +18,13 @@ jobs:
           path: ~/.cargo/registry/cache/
           key: rust-${{ hashFiles('route_verification/Cargo.lock') }}-${{ github.run_id }}
           restore-keys: rust-${{ hashFiles('route_verification/Cargo.lock') }}
-      - name: Cache Rust build artifacts based on compiler
-        uses: actions/cache@v3
-        with:
-          path: route_verification/target/
-          key: rust-${{ steps.install.outputs.cachekey }}-${{ github.run_id }}
-          restore-keys: rust-${{ steps.install.outputs.cachekey }}
+      - name: sccache based on rustc
+        uses: mozilla-actions/sccache-action
       - run: |
-          export CARGO_INCREMENTAL=1
           cd route_verification/
           cargo test --workspace
           RUSTFLAGS="-Dwarnings" cargo clippy --workspace
           cargo fmt -- --check
+        env:
+          SCCACHE_GHA_ENABLED: true
+          RUSTC_WRAPPER: sccache

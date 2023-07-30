@@ -10,19 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Cache Rust registry and build artifacts
-        id: cache-rust
+      - id: install
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust registry based on lock file
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.cargo/registry/cache/
-            route_verification/target/
-          key: ${{ runner.os }}-rust-${{ github.run_id }}
-          restore-keys: ${{ runner.os }}-rust
+          path: ~/.cargo/registry/cache/
+          key: rust-${{ hashFiles('route_verification/Cargo.lock') }}-${{ github.run_id }}
+          restore-keys: rust-${{ hashFiles('route_verification/Cargo.lock') }}
+      - name: Cache Rust build artifacts based on compiler
+        uses: actions/cache@v3
+        with:
+          path: route_verification/target/
+          key: rust-${{ steps.install.outputs.cachekey }}-${{ github.run_id }}
+          restore-keys: rust-${{ steps.install.outputs.cachekey }}
       - run: |
           export CARGO_INCREMENTAL=1
           cd route_verification/
           cargo test --workspace
           RUSTFLAGS="-Dwarnings" cargo clippy --workspace
           cargo fmt -- --check
+

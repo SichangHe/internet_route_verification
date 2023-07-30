@@ -1,0 +1,22 @@
+on:
+  push:
+    paths:
+      - '.github/workflows/rust.yml'
+      - '**.rs'
+      - '**Cargo.toml'
+jobs:
+  rust:
+    name: Rust checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: route_verification/ -> route_verification/target/
+          cache-on-failure: true
+      - run: |
+          cd route_verification/
+          cargo test --workspace
+          RUSTFLAGS="-Dwarnings" cargo clippy --workspace
+          cargo fmt -- --check

@@ -20,6 +20,7 @@ jobs:
             route_verification/target/
           key: ${{ runner.os }}-rust
       - run: |
+          export CARGO_INCREMENTAL=1
           cd route_verification/
           cargo test --workspace
           RUSTFLAGS="-Dwarnings" cargo clippy --workspace

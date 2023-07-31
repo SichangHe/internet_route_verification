@@ -34,7 +34,7 @@ pub fn parse_filter(mp_filter: lex::Filter, mp_peerings: &[PeeringAction]) -> Fi
 }
 
 pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filter {
-    if regex_is_match!(r"^(as-)?any$"i, &attr) {
+    if is_any(&attr) {
         Filter::Any
     } else if regex_is_match!(r"^peeras$"i, &attr) {
         peer_as_filter(mp_peerings)
@@ -51,6 +51,10 @@ pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filt
     } else {
         Filter::AsPathRE(attr)
     }
+}
+
+pub fn is_any(attr: &str) -> bool {
+    regex_is_match!(r"^(as-)?any$"i, attr)
 }
 
 pub fn is_filter_set(attr: &str) -> bool {

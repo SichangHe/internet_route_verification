@@ -27,7 +27,7 @@ pub use {
     aut_num::AutNum,
     aut_sys::{is_as_set, parse_as_name, AsName},
     dump::Dump,
-    filter::{is_filter_set, parse_filter, Filter},
+    filter::{is_any, is_filter_set, parse_filter, Filter},
     mp_import::{parse_imports, Casts, Entry, Versions},
     peering::{
         is_peering_set, parse_mp_peering, parse_mp_peerings, AsExpr, Peering, PeeringAction,

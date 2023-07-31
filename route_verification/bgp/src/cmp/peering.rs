@@ -68,6 +68,7 @@ impl<'a> CheckPeering<'a> {
             return recursion_any_report(RecurSrc::RemoteAsName(as_name.clone()));
         }
         match as_name {
+            AsName::Any => None,
             AsName::Num(num) => self.check_remote_as_num(*num),
             AsName::Set(name) => {
                 self.check_remote_as_set(name, depth, &mut BloomHashSet::with_capacity(2048, 32768))

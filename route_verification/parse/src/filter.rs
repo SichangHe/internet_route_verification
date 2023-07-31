@@ -61,6 +61,7 @@ pub fn is_filter_set(attr: &str) -> bool {
     regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, attr)
 }
 
+/// Process a `PeerAS` filter.
 /// PeerAS can be used instead of the AS number of the peer AS.
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
 pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
@@ -77,6 +78,7 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
                 actions: _,
             }),
         ) => match as_name {
+            AsName::Any => Filter::Any,
             AsName::Num(num) => Filter::AsNum(*num, NoOp),
             AsName::Set(name) => Filter::AsSet(name.into(), NoOp),
             AsName::Invalid(reason) => {

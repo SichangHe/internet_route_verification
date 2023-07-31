@@ -76,13 +76,10 @@ pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
     let mut members = Vec::with_capacity(max_length);
     let mut set_members = Vec::with_capacity(max_length);
     for member in lexed.members {
-        let member = match parse_as_name(member) {
-            Ok(m) => m,
-            Err(err) => {
-                return Err(err.context(format!("parsing AS Set {}\n{}", lexed.name, lexed.body)))
-            }
-        };
+        let member = parse_as_name(member)
+            .with_context(|| format!("parsing AS Set {}\n{}", lexed.name, lexed.body))?;
         match member {
+            AsName::Any => bail!("AS Set {} contains `ANY`", lexed.name),
             AsName::Num(n) => members.push(n),
             AsName::Set(set) => set_members.push(set),
             AsName::Invalid(reason) => {

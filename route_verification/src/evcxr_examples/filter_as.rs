@@ -5,12 +5,13 @@ fn reports_for_paths_containing_certain_as(
     mut bgp_lines: Vec<Line>,
     db: AsRelDb,
 ) -> Result<()> {
+    let an = 139609;
     let mut filtered_bgp_lines: Vec<Line> = bgp_lines
         .par_iter()
         .filter_map(|line| {
             line.compare
                 .as_path
-                .contains(&AsPathEntry::Seq(65000))
+                .contains(&AsPathEntry::Seq(an))
                 .then(|| line.clone())
         })
         .collect();
@@ -29,7 +30,7 @@ fn reports_for_paths_containing_certain_as(
         .map(|line| line.display_str())
         .collect::<Vec<_>>()
         .join("\n");
-    File::create("AS65000_reports.txt")?.write_all(all_display.as_bytes());
+    File::create(format!("AS{an}_reports.txt"))?.write_all(all_display.as_bytes());
 
     let mut all_non_skip = filtered_bgp_lines
         .par_iter()
@@ -56,7 +57,7 @@ fn reports_for_paths_containing_certain_as(
         })
         .collect::<Vec<_>>()
         .join("\n");
-    File::create("AS65000_non_skip_reports.txt")?.write_all(all_non_skip.as_bytes());
+    File::create(format!("AS{an}_non_skip_reports.txt"))?.write_all(all_non_skip.as_bytes());
 
     let mut line = filtered_bgp_lines[0].clone();
 

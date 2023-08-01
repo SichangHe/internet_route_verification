@@ -37,5 +37,9 @@ fn parse_mini_file() -> Result<()> {
     assert_eq!(db.get(58430, 63927), Some(P2P));
     assert_eq!(db.get(1239, 4657), Some(P2C));
     assert_eq!(db.get(4657, 2914), Some(C2P));
+
+    assert!(db.is_clique(&174));
+    assert!(db.is_clique(&12956));
+    assert!(!db.is_clique(&205));
     Ok(())
 }

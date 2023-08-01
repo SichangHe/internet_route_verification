@@ -20,7 +20,7 @@ use std::{
 
 use anyhow::{bail, Context, Result};
 use bzip2::read::BzDecoder;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use log::debug;
 
 mod relationship;
@@ -40,6 +40,9 @@ use Relationship::*;
 /// See the **expected format** at [`from_lines`](#method.from_lines).
 #[derive(Clone, Debug, Default)]
 pub struct AsRelDb {
+    /// Tier 1 ASes.
+    pub clique: HashSet<u64>,
+    /// Relationships between AS pairs.
     pub source2dest: HashMap<(u64, u64), Relationship>,
 }
 
@@ -90,11 +93,12 @@ impl AsRelDb {
         I: IntoIterator<Item = S>,
         S: AsRef<str>,
     {
+        let mut clique = HashSet::new();
         let mut source2dest = HashMap::new();
         for line in lines {
-            add_line_to_source2dest(line.as_ref(), &mut source2dest)?;
+            add_line(line.as_ref(), &mut clique, &mut source2dest)?;
         }
-        Ok(Self::new(source2dest))
+        Ok(Self::new(clique, source2dest))
     }
 
     /// Same as [`from_lines`](#method.from_lines) but `maybe_lines` can contain
@@ -105,20 +109,25 @@ impl AsRelDb {
         S: AsRef<str>,
         E: Error + Sync + Send + 'static,
     {
+        let mut clique = HashSet::new();
         let mut source2dest = HashMap::new();
         for maybe_line in maybe_lines {
             let line = maybe_line?;
-            add_line_to_source2dest(line.as_ref(), &mut source2dest)?;
+            add_line(line.as_ref(), &mut clique, &mut source2dest)?;
         }
-        Ok(Self::new(source2dest))
+        Ok(Self::new(clique, source2dest))
     }
 
-    fn new(source2dest: HashMap<(u64, u64), Relationship>) -> AsRelDb {
+    fn new(clique: HashSet<u64>, source2dest: HashMap<(u64, u64), Relationship>) -> Self {
         debug!(
-            "Loaded AS relationship database with {} links.",
+            "Loaded AS relationship database with {} cliques & {} links.",
+            clique.len(),
             source2dest.len()
         );
-        Self { source2dest }
+        Self {
+            clique,
+            source2dest,
+        }
     }
 
     /// Get [`Relationship`] between `as1` and `as2`, if recorded.
@@ -128,13 +137,26 @@ impl AsRelDb {
             None => self.source2dest.get(&(as2, as1)).map(|rel| rel.reversed()),
         }
     }
+
+    pub fn is_clique(&self, aut_num: &u64) -> bool {
+        self.clique.contains(aut_num)
+    }
 }
 
-fn add_line_to_source2dest(
+fn add_line(
     line: &str,
+    clique: &mut HashSet<u64>,
     source2dest: &mut HashMap<(u64, u64), Relationship>,
 ) -> Result<()> {
-    if !line.starts_with('#') {
+    if line.starts_with('#') {
+        if clique.is_empty() && line[2..].starts_with("input clique: ") {
+            *clique = line[16..]
+                .split_whitespace()
+                .map(|s| s.parse())
+                .collect::<Result<_, _>>()
+                .with_context(|| format!("adding {line} into AsRelDb"))?;
+        }
+    } else {
         let (key, relationship) = try_parse_as_rel(line)?;
         source2dest.insert(key, relationship);
     }

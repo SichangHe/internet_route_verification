@@ -18,7 +18,7 @@ pub use up_down_hill::UpDownHillStats;
 impl Compare {
     pub fn as_stats(&mut self, dump: &QueryDump, db: &AsRelDb, map: &DashMap<u64, AsStats>) {
         self.verbosity = Verbosity::minimum_all();
-        let reports = self.check_hill(dump, db);
+        let reports = self.check_with_relationship(dump, db);
         for report in reports {
             as_::one(map, report);
         }
@@ -41,7 +41,7 @@ impl Compare {
         map: &DashMap<(u64, u64), AsPairStats>,
     ) {
         self.verbosity = Verbosity::minimum_all();
-        let reports = self.check_hill(dump, db);
+        let reports = self.check_with_relationship(dump, db);
         for report in reports {
             as_pair::one(db, map, report);
         }

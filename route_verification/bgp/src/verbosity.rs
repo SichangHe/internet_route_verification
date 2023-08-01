@@ -2,6 +2,7 @@ use super::*;
 
 #[allow(unused)] // For the doc.
 use Report::*;
+use ReportItem::*;
 
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -89,6 +90,32 @@ impl Default for Verbosity {
 
 pub trait VerbosityReport {
     fn get_verbosity(&self) -> Verbosity;
+
+    fn meh_import(
+        &self,
+        from: u64,
+        to: u64,
+        mut items: ReportItems,
+        reason: SpecialCase,
+    ) -> Report {
+        if self.get_verbosity().show_meh {
+            items.push(Special(reason))
+        }
+        MehImport { from, to, items }
+    }
+
+    fn meh_export(
+        &self,
+        from: u64,
+        to: u64,
+        mut items: ReportItems,
+        reason: SpecialCase,
+    ) -> Report {
+        if self.get_verbosity().show_meh {
+            items.push(Special(reason))
+        }
+        MehExport { from, to, items }
+    }
 
     fn skip_any_report<F>(&self, reason: F) -> AnyReport
     where

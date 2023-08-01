@@ -12,7 +12,7 @@ mod any;
 
 pub use {all::*, any::*};
 
-use {OkTBad::*, SkipFBad::*};
+use {OkTBad::*, Report::*, SkipFBad::*};
 
 /// Report about the validity of a route, according to the RPSL.
 /// Use this in an `Option`, and use `None` to indicate "ok."
@@ -82,6 +82,23 @@ pub enum Report {
     },
 }
 
+impl Report {
+    pub fn is_meh(&self) -> bool {
+        matches!(
+            self,
+            MehImport {
+                from: _,
+                to: _,
+                items: _
+            } | MehExport {
+                from: _,
+                to: _,
+                items: _
+            } | MehSingleExport { from: _, items: _ }
+        )
+    }
+}
+
 /// Single item in [`Report`] to signal some status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
@@ -114,6 +131,7 @@ pub enum SkipReason {
 pub enum SpecialCase {
     Uphill,
     ExportCustomers,
+    BetweenTier1,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

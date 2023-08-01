@@ -8,7 +8,7 @@ fn as_neighbors_vs_rules(query: QueryDump, db: AsRelDb) -> Result<()> {
         all_err: true,
         ..Verbosity::minimum_all()
     };
-    line.report = Some(line.compare.check_hill(&query, &db));
+    line.report = Some(line.compare.check_with_relationship(&query, &db));
     line.display();
 
     Ok(())

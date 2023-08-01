@@ -18,14 +18,14 @@ impl Compare {
                 if let Some(P2C) = db.get(*to, *from) {
                     *report = self.meh_import(*from, *to, mem::take(items), Uphill);
                 } else if db.is_clique(from) && db.is_clique(to) {
-                    *report = self.meh_import(*from, *to, mem::take(items), BetweenTier1);
+                    *report = self.meh_import(*from, *to, mem::take(items), Tier1Pair);
                 }
             }
             BadExport { from, to, items } => {
                 if let Some(P2C) = db.get(*to, *from) {
                     *report = self.meh_export(*from, *to, mem::take(items), Uphill);
                 } else if db.is_clique(from) && db.is_clique(to) {
-                    *report = self.meh_export(*from, *to, mem::take(items), BetweenTier1);
+                    *report = self.meh_export(*from, *to, mem::take(items), Tier1Pair);
                 }
             }
             _ => (),

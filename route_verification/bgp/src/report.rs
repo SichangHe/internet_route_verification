@@ -131,7 +131,7 @@ pub enum SkipReason {
 pub enum SpecialCase {
     Uphill,
     ExportCustomers,
-    BetweenTier1,
+    Tier1Pair,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

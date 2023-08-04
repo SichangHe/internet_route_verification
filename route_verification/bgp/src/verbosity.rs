@@ -64,11 +64,12 @@ impl Verbosity {
             show_meh: true,
             show_skips: true,
             show_success: true,
-            ..Self::const_default()
+            check_customer: true,
+            ..Self::least()
         }
     }
 
-    pub const fn const_default() -> Self {
+    pub const fn least() -> Self {
         Self {
             stop_at_first: true,
             show_meh: false,
@@ -84,7 +85,7 @@ impl Verbosity {
 
 impl Default for Verbosity {
     fn default() -> Self {
-        Self::const_default()
+        Self::least()
     }
 }
 

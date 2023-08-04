@@ -1,4 +1,5 @@
 use ::lex::mp_import;
+use itertools::chain;
 
 use super::*;
 
@@ -55,6 +56,15 @@ pub struct Versions {
 }
 
 impl Versions {
+    /// Iterator of all the entries in these versions.
+    pub fn entries_iter(&self) -> impl Iterator<Item = &Entry> {
+        chain!(
+            self.any.entries_iter(),
+            self.ipv4.entries_iter(),
+            self.ipv6.entries_iter()
+        )
+    }
+
     pub fn is_default(&self) -> bool {
         *self == Self::default()
     }
@@ -104,6 +114,11 @@ impl std::fmt::Debug for Casts {
 }
 
 impl Casts {
+    /// Iterator of all the entries in these casts.
+    pub fn entries_iter(&self) -> impl Iterator<Item = &Entry> {
+        chain!(self.any.iter(), self.unicast.iter(), self.multicast.iter())
+    }
+
     pub fn is_default(&self) -> bool {
         *self == Self::default()
     }

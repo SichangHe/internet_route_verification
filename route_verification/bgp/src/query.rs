@@ -48,6 +48,36 @@ impl AsSetRoute {
     }
 }
 
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct AsProperty {
+    /// Only imports from providers are specified.
+    pub import_only_provider: bool,
+}
+
+impl AsProperty {
+    pub fn maybe_from_aut_num(num: u64, aut_num: &AutNum, db: &AsRelDb) -> Option<Self> {
+        aut_num
+            .imports
+            .entries_iter()
+            .all(|entry| {
+                entry
+                    .mp_peerings
+                    .iter()
+                    .all(|peering| match &peering.mp_peering {
+                        Peering {
+                            remote_as: AsExpr::Single(AsName::Num(from)),
+                            remote_router: None,
+                            local_router: None,
+                        } => db.get(*from, num) == Some(P2C),
+                        _ => false,
+                    })
+            })
+            .then_some(Self {
+                import_only_provider: true,
+            })
+    }
+}
+
 /// Cleaned RPSL dump ready for query.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryDump {

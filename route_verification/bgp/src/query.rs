@@ -90,6 +90,8 @@ pub struct QueryDump {
     pub as_routes: HashMap<u64, Vec<IpNet>>,
     /// Each value should always be sorted.
     pub as_set_routes: HashMap<String, AsSetRoute>,
+    /// Special properties for some ASes.
+    pub as_properties: HashMap<u64, AsProperty>,
 }
 
 impl QueryDump {
@@ -128,6 +130,7 @@ impl QueryDump {
             filter_sets,
             as_routes,
             as_set_routes,
+            as_properties: HashMap::new(),
         }
     }
 
@@ -136,7 +139,17 @@ impl QueryDump {
     pub fn from_dump_and_as_relationship(mut dump: Dump, db: &AsRelDb) -> Self {
         let pseudo_sets = make_customer_pseudo_set(db);
         dump.as_sets.extend(pseudo_sets);
-        Self::from_dump(dump)
+        let as_properties = dump
+            .aut_nums
+            .iter()
+            .filter_map(|(num, aut_num)| {
+                AsProperty::maybe_from_aut_num(*num, aut_num, db).map(|a| (*num, a))
+            })
+            .collect();
+        Self {
+            as_properties,
+            ..Self::from_dump(dump)
+        }
     }
 }
 

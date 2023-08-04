@@ -23,6 +23,8 @@ pub struct Verbosity {
     pub record_set: bool,
     /// Check for pseudo customer sets.
     pub check_customer: bool,
+    /// Check for peers that only specify imports from providers.
+    pub check_import_only_provider: bool,
 }
 
 impl std::fmt::Debug for Verbosity {
@@ -37,6 +39,7 @@ impl std::fmt::Debug for Verbosity {
             all_err,
             record_set,
             check_customer,
+            check_import_only_provider,
         } = self;
         for (is_true, tag) in [
             (stop_at_first, "stop_at_first"),
@@ -47,6 +50,7 @@ impl std::fmt::Debug for Verbosity {
             (all_err, "all_err"),
             (record_set, "record_set"),
             (check_customer, "check_customer"),
+            (check_import_only_provider, "check_import_only_provider"),
         ] {
             if *is_true {
                 result.entry(&tag);
@@ -65,6 +69,7 @@ impl Verbosity {
             show_skips: true,
             show_success: true,
             check_customer: true,
+            check_import_only_provider: true,
             ..Self::least()
         }
     }
@@ -79,6 +84,7 @@ impl Verbosity {
             all_err: false,
             record_set: false,
             check_customer: false,
+            check_import_only_provider: false,
         }
     }
 }

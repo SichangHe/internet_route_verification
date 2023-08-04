@@ -129,9 +129,14 @@ pub enum SkipReason {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum SpecialCase {
+    /// Route from customer to provider.
     Uphill,
+    /// Export customer routes while specifying the AS itself as `<filter>`.
     ExportCustomers,
+    /// Route between Tier 1 ASes.
     Tier1Pair,
+    /// Route between peers while only imports from providers are specified.
+    PeerPairWhenOnlyP2CImports,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

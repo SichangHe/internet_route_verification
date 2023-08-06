@@ -1,11 +1,11 @@
 use super::*;
 
 fn reports_for_paths_containing_certain_as(
-    query: QueryDump,
-    mut bgp_lines: Vec<Line>,
-    db: AsRelDb,
+    an: u64,
+    query: &QueryDump,
+    bgp_lines: &Vec<Line>,
+    db: &AsRelDb,
 ) -> Result<()> {
-    let an = 139609;
     let mut filtered_bgp_lines: Vec<Line> = bgp_lines
         .par_iter()
         .filter_map(|line| {
@@ -18,7 +18,7 @@ fn reports_for_paths_containing_certain_as(
     println!("{}", filtered_bgp_lines.len());
     filtered_bgp_lines.par_iter_mut().for_each(|line| {
         line.compare.verbosity = Verbosity::minimum_all();
-        line.report = Some(line.compare.check_with_relationship(&query, &db))
+        line.report = Some(line.compare.check_with_relationship(query, db))
     });
 
     for line in &filtered_bgp_lines[..10] {

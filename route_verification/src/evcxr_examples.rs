@@ -12,7 +12,6 @@ mod as_stats;
 mod filter_as;
 mod specific_line;
 
-use super::*;
 use crate as route_verification;
 
 /* Copy from the next line until the end of `use`.
@@ -23,12 +22,14 @@ set -gx RUSTFLAGS --cfg=fuzzing
 before running Evcxr is also needed.
 
 :opt 3
+:dep anyhow
 :dep dashmap
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools
 :dep polars = { features = ["describe"] }
 // */
+use anyhow::Result;
 use dashmap::DashMap;
 use itertools::multiunzip;
 use polars::prelude::*;

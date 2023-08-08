@@ -15,7 +15,7 @@ impl Compare {
     fn alter_report_with_relationship(&self, report: &mut Report, dump: &QueryDump, db: &AsRelDb) {
         match report {
             BadImport { from, to, items } => match db.get(*to, *from) {
-                Some(P2C) => {
+                Some(P2C) if self.verbosity.special_uphill => {
                     let reason = match db.is_clique(to) {
                         true => UphillTier1,
                         false => Uphill,
@@ -43,17 +43,19 @@ impl Compare {
                 }
                 _ => (),
             },
-            BadExport { from, to, items } => {
-                if let Some(P2C) = db.get(*to, *from) {
+            BadExport { from, to, items } => match db.get(*to, *from) {
+                Some(P2C) if self.verbosity.special_uphill => {
                     let reason = match db.is_clique(to) {
                         true => UphillTier1,
                         false => Uphill,
                     };
                     *report = self.meh_export(*from, *to, mem::take(items), reason);
-                } else if db.is_clique(from) && db.is_clique(to) {
+                }
+                _ if db.is_clique(from) && db.is_clique(to) => {
                     *report = self.meh_export(*from, *to, mem::take(items), Tier1Pair);
                 }
-            }
+                _ => (),
+            },
             _ => (),
         }
     }

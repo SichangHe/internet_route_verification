@@ -20,6 +20,7 @@ fn as18106_import_only_provider() -> Result<()> {
     let actual = as18106_property()?;
     let expected = AsProperty {
         import_only_provider: true,
+        export_only_provider: true,
     };
     assert_eq!(Some(expected), actual);
     Ok(())

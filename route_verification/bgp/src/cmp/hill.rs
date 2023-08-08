@@ -21,7 +21,7 @@ impl Compare {
                 Some(P2P) if self.verbosity.check_import_only_provider => {
                     if let Some(property) = dump.as_properties.get(to) {
                         if property.import_only_provider {
-                            let reason = PeerPairWhenOnlyP2CImports;
+                            let reason = P2PWOnlyP2CImport;
                             *report = self.meh_import(*from, *to, mem::take(items), reason);
                         }
                     }

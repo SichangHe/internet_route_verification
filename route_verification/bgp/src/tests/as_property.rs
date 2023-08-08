@@ -49,7 +49,7 @@ fn expected_reports() -> Vec<Report> {
         MehImport {
             from: 196844,
             to: 18106,
-            items: vec![Special(PeerPairWhenOnlyP2CImports)],
+            items: vec![Special(P2PWOnlyP2CImport)],
         },
     ]
 }

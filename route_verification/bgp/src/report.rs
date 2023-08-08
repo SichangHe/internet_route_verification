@@ -136,7 +136,10 @@ pub enum SpecialCase {
     /// Route between Tier 1 ASes.
     Tier1Pair,
     /// Route between peers while only imports from providers are specified.
-    PeerPairWhenOnlyP2CImports,
+    P2PWOnlyP2CImport,
+    /// Route from customer to provider while only imports from providers are
+    /// specified.
+    C2PWOnlyP2CImport,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

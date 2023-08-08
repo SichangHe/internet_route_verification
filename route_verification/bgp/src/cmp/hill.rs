@@ -26,6 +26,14 @@ impl Compare {
                         }
                     }
                 }
+                Some(C2P) if self.verbosity.check_import_only_provider => {
+                    if let Some(property) = dump.as_properties.get(to) {
+                        if property.import_only_provider {
+                            let reason = C2PWOnlyP2CImport;
+                            *report = self.meh_import(*from, *to, mem::take(items), reason);
+                        }
+                    }
+                }
                 _ if db.is_clique(from) && db.is_clique(to) => {
                     *report = self.meh_import(*from, *to, mem::take(items), Tier1Pair);
                 }

@@ -131,11 +131,11 @@ impl FromStr for RangeOperator {
 }
 
 pub fn get_range_operator_num(s: &str) -> Option<(&str, &str)> {
-    regex_captures!(r"\^(\d{1,2})", s)
+    regex_captures!(r"\^(\d{1,3})$", s)
 }
 
 pub fn get_range_operator_range(s: &str) -> Option<(&str, &str, &str)> {
-    regex_captures!(r"\^(\d{1,2})-(\d{1,2})", s)
+    regex_captures!(r"\^(\d{1,3})-(\d{1,3})$", s)
 }
 
 /// `ips` must be sorted.

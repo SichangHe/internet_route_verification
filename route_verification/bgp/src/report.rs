@@ -131,6 +131,8 @@ pub enum SkipReason {
 pub enum SpecialCase {
     /// Route from customer to provider.
     Uphill,
+    /// Route from customer to provider that is tier-1.
+    UphillTier1,
     /// Export customer routes while specifying the AS itself as `<filter>`.
     ExportCustomers,
     /// Route between Tier 1 ASes.

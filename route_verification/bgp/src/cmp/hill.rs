@@ -16,7 +16,11 @@ impl Compare {
         match report {
             BadImport { from, to, items } => match db.get(*to, *from) {
                 Some(P2C) => {
-                    *report = self.meh_import(*from, *to, mem::take(items), Uphill);
+                    let reason = match db.is_clique(to) {
+                        true => UphillTier1,
+                        false => Uphill,
+                    };
+                    *report = self.meh_import(*from, *to, mem::take(items), reason);
                 }
                 Some(P2P) if self.verbosity.check_import_only_provider => {
                     if let Some(property) = dump.as_properties.get(to) {
@@ -41,7 +45,11 @@ impl Compare {
             },
             BadExport { from, to, items } => {
                 if let Some(P2C) = db.get(*to, *from) {
-                    *report = self.meh_export(*from, *to, mem::take(items), Uphill);
+                    let reason = match db.is_clique(to) {
+                        true => UphillTier1,
+                        false => Uphill,
+                    };
+                    *report = self.meh_export(*from, *to, mem::take(items), reason);
                 } else if db.is_clique(from) && db.is_clique(to) {
                     *report = self.meh_export(*from, *to, mem::take(items), Tier1Pair);
                 }

@@ -216,7 +216,11 @@ impl<'a> Compliance<'a> {
     /// We skip community checks, but this could be an enhancement.
     /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     fn filter_community(&self, community: &Call) -> AnyReport {
-        self.skip_any_report(|| SkipReason::CommunityCheckUnimplemented(community.clone()))
+        if self.cmp.verbosity.record_community {
+            self.skip_any_report(|| SkipReason::CommunityCheckUnimplemented(community.clone()))
+        } else {
+            empty_skip_any_report()
+        }
     }
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {

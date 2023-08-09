@@ -1,8 +1,8 @@
 use super::*;
 
-#[allow(unused)] // For the doc.
-use Report::*;
 use ReportItem::*;
+#[allow(unused)] // For the doc.
+use {Report::*, SkipReason::*};
 
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -21,6 +21,8 @@ pub struct Verbosity {
     pub all_err: bool,
     /// Record [`AsPathPairWithSet`], [`SetSingleExport`].
     pub record_set: bool,
+    /// Record [`CommunityCheckUnimplemented`].
+    pub record_community: bool,
     /// Mark routes from customer to provider as special.
     pub special_uphill: bool,
     /// Check for pseudo customer sets.
@@ -40,6 +42,7 @@ impl std::fmt::Debug for Verbosity {
             per_entry_err,
             all_err,
             record_set,
+            record_community,
             special_uphill,
             check_customer,
             check_import_only_provider,
@@ -52,6 +55,7 @@ impl std::fmt::Debug for Verbosity {
             (per_entry_err, "per_entry_err"),
             (all_err, "all_err"),
             (record_set, "record_set"),
+            (record_community, "record_community"),
             (special_uphill, "special_uphill"),
             (check_customer, "check_customer"),
             (check_import_only_provider, "check_import_only_provider"),
@@ -88,6 +92,7 @@ impl Verbosity {
             per_entry_err: false,
             all_err: false,
             record_set: false,
+            record_community: false,
             special_uphill: false,
             check_customer: false,
             check_import_only_provider: false,

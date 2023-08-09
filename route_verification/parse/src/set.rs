@@ -41,7 +41,7 @@ pub struct RouteSet {
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum RouteSetMember {
     /// `<address-prefix-range>`
-    Range(AddrPfxRange),
+    RSRange(AddrPfxRange),
     /// `<route-set-name><range-operator>`
     NameOp(String, RangeOperator),
 }
@@ -50,7 +50,7 @@ impl std::fmt::Debug for RouteSetMember {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use RouteSetMember::*;
         match self {
-            Range(arg0) => f.debug_tuple("Range").field(arg0).finish(),
+            RSRange(arg0) => f.debug_tuple("RSRange").field(arg0).finish(),
             NameOp(arg0, arg1) => {
                 let mut r = f.debug_tuple("NameOp");
                 r.field(arg0);
@@ -66,7 +66,7 @@ impl std::fmt::Debug for RouteSetMember {
 impl From<String> for RouteSetMember {
     fn from(value: String) -> Self {
         if let Ok(range) = value.parse() {
-            Self::Range(range)
+            Self::RSRange(range)
         } else if let Ok((name, op)) = try_parse_name_operator(&value) {
             Self::NameOp(name.into(), op)
         } else {

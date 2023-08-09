@@ -114,7 +114,7 @@ impl<'a> Compliance<'a> {
             return recursion_any_report(RecurSrc::FilterRouteSetMember(member.clone()));
         }
         match member {
-            RouteSetMember::Range(prefix) => match (prefix.range_operator, op) {
+            RouteSetMember::RSRange(prefix) => match (prefix.range_operator, op) {
                 (RangeOperator::NoOp, RangeOperator::NoOp) => self.filter_prefixes([prefix]),
                 (RangeOperator::NoOp, op) => self.filter_prefixes([&AddrPfxRange {
                     range_operator: op,

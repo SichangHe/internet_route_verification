@@ -137,11 +137,12 @@ pub enum SpecialCase {
     ExportCustomers,
     /// Route between Tier 1 ASes.
     Tier1Pair,
-    /// Route between peers while only imports from providers are specified.
-    P2PWOnlyP2CImport,
-    /// Route from customer to provider while only imports from providers are
-    /// specified.
-    C2PWOnlyP2CImport,
+    /// Import route between peers while Only Imports From Providers are
+    /// Specified (OIFPS).
+    ImportPeerOIFPS,
+    /// Import route from customer while Only Imports From Providers are
+    /// Specified (OIFPS).
+    ImportCustomerOIFPS,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

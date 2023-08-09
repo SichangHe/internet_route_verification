@@ -169,12 +169,9 @@ impl<'a> Compliance<'a> {
             report |= self.filter_as_set(set, op, depth - 1, visited)?;
         }
 
-        report |= self.skip_any_reports(|| {
-            as_set_route
-                .unrecorded_nums
-                .iter()
-                .map(|num| SkipReason::AsRoutesUnrecorded(*num))
-        })?;
+        if !as_set_route.unrecorded_nums.is_empty() {
+            report |= self.skip_any_report(|| SkipReason::AsSetRouteSomeUnrecorded(name.into()))?;
+        }
 
         if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))

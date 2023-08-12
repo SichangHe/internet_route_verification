@@ -2,12 +2,20 @@ use super::*;
 
 use Remaining::*;
 
-#[derive(Debug)]
 pub struct Walker<'a> {
     itp: &'a Interpreter,
     init_state: &'a HirKind,
     rems: Vec<Remaining<'a>>,
     has_err: bool,
+}
+
+impl<'a> std::fmt::Debug for Walker<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Walker")
+            .field("init_state", &self.init_state)
+            .field("rems", &self.rems)
+            .finish()
+    }
 }
 
 impl<'a> Walker<'a> {

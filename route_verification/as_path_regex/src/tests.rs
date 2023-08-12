@@ -49,13 +49,18 @@ const AS_SET_REGEXES: [(&str, &str, &[&str]); 3] = [
 ];
 
 #[test]
-fn simple_as() -> Result<()> {
-    let interpreter: Interpreter = AS_REGEXES[0].0.parse()?;
-    let events = interpreter.into_iter().collect::<Result<Vec<_>, _>>()?;
-    let events_debug = format!("{events:?}");
-    assert_eq!(events_debug, EXPECTED_SIMPLE_EVENTS_DEBUG);
+fn interpret_as() -> Result<()> {
+    for ((s, _, _), expected) in AS_REGEXES.into_iter().zip(EXPECTED_SIMPLE_EVENTS_DEBUG) {
+        let interpreter: Interpreter = s.parse()?;
+        let events = interpreter.into_iter().collect::<Result<Vec<_>, _>>()?;
+        let events_debug = format!("{events:?}");
+        assert_eq!(events_debug, expected);
+    }
     Ok(())
 }
 
-const EXPECTED_SIMPLE_EVENTS_DEBUG: &str =
-    "[Start, Literal(AsNum(20485)), Literal(AsNum(15774)), End]";
+const EXPECTED_SIMPLE_EVENTS_DEBUG: [&str; 3] = [
+    "[Start, Literal(AsNum(20485)), Literal(AsNum(15774)), End]",
+    "[Start, Repeat { min: 1, max: None, greedy: true, walker: Walker { init_state: Literal(\"Α\"), rems: [Ir(Literal(\"Α\"))] } }, Literal(AsNum(6509)), Repeat { min: 0, max: None, greedy: true, walker: Walker { init_state: Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}), rems: [Ir(Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}))] } }, End]",
+    "[Start, Literal(AsNum(24167)), Repeat { min: 0, max: None, greedy: true, walker: Walker { init_state: Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}), rems: [Ir(Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}))] } }, Repeat { min: 0, max: Some(1), greedy: true, walker: Walker { init_state: Capture(Capture { index: 1, name: None, sub: Class({'Β'..='Γ'}) }), rems: [Ir(Capture(Capture { index: 1, name: None, sub: Class({'Β'..='Γ'}) }))] } }, End]",
+];

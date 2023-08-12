@@ -1,11 +1,14 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, str::FromStr};
 
+use anyhow::Result;
 use lazy_regex::{regex_replace_all, Captures};
+use regex_syntax::{hir::*, Parser};
 
-pub use lazy_regex::regex::Replacer;
-
-// TODO: Error out on `~`.
-// TODO: Remove spaces.
+pub use {
+    interpreter::{Event, InterpreteProblem, Interpreter},
+    lazy_regex::regex::Replacer,
+    walker::Walker,
+};
 
 pub fn as_replace_all<R>(s: &str, replacer: R) -> Cow<str>
 where
@@ -34,12 +37,16 @@ impl CharMap {
         self.char_map.get((c as u32 - self.start) as usize)
     }
 
-    /// Start from `Α` (Alpha).
-    pub const fn new_from_alpha() -> Self {
-        Self::new(ALPHA_CODE, Vec::new())
+    pub const fn new(start: u32) -> Self {
+        Self::new_with_char_map(start, Vec::new())
     }
 
-    pub const fn new(start: u32, char_map: Vec<String>) -> Self {
+    /// Start from `Α` (Alpha).
+    pub const fn new_from_alpha() -> Self {
+        Self::new_with_char_map(ALPHA_CODE, Vec::new())
+    }
+
+    pub const fn new_with_char_map(start: u32, char_map: Vec<String>) -> Self {
         Self {
             start,
             next: start,
@@ -60,5 +67,7 @@ impl Replacer for CharMap {
 
 pub const ALPHA_CODE: u32 = 913;
 
+mod interpreter;
 #[cfg(test)]
 mod tests;
+mod walker;

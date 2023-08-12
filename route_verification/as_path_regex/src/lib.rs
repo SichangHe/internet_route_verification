@@ -4,11 +4,22 @@ use lazy_regex::{regex_replace_all, Captures};
 
 pub use lazy_regex::regex::Replacer;
 
+// TODO: Error out on `~`.
+// TODO: Remove spaces.
+
 pub fn as_replace_all<R>(s: &str, replacer: R) -> Cow<str>
 where
     R: Replacer,
 {
-    regex_replace_all!(r"(\bAS\d+\b)", s, replacer)
+    regex_replace_all!(r"AS[0-9]+", s, replacer)
+}
+
+
+pub fn as_set_replace_all<R>(s: &str, replacer: R) -> Cow<str>
+where
+    R: Replacer,
+{
+    regex_replace_all!(r"(?:AS[0-9]+:)?AS-[\-\^A-Za-z0-9:]+", s, replacer)
 }
 
 /// A [`Replacer`] that gathers each capture it replaces in `char_map`.

@@ -2,6 +2,7 @@ use super::*;
 
 use Remaining::*;
 
+#[derive(Debug)]
 pub struct Walker<'a> {
     itp: &'a Interpreter,
     init_state: &'a HirKind,
@@ -24,13 +25,13 @@ impl<'a> Walker<'a> {
         self.rems.push(Ir(self.init_state))
     }
 
-    fn err<O>(&mut self, problem: InterpreteProblem) -> Result<O, InterpreteProblem> {
+    fn err<O>(&mut self, problem: InterpretErr) -> Result<O, InterpretErr> {
         self.has_err = true;
         Err(problem)
     }
 }
 
-type InnerNext<'a> = Result<Event<'a>, InterpreteProblem>;
+type InnerNext<'a> = Result<Event<'a>, InterpretErr>;
 type Next<'a> = Option<InnerNext<'a>>;
 
 impl<'a> Iterator for Walker<'a> {
@@ -43,7 +44,7 @@ impl<'a> Iterator for Walker<'a> {
 
 fn next<'a>(walker: &mut Walker<'a>) -> Next<'a> {
     if walker.has_err {
-        return Some(Err(InterpreteProblem::HadErr));
+        return Some(Err(InterpretErr::HadErr));
     }
     let rem = walker.rems.pop()?;
     handle_rem(walker, rem)
@@ -52,7 +53,7 @@ fn next<'a>(walker: &mut Walker<'a>) -> Next<'a> {
 fn handle_rem<'a>(walker: &mut Walker<'a>, rem: Remaining<'a>) -> Next<'a> {
     match rem {
         Ir(hir) => match hir {
-            HirKind::Empty => Some(walker.err(InterpreteProblem::Empty)),
+            HirKind::Empty => Some(walker.err(InterpretErr::Empty)),
             HirKind::Literal(Literal(literal)) => handle_ir_literal(walker, literal),
             HirKind::Class(class) => handle_class(walker, class),
             HirKind::Look(look) => Some(handle_look(walker, *look)),
@@ -72,7 +73,7 @@ fn handle_rem<'a>(walker: &mut Walker<'a>, rem: Remaining<'a>) -> Next<'a> {
 fn handle_ir_literal<'a>(walker: &mut Walker<'a>, literal: &[u8]) -> Next<'a> {
     let decoded = match String::from_utf8(literal.to_vec()) {
         Ok(d) => d,
-        Err(_) => return Some(walker.err(InterpreteProblem::InvalidRegex)),
+        Err(_) => return Some(walker.err(InterpretErr::InvalidRegex)),
     };
     walker.rems.push(Lit(decoded, 0));
     next(walker)
@@ -91,7 +92,7 @@ fn handle_look<'a>(walker: &mut Walker<'a>, look: Look) -> InnerNext<'a> {
     match look {
         Look::Start | Look::StartLF | Look::StartCRLF => Ok(Event::Start),
         Look::End | Look::EndLF | Look::EndCRLF => Ok(Event::End),
-        _ => walker.err(InterpreteProblem::InvalidRegex),
+        _ => walker.err(InterpretErr::InvalidRegex),
     }
 }
 
@@ -168,7 +169,7 @@ fn handle_range<'a>(walker: &mut Walker<'a>, start: char, end: char) -> InnerNex
     Ok(Event::Permit(as_or_set))
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Remaining<'a> {
     Ir(&'a HirKind),
     Lit(String, usize),

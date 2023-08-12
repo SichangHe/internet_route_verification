@@ -68,3 +68,15 @@ const AS_SET_REGEXES: [(&str, &str, &[&str]); 3] = [
         &["AS2764:AS-TRANSIT:AS38611", "AS2764:AS-CUSTOMERS:AS38611"],
     ),
 ];
+
+#[test]
+fn simple_as() -> Result<()> {
+    let interpreter: Interpreter = AS_REGEXES[0].0.parse()?;
+    let events = interpreter.into_iter().collect::<Result<Vec<_>, _>>()?;
+    let events_debug = format!("{events:?}");
+    assert_eq!(events_debug, EXPECTED_SIMPLE_EVENTS_DEBUG);
+    Ok(())
+}
+
+const EXPECTED_SIMPLE_EVENTS_DEBUG: &str =
+    "[Start, Literal(AsNum(\"AS20485\")), Literal(AsNum(\"AS15774\")), End]";

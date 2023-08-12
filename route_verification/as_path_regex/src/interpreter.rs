@@ -1,5 +1,10 @@
+use std::fmt::Display;
+
+use thiserror::Error;
+
 use super::*;
 
+#[derive(Debug)]
 pub enum Event<'a> {
     Literal(AsOrSet<'a>),
     Permit(AsOrSet<'a>),
@@ -14,11 +19,13 @@ pub enum Event<'a> {
     Or(Walker<'a>),
 }
 
+#[derive(Debug)]
 pub enum AsOrSet<'a> {
     AsSet(&'a String),
     AsNum(&'a String),
 }
 
+#[derive(Debug)]
 pub struct Interpreter {
     sets: CharMap,
     ans: CharMap,
@@ -26,19 +33,19 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn get_char(&self, c: char) -> Result<AsOrSet, InterpreteProblem> {
+    pub fn get_char(&self, c: char) -> Result<AsOrSet, InterpretErr> {
         if let Some(s) = self.sets.get(c) {
             return Ok(AsOrSet::AsSet(s));
         }
         if let Some(n) = self.ans.get(c) {
             return Ok(AsOrSet::AsNum(n));
         }
-        Err(InterpreteProblem::UnknownChar)
+        Err(InterpretErr::UnknownChar)
     }
 }
 
 impl<'a> IntoIterator for &'a Interpreter {
-    type Item = Result<Event<'a>, InterpreteProblem>;
+    type Item = Result<Event<'a>, InterpretErr>;
 
     type IntoIter = Walker<'a>;
 
@@ -48,13 +55,13 @@ impl<'a> IntoIterator for &'a Interpreter {
 }
 
 impl FromStr for Interpreter {
-    type Err = InterpreteProblem;
+    type Err = InterpretErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Err(InterpreteProblem::Empty);
+            return Err(InterpretErr::Empty);
         } else if s.contains('~') {
-            return Err(InterpreteProblem::HasTilde);
+            return Err(InterpretErr::HasTilde);
         }
         let mut sets = CharMap::new_from_alpha();
         let s = as_set_replace_all(s, sets.by_ref());
@@ -63,16 +70,31 @@ impl FromStr for Interpreter {
         let s = s.replace(' ', "");
         let parsed = match Parser::new().parse(&s) {
             Ok(p) => p.into_kind(),
-            Err(_) => return Err(InterpreteProblem::InvalidRegex),
+            Err(_) => return Err(InterpretErr::InvalidRegex),
         };
         Ok(Self { sets, ans, parsed })
     }
 }
 
-pub enum InterpreteProblem {
+#[derive(Debug, Error)]
+pub enum InterpretErr {
     Empty,
     HasTilde,
     InvalidRegex,
     UnknownChar,
     HadErr,
+}
+
+impl Display for InterpretErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InterpretErr::Empty => f.write_str("empty regex"),
+            InterpretErr::HasTilde => f.write_str("tilde found, unsupported"),
+            InterpretErr::InvalidRegex => f.write_str("invalid regex"),
+            InterpretErr::UnknownChar => f.write_str("encountered unknown character"),
+            InterpretErr::HadErr => {
+                f.write_str("this `Walker` had error before and should not be used")
+            }
+        }
+    }
 }

@@ -5,7 +5,7 @@ use lazy_regex::{regex_replace_all, Captures};
 use regex_syntax::{hir::*, Parser};
 
 pub use {
-    interpreter::{Event, InterpreteProblem, Interpreter},
+    interpreter::{Event, InterpretErr, Interpreter},
     lazy_regex::regex::Replacer,
     walker::Walker,
 };
@@ -25,6 +25,7 @@ where
 }
 
 /// A [`Replacer`] that gathers each capture it replaces in `char_map`.
+#[derive(Debug)]
 pub struct CharMap {
     pub start: u32,
     pub next: u32,

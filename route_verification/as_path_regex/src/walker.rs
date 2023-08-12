@@ -24,9 +24,9 @@ impl<'a> Walker<'a> {
         self.rems.push(Ir(self.init_state))
     }
 
-    fn err<O>(&mut self, problem: InterpreteProblem) -> Option<Result<O, InterpreteProblem>> {
+    fn err<O>(&mut self, problem: InterpreteProblem) -> Result<O, InterpreteProblem> {
         self.has_err = true;
-        Some(Err(problem))
+        Err(problem)
     }
 }
 
@@ -52,30 +52,19 @@ fn next<'a>(walker: &mut Walker<'a>) -> Next<'a> {
 fn handle_rem<'a>(walker: &mut Walker<'a>, rem: Remaining<'a>) -> Next<'a> {
     match rem {
         Ir(hir) => match hir {
-            HirKind::Empty => walker.err(InterpreteProblem::Empty),
+            HirKind::Empty => Some(walker.err(InterpreteProblem::Empty)),
             HirKind::Literal(Literal(literal)) => handle_ir_literal(walker, literal),
             HirKind::Class(class) => handle_class(walker, class),
-            HirKind::Look(look) => Some(handle_look(*look)),
+            HirKind::Look(look) => Some(handle_look(walker, *look)),
             HirKind::Repetition(repeat) => Some(handle_repeat(walker, repeat)),
             HirKind::Capture(_) => unreachable!("We should not have capture groups."),
             HirKind::Concat(concat) => handle_concat(walker, concat),
             HirKind::Alternation(ors) => handle_ir_ors(walker, ors),
         },
-        Lit(literal, index) => {
-            let next_char = match literal[index..].chars().next() {
-                Some(c) => c,
-                None => return next(walker),
-            };
-            Some(handle_literal(walker, literal, index, next_char))
-        }
+        Lit(literal, index) => handle_literal(walker, literal, index),
         Ranges(ranges) => handle_ranges(walker, ranges),
-        Range(start, end) => {
-            if start > end {
-                next(walker)
-            } else {
-                Some(handle_range(walker, start, end))
-            }
-        }
+        Range(start, end) if start > end => next(walker),
+        Range(start, end) => Some(handle_range(walker, start, end)),
         Ors(ors) => handle_ors(walker, ors),
     }
 }
@@ -83,7 +72,7 @@ fn handle_rem<'a>(walker: &mut Walker<'a>, rem: Remaining<'a>) -> Next<'a> {
 fn handle_ir_literal<'a>(walker: &mut Walker<'a>, literal: &[u8]) -> Next<'a> {
     let decoded = match String::from_utf8(literal.to_vec()) {
         Ok(d) => d,
-        Err(_) => return walker.err(InterpreteProblem::InvalidRegex),
+        Err(_) => return Some(walker.err(InterpreteProblem::InvalidRegex)),
     };
     walker.rems.push(Lit(decoded, 0));
     next(walker)
@@ -98,11 +87,11 @@ fn handle_class<'a>(walker: &mut Walker<'a>, class: &'a Class) -> Next<'a> {
     next(walker)
 }
 
-fn handle_look<'a>(look: Look) -> InnerNext<'a> {
+fn handle_look<'a>(walker: &mut Walker<'a>, look: Look) -> InnerNext<'a> {
     match look {
         Look::Start | Look::StartLF | Look::StartCRLF => Ok(Event::Start),
         Look::End | Look::EndLF | Look::EndCRLF => Ok(Event::End),
-        _ => Err(InterpreteProblem::InvalidRegex),
+        _ => walker.err(InterpreteProblem::InvalidRegex),
     }
 }
 
@@ -146,16 +135,17 @@ fn handle_ors<'a>(walker: &mut Walker<'a>, ors: &'a [Hir]) -> Next<'a> {
     }
 }
 
-fn handle_literal<'a>(
-    walker: &mut Walker<'a>,
-    literal: String,
-    index: usize,
-    next_char: char,
-) -> InnerNext<'a> {
+fn handle_literal<'a>(walker: &mut Walker<'a>, literal: String, index: usize) -> Next<'a> {
+    let next_char = match literal[index..].chars().next() {
+        Some(c) => c,
+        None => return next(walker),
+    };
     let rem = Lit(literal, index + next_char.len_utf8());
     walker.rems.push(rem);
-    let as_or_set = walker.itp.get_char(next_char)?;
-    Ok(Event::Literal(as_or_set))
+    Some(match walker.itp.get_char(next_char) {
+        Ok(as_or_set) => Ok(Event::Literal(as_or_set)),
+        Err(err) => walker.err(err),
+    })
 }
 
 fn handle_ranges<'a>(walker: &mut Walker<'a>, ranges: &'a [ClassUnicodeRange]) -> Next<'a> {
@@ -167,7 +157,10 @@ fn handle_ranges<'a>(walker: &mut Walker<'a>, ranges: &'a [ClassUnicodeRange]) -
 }
 
 fn handle_range<'a>(walker: &mut Walker<'a>, start: char, end: char) -> InnerNext<'a> {
-    let as_or_set = walker.itp.get_char(start)?;
+    let as_or_set = match walker.itp.get_char(start) {
+        Ok(aos) => aos,
+        Err(err) => return walker.err(err),
+    };
     let start = start as u32 + 1;
     // SAFETY: `start` ≤ `end` that is small ⇒ `start` + 1 is small enough.
     let start = unsafe { char::from_u32_unchecked(start) };

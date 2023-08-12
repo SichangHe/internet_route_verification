@@ -11,15 +11,14 @@ pub fn as_replace_all<R>(s: &str, replacer: R) -> Cow<str>
 where
     R: Replacer,
 {
-    regex_replace_all!(r"AS[0-9]+", s, replacer)
+    regex_replace_all!(r"AS[0-9]+"i, s, replacer)
 }
-
 
 pub fn as_set_replace_all<R>(s: &str, replacer: R) -> Cow<str>
 where
     R: Replacer,
 {
-    regex_replace_all!(r"(?:AS[0-9]+:)?AS-[\-\^A-Za-z0-9:]+", s, replacer)
+    regex_replace_all!(r"(?:AS[0-9]+:)?AS-[\-\^A-Za-z0-9:]+"i, s, replacer)
 }
 
 /// A [`Replacer`] that gathers each capture it replaces in `char_map`.

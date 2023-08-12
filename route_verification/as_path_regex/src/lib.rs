@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 
-use lazy_regex::{regex::Replacer, regex_replace_all, Captures};
+use lazy_regex::{regex_replace_all, Captures};
+
+pub use lazy_regex::regex::Replacer;
 
 pub fn as_replace_all<R>(s: &str, replacer: R) -> Cow<str>
 where
@@ -9,10 +11,31 @@ where
     regex_replace_all!(r"(\bAS\d+\b)", s, replacer)
 }
 
+/// A [`Replacer`] that gathers each capture it replaces in `char_map`.
 pub struct CharMap {
     pub start: u32,
     pub next: u32,
     pub char_map: Vec<String>,
+}
+
+impl CharMap {
+    /// Get the capture corresponding to `c`.
+    pub fn get(&self, c: char) -> Option<&String> {
+        self.char_map.get((c as u32 - self.start) as usize)
+    }
+
+    /// Start from `Α` (Alpha).
+    pub const fn new_from_alpha() -> Self {
+        Self::new(ALPHA_CODE, Vec::new())
+    }
+
+    pub const fn new(start: u32, char_map: Vec<String>) -> Self {
+        Self {
+            start,
+            next: start,
+            char_map,
+        }
+    }
 }
 
 impl Replacer for CharMap {
@@ -24,6 +47,8 @@ impl Replacer for CharMap {
         dst.push(c);
     }
 }
+
+pub const ALPHA_CODE: u32 = 913;
 
 #[cfg(test)]
 mod tests;

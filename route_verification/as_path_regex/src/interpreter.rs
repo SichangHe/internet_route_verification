@@ -1,7 +1,3 @@
-use std::fmt::Display;
-
-use thiserror::Error;
-
 use super::*;
 
 #[derive(Debug)]
@@ -22,13 +18,13 @@ pub enum Event<'a> {
 #[derive(Debug)]
 pub enum AsOrSet<'a> {
     AsSet(&'a String),
-    AsNum(&'a String),
+    AsNum(u64),
 }
 
 #[derive(Debug)]
 pub struct Interpreter {
-    sets: CharMap,
-    ans: CharMap,
+    sets: CharMap<String>,
+    ans: CharMap<u64>,
     parsed: HirKind,
 }
 
@@ -38,7 +34,7 @@ impl Interpreter {
             return Ok(AsOrSet::AsSet(s));
         }
         if let Some(n) = self.ans.get(c) {
-            return Ok(AsOrSet::AsNum(n));
+            return Ok(AsOrSet::AsNum(*n));
         }
         Err(InterpretErr::UnknownChar)
     }

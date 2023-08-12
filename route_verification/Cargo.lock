@@ -1581,6 +1581,7 @@ dependencies = [
  "net-literals",
  "polars",
  "rayon",
+ "route_verification_as_path_regex",
  "route_verification_as_rel",
  "route_verification_bgp",
  "route_verification_bloom",
@@ -1588,6 +1589,14 @@ dependencies = [
  "route_verification_irr",
  "route_verification_lex",
  "route_verification_parse",
+]
+
+[[package]]
+name = "route_verification_as_path_regex"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "regex-syntax 0.7.4",
 ]
 
 [[package]]

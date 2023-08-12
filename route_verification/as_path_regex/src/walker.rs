@@ -160,7 +160,9 @@ fn handle_literal<'a>(walker: &mut Walker<'a>, literal: String, index: usize) ->
 fn handle_ranges<'a>(walker: &mut Walker<'a>, ranges: &'a [ClassUnicodeRange]) -> Next<'a> {
     if let Some(range) = ranges.first() {
         walker.rems.push(Ranges(&ranges[1..]));
-        walker.rems.push(Range(range.start(), range.end()))
+        let start = range.start().max(walker.itp.least_char());
+        let end = range.end().min(walker.itp.largest_char());
+        walker.rems.push(Range(start, end))
     }
     next(walker)
 }

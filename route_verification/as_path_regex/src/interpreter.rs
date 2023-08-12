@@ -38,6 +38,16 @@ impl Interpreter {
         }
         Err(InterpretErr::UnknownChar)
     }
+
+    pub fn least_char(&self) -> char {
+        // SAFETY: This interpreter is fine from `from_str`.
+        unsafe { char::from_u32_unchecked(self.sets.start) }
+    }
+
+    pub fn largest_char(&self) -> char {
+        // SAFETY: This interpreter is fine from `from_str`.
+        unsafe { char::from_u32_unchecked(self.ans.next - 1) }
+    }
 }
 
 impl<'a> IntoIterator for &'a Interpreter {

@@ -27,7 +27,7 @@ impl<'a> AsRegex<'a> {
     }
 
     /// chars corresponding to `asn`.
-    /// Unrecorded ASNs are assigned `X` to avoid being matched.
+    /// Unrecorded ASNs are assigned `¿` to avoid being matched.
     pub fn asn_chars(&mut self, asn: u64) -> Vec<char> {
         let mut result: Vec<_> = self.interpreter.get_asn(asn).into_iter().collect();
         let limit = self.c.cmp.recursion_limit;
@@ -40,7 +40,7 @@ impl<'a> AsRegex<'a> {
             }
         }
         if result.is_empty() {
-            vec!['X']
+            vec!['¿']
         } else {
             result
         }

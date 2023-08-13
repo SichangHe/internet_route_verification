@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fmt::Display, str::FromStr};
+use std::{borrow::Cow, str::FromStr};
 
 use anyhow::Result;
 use lazy_regex::{regex_replace_all, Captures};

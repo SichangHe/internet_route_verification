@@ -84,23 +84,14 @@ impl FromStr for Interpreter {
 
 #[derive(Debug, Error)]
 pub enum InterpretErr {
+    #[error("empty regex")]
     Empty,
+    #[error("tilde found, unsupported")]
     HasTilde,
+    #[error("invalid regex")]
     InvalidRegex,
+    #[error("encountered unknown character")]
     UnknownChar,
+    #[error("this `Walker` had error before and should not be used")]
     HadErr,
-}
-
-impl Display for InterpretErr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            InterpretErr::Empty => f.write_str("empty regex"),
-            InterpretErr::HasTilde => f.write_str("tilde found, unsupported"),
-            InterpretErr::InvalidRegex => f.write_str("invalid regex"),
-            InterpretErr::UnknownChar => f.write_str("encountered unknown character"),
-            InterpretErr::HadErr => {
-                f.write_str("this `Walker` had error before and should not be used")
-            }
-        }
-    }
 }

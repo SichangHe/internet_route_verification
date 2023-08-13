@@ -1,6 +1,6 @@
 use as_path_regex::{
     interpreter::{
-        AsOrSet,
+        AsOrSet::{self, *},
         Event::{self, *},
         InterpretErr::{self, *},
         Interpreter,
@@ -61,7 +61,15 @@ impl<'a> AsRegex<'a> {
     }
 
     fn handle_literal(&self, walker: Walker, literal: AsOrSet) -> AllReport {
-        todo!()
+        let asn = match self.next_asn() {
+            Some(Some(n)) => n,
+            Some(None) => todo!(),
+            None => todo!(),
+        };
+        match literal {
+            AsSet(_) => todo!(),
+            AsNum(_) => todo!(),
+        }
     }
 
     fn handle_permit(&self, walker: Walker, permit: AsOrSet) -> AllReport {
@@ -89,6 +97,15 @@ impl<'a> AsRegex<'a> {
 
     fn handle_or(&self, walker: Walker, or_walker: Walker) -> AllReport {
         todo!()
+    }
+
+    /// The first layer of `Option` indicates if the path ends.
+    /// The second layer indicates if the path is a single ASN.
+    fn next_asn(&self) -> Option<Option<u64>> {
+        match self.path.first()? {
+            AsPathEntry::Seq(n) => Some(Some(*n)),
+            _ => Some(None),
+        }
     }
 
     fn handle_interpret_err(&self, err: InterpretErr) -> AllReport {

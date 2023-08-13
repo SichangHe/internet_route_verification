@@ -1597,7 +1597,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "lazy-regex",
- "regex-syntax 0.7.4",
  "thiserror",
 ]
 

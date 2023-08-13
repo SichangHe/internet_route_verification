@@ -3,23 +3,6 @@ use lazy_regex::Regex;
 use super::*;
 
 #[derive(Debug)]
-pub enum Event<'a> {
-    Literal(AsOrSet<'a>),
-    /// Permit a case within an upcoming range.
-    Permit(AsOrSet<'a>),
-    RangeEnd,
-    Start,
-    End,
-    Repeat {
-        min: u32,
-        max: Option<u32>,
-        greedy: bool,
-        walker: Walker<'a>,
-    },
-    Or(Walker<'a>),
-}
-
-#[derive(Debug)]
 pub enum AsOrSet<'a> {
     AsSet(&'a String),
     AsNum(u64),
@@ -30,7 +13,6 @@ pub struct Interpreter {
     sets: CharMap<String>,
     ans: CharMap<u64>,
     expr: Regex,
-    parsed: HirKind,
 }
 
 impl Interpreter {
@@ -76,16 +58,6 @@ impl Interpreter {
     }
 }
 
-impl<'a> IntoIterator for &'a Interpreter {
-    type Item = Result<Event<'a>, InterpretErr>;
-
-    type IntoIter = Walker<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        Walker::new(self, &self.parsed)
-    }
-}
-
 impl FromStr for Interpreter {
     type Err = InterpretErr;
 
@@ -99,16 +71,7 @@ impl FromStr for Interpreter {
         let s = as_replace_all(&s, ans.by_ref());
         let s = s.replace(' ', "");
         let expr = Regex::new(&s).map_err(|_| InterpretErr::InvalidRegex)?;
-        let parsed = match Parser::new().parse(&s) {
-            Ok(p) => p.into_kind(),
-            Err(_) => return Err(InterpretErr::InvalidRegex),
-        };
-        Ok(Self {
-            sets,
-            ans,
-            expr,
-            parsed,
-        })
+        Ok(Self { sets, ans, expr })
     }
 }
 

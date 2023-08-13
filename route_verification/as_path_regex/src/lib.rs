@@ -1,18 +1,16 @@
 use std::{borrow::Cow, str::FromStr};
 
 use lazy_regex::{regex_replace_all, Captures};
-use regex_syntax::{hir::*, Parser};
 use thiserror::Error;
 
-use {
-    char_map::*,
-    interpreter::{Event, InterpretErr, Interpreter},
-};
+use char_map::*;
 
-pub use {lazy_regex::regex::Replacer, walker::Walker};
+pub use {
+    interpreter::{InterpretErr, Interpreter},
+    lazy_regex::regex::Replacer,
+};
 
 pub mod char_map;
 pub mod interpreter;
 #[cfg(test)]
 mod tests;
-pub mod walker;

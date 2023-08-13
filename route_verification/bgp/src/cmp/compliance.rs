@@ -60,7 +60,15 @@ impl<'a> Compliance<'a> {
     }
 
     /// `Err` contains all the skips.
-    pub fn set_has_member(&self, set: &str, asn: u64) -> Result<bool, AnyReport> {
+    pub fn set_has_member(
+        &self,
+        set: &str,
+        asn: u64,
+        recursion_limit: isize,
+    ) -> Result<bool, AnyReport> {
+        if recursion_limit < 0 {
+            return Err(recursion_any_report(RecurSrc::CheckSetMember(set.into())));
+        }
         let set = match self.dump.as_sets.get(set) {
             Some(s) => s,
             None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
@@ -70,7 +78,7 @@ impl<'a> Compliance<'a> {
         }
         let mut report = SkipF(vec![]);
         for set in &set.set_members {
-            match self.set_has_member(set, asn) {
+            match self.set_has_member(set, asn, recursion_limit - 1) {
                 Ok(true) => return Ok(true),
                 Ok(false) => (),
                 Err(err) => report |= err.unwrap(),

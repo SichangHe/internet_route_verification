@@ -178,6 +178,7 @@ pub enum RecurSrc {
     FilterAnd,
     FilterOr,
     FilterNot,
+    CheckSetMember(String),
     CheckRemoteAs,
     RemoteAsName(AsName),
     RemoteAsSet(String),

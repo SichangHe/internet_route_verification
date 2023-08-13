@@ -58,7 +58,7 @@ impl<'a> AsRegex<'a> {
     pub fn asn_chars(&mut self, asn: u64) -> Vec<char> {
         let mut result: Vec<_> = self.interpreter.get_asn(asn).into_iter().collect();
         for (set, c) in self.interpreter.as_sets_with_char() {
-            match self.c.set_has_member(set, asn) {
+            match self.c.set_has_member(set, asn, self.c.cmp.recursion_limit) {
                 Ok(true) => result.push(c),
                 Ok(false) => (),
                 Err(r) => self.report |= r.unwrap(),

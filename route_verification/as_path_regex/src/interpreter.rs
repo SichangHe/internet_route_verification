@@ -83,6 +83,4 @@ pub enum InterpretErr {
     InvalidRegex,
     #[error("encountered unknown character")]
     UnknownChar,
-    #[error("this `Walker` had error before and should not be used")]
-    HadErr,
 }

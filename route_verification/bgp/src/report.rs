@@ -117,7 +117,6 @@ pub enum SkipReason {
     AsSetUnrecorded(String),
     AsSetRouteUnrecorded(String),
     AsSetRouteSomeUnrecorded(String),
-    AsRegexUnhandled(String),
     AsRegexWithTilde(String),
     AsRegexPathWithSet,
     SkippedNotFilterResult,

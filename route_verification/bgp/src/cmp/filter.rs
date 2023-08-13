@@ -180,6 +180,25 @@ impl<'a> Compliance<'a> {
         }
     }
 
+    fn filter_as_regex(&self, expr: &str) -> AnyReport {
+        let path = self.prev_path.iter().rev();
+        let path = match path
+            .map(|p| match p {
+                Seq(n) => Ok(*n),
+                Set(_) => Err(()),
+            })
+            .collect::<Result<Vec<_>, _>>()
+        {
+            Ok(p) => p,
+            Err(_) => return self.skip_any_report(|| SkipReason::AsRegexPathWithSet),
+        };
+        match expr.parse::<Interpreter>() {
+            Ok(interpreter) => AsRegex::new(self, interpreter, expr).check(path),
+            Err(HasTilde) => self.skip_any_report(|| SkipReason::AsRegexWithTilde(expr.into())),
+            Err(_) => self.bad_rpsl_any_report(|| RpslError::InvalidAsRegex(expr.into())),
+        }
+    }
+
     fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
         if depth <= 0 {
             return recursion_all_report(RecurSrc::FilterAnd);

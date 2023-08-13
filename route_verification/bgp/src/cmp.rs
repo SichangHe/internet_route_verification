@@ -1,13 +1,14 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
+use as_path_regex::interpreter::{InterpretErr::*, Interpreter};
 use ipnet::*;
 use parse::*;
 
 use super::*;
 
 use {
-    AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
-    SkipReason::*, SpecialCase::*,
+    as_regex::AsRegex, AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*,
+    SkipFBad::*, SkipReason::*, SpecialCase::*,
 };
 
 pub mod as_regex;

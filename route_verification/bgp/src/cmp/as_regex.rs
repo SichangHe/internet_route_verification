@@ -1,33 +1,6 @@
-use as_path_regex::interpreter::{InterpretErr::*, Interpreter};
 use itertools::Itertools;
 
 use super::*;
-
-impl<'a> Compliance<'a> {
-    pub fn filter_as_regex(&self, expr: &str) -> AnyReport {
-        let path = self.prev_path.iter().rev();
-        let path = match path
-            .map(|p| match p {
-                Seq(n) => Ok(*n),
-                Set(_) => Err(()),
-            })
-            .collect::<Result<Vec<_>, _>>()
-        {
-            Ok(p) => p,
-            Err(_) => return self.skip_any_report(|| SkipReason::AsRegexPathWithSet),
-        };
-        let interpreter: Interpreter = match expr.parse() {
-            Ok(i) => i,
-            Err(err) => {
-                return match err {
-                    HasTilde => self.skip_any_report(|| SkipReason::AsRegexWithTilde(expr.into())),
-                    _ => self.bad_rpsl_any_report(|| RpslError::InvalidAsRegex(expr.into())),
-                }
-            }
-        };
-        AsRegex::new(self, interpreter, expr).check(path)
-    }
-}
 
 pub struct AsRegex<'a> {
     pub c: &'a Compliance<'a>,

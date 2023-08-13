@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Clone)]
 pub struct Compliance<'a> {
     pub cmp: &'a Compare,
     pub dump: &'a QueryDump,

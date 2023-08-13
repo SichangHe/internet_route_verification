@@ -10,6 +10,7 @@ use {
     SkipReason::*, SpecialCase::*,
 };
 
+pub mod as_regex;
 mod compliance;
 mod filter;
 mod hill;

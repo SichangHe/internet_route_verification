@@ -1,8 +1,4 @@
 use ::lex::Call;
-use as_path_regex::{
-    interpreter::{InterpretErr, Interpreter},
-    Walker,
-};
 use parse::{Filter::*, *};
 
 use super::*;
@@ -182,25 +178,6 @@ impl<'a> Compliance<'a> {
         } else {
             Some(report)
         }
-    }
-
-    fn filter_as_regex(&self, expr: &str) -> AnyReport {
-        use InterpretErr::*;
-        let path = self.prev_path;
-        let interpreter: Interpreter = match expr.parse() {
-            Ok(i) => i,
-            Err(err) => {
-                return match err {
-                    HasTilde => self.skip_any_report(|| SkipReason::AsRegexWithTilde(expr.into())),
-                    _ => self.bad_rpsl_any_report(|| RpslError::InvalidAsRegex(expr.into())),
-                }
-            }
-        };
-        self.interpret_as_regex(path, interpreter.into_iter())
-    }
-
-    fn interpret_as_regex(&self, path: &[AsPathEntry], walker: Walker) -> AnyReport {
-        todo!("Walk {path:?} with {walker:?}")
     }
 
     fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {

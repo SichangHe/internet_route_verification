@@ -30,6 +30,7 @@ impl<'a> Compliance<'a> {
 pub struct AsRegex<'a> {
     pub c: &'a Compliance<'a>,
     pub expr: &'a str,
+    pub full_path: &'a [AsPathEntry],
     pub path: &'a [AsPathEntry],
 }
 
@@ -37,9 +38,10 @@ pub struct AsRegex<'a> {
 impl<'a> AsRegex<'a> {
     pub fn check(&mut self, walker: Walker<'a>) -> AnyReport {
         let mut report = BadF(vec![]);
-        while !self.path.is_empty() {
+        while !self.full_path.is_empty() {
+            self.path = self.full_path;
             report |= self.check_strict(walker.clone())?;
-            self.path = &self.path[..(self.path.len() - 1)];
+            self.full_path = &self.full_path[..(self.full_path.len() - 1)];
         }
         match report {
             err @ BadF(_) if self.c.get_verbosity().all_err => Some(err),
@@ -143,12 +145,15 @@ impl<'a> AsRegex<'a> {
 
     fn handle_start(&mut self, walker: Walker<'a>) -> AllReport {
         let report = self.check_strict(walker).to_all();
-        self.path = &[]; // Prevent `self.check` from continuing.
+        self.full_path = &[]; // Prevent `self.check` from continuing.
         report
     }
 
     fn handle_end(&self, walker: Walker) -> AllReport {
-        todo!()
+        match self.path.last() {
+            Some(_) => self.err(),
+            None => Ok(OkT),
+        }
     }
 
     fn handle_repeat(
@@ -167,17 +172,10 @@ impl<'a> AsRegex<'a> {
     }
 
     fn expect_next_asn(&self) -> Result<u64, AllReport> {
-        match self.next_asn() {
-            Some(Ok(n)) => Ok(n),
-            Some(Err(err)) => Err(err),
+        match self.path.last() {
+            Some(AsPathEntry::Seq(n)) => Ok(*n),
+            Some(_) => Err(self.path_with_set()),
             None => Err(self.err()),
-        }
-    }
-
-    fn next_asn(&self) -> Option<Result<u64, AllReport>> {
-        match self.path.last()? {
-            AsPathEntry::Seq(n) => Some(Ok(*n)),
-            _ => Some(Err(self.path_with_set())),
         }
     }
 
@@ -216,6 +214,7 @@ impl<'a> AsRegex<'a> {
         Self {
             c: compliance,
             expr,
+            full_path: as_path,
             path: as_path,
         }
     }

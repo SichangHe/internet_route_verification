@@ -1,6 +1,5 @@
 use std::{borrow::Cow, str::FromStr};
 
-use anyhow::Result;
 use lazy_regex::{regex_replace_all, Captures};
 use regex_syntax::{hir::*, Parser};
 use thiserror::Error;

@@ -13,6 +13,7 @@ rayon = "1.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
+as_path_regex = { package = "route_verification_as_path_regex", path = "../as_path_regex" }
 as_rel = { package = "route_verification_as_rel", path = "../as_rel" }
 bloom = { package = "route_verification_bloom", path = "../bloom" }
 map = { package = "route_verification_bgpmap", path = "../bgpmap" }

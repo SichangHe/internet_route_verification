@@ -16,7 +16,8 @@ mod filter;
 mod hill;
 mod peering;
 
-pub use {compliance::*, filter::*, peering::*};
+pub(crate) use filter::*;
+pub use {compliance::*, peering::*};
 
 pub const RECURSION_LIMIT: isize = 0x100;
 

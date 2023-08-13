@@ -223,6 +223,6 @@ impl<'a> Compliance<'a> {
     }
 }
 
-fn visited<'a>() -> BloomHashSet<&'a str> {
+pub(crate) fn visited<'a>() -> BloomHashSet<&'a str> {
     BloomHashSet::with_capacity(16384, 262144)
 }

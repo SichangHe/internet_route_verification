@@ -62,23 +62,29 @@ impl<'a> Compliance<'a> {
     /// `Err` contains all the skips.
     pub fn set_has_member(
         &self,
-        set: &str,
+        set: &'a str,
         asn: u64,
-        recursion_limit: isize,
+        depth: isize,
+        visited: &mut BloomHashSet<&'a str>,
     ) -> Result<bool, AnyReport> {
-        if recursion_limit < 0 {
+        if depth < 0 {
             return Err(recursion_any_report(RecurSrc::CheckSetMember(set.into())));
         }
-        let set = match self.dump.as_sets.get(set) {
+        let hash = visited.make_hash(&set);
+        if visited.contains_with_hash(&set, hash) {
+            return Err(failed_any_report());
+        }
+        let as_set = match self.dump.as_sets.get(set) {
             Some(s) => s,
             None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
         };
-        if set.members.contains(&asn) {
+        if as_set.members.contains(&asn) {
             return Ok(true);
         }
         let mut report = SkipF(vec![]);
-        for set in &set.set_members {
-            match self.set_has_member(set, asn, recursion_limit - 1) {
+        visited.insert_with_hash(set, hash);
+        for set in &as_set.set_members {
+            match self.set_has_member(set, asn, depth - 1, visited) {
                 Ok(true) => return Ok(true),
                 Ok(false) => (),
                 Err(err) => report |= err.unwrap(),

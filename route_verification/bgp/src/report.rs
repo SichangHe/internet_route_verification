@@ -117,8 +117,8 @@ pub enum SkipReason {
     AsSetUnrecorded(String),
     AsSetRouteUnrecorded(String),
     AsSetRouteSomeUnrecorded(String),
-    // TODO: Remove once implemented.
-    AsRegexUnimplemented(String),
+    AsRegexUnhandled(String),
+    AsRegexWithTilde(String),
     SkippedNotFilterResult,
     CommunityCheckUnimplemented(Call),
     PeeringSetUnrecorded(String),
@@ -163,6 +163,7 @@ pub enum MatchProblem {
 pub enum RpslError {
     InvalidAsName(String),
     InvalidFilter(String),
+    InvalidAsRegex(String),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

@@ -6,6 +6,7 @@ pub struct Compliance<'a> {
     pub accept_num: Option<u64>,
     pub self_num: u64,
     pub export: bool,
+    pub prev_path: &'a [AsPathEntry],
 }
 impl<'a> Compliance<'a> {
     pub fn check(&self, policy: &Versions) -> AnyReport {

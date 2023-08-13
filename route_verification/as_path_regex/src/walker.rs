@@ -61,7 +61,7 @@ fn next<'a>(walker: &mut Walker<'a>) -> Next<'a> {
 fn handle_rem<'a>(walker: &mut Walker<'a>, rem: Remaining<'a>) -> Next<'a> {
     match rem {
         Ir(hir) => match hir {
-            HirKind::Empty => Some(walker.err(InterpretErr::Empty)),
+            HirKind::Empty => None,
             HirKind::Literal(Literal(literal)) => handle_ir_literal(walker, literal),
             HirKind::Class(class) => handle_class(walker, class),
             HirKind::Look(look) => Some(handle_look(walker, *look)),

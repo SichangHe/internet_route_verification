@@ -64,9 +64,7 @@ impl FromStr for Interpreter {
     type Err = InterpretErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(InterpretErr::Empty);
-        } else if s.contains('~') {
+        if s.contains('~') {
             return Err(InterpretErr::HasTilde);
         }
         let mut sets = CharMap::new_from_alpha();
@@ -84,8 +82,6 @@ impl FromStr for Interpreter {
 
 #[derive(Debug, Eq, Error, PartialEq)]
 pub enum InterpretErr {
-    #[error("empty regex")]
-    Empty,
     #[error("tilde found, unsupported")]
     HasTilde,
     #[error("invalid regex")]

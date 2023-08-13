@@ -58,6 +58,29 @@ impl<'a> Compliance<'a> {
             })?;
         Ok(peering_report & filter_report)
     }
+
+    /// `Err` contains all the skips.
+    pub fn set_has_member(&self, set: &str, asn: u64) -> Result<bool, AnyReport> {
+        let set = match self.dump.as_sets.get(set) {
+            Some(s) => s,
+            None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
+        };
+        if set.members.contains(&asn) {
+            return Ok(true);
+        }
+        let mut report = SkipF(vec![]);
+        for set in &set.set_members {
+            match self.set_has_member(set, asn) {
+                Ok(true) => return Ok(true),
+                Ok(false) => (),
+                Err(err) => report |= err.unwrap(),
+            }
+        }
+        match report {
+            SkipF(items) if items.is_empty() => Ok(false),
+            report => Err(Some(report)),
+        }
+    }
 }
 
 impl<'a> VerbosityReport for Compliance<'a> {

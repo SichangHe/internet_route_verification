@@ -67,8 +67,17 @@ impl<'a> AsRegex<'a> {
             None => return self.err(),
         };
         match literal {
-            AsSet(_) => todo!(),
-            AsNum(_) => todo!(),
+            AsSet(set) => self.handle_literal_set(walker, asn, set),
+            AsNum(n) if asn == n => self.check(walker).to_all(),
+            AsNum(n) => self.err(),
+        }
+    }
+
+    fn handle_literal_set(&self, walker: Walker, asn: u64, set: &str) -> AllReport {
+        match self.c.set_has_member(set, asn) {
+            Ok(true) => self.check(walker).to_all(),
+            Ok(false) => self.err(),
+            Err(skip) => skip.to_all(),
         }
     }
 

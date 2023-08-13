@@ -35,12 +35,30 @@ pub struct AsRegex<'a> {
 
 #[allow(unused_variables)]
 impl<'a> AsRegex<'a> {
-    pub fn check(&self, mut walker: Walker) -> AnyReport {
+    pub fn check(&mut self, walker: Walker<'a>) -> AnyReport {
+        let mut report = BadF(vec![]);
+        while !self.path.is_empty() {
+            report |= self.check_strict(walker.clone())?;
+            self.path = &self.path[..(self.path.len() - 1)];
+        }
+        match report {
+            err @ BadF(_) if self.c.get_verbosity().all_err => Some(err),
+            BadF(_) => self.err().to_any(),
+            non_bad => Some(non_bad),
+        }
+    }
+
+    /// Fail on mismatch.
+    pub fn check_strict(&mut self, mut walker: Walker<'a>) -> AnyReport {
         let next = walker.next()?; // Empty regex matches anything.
         self.check_next(walker, next).to_any()
     }
 
-    pub fn check_next(&self, walker: Walker, next: Result<Event<'a>, InterpretErr>) -> AllReport {
+    pub fn check_next(
+        &mut self,
+        walker: Walker<'a>,
+        next: Result<Event<'a>, InterpretErr>,
+    ) -> AllReport {
         let next = match next {
             Ok(n) => n,
             Err(err) => return self.handle_interpret_err(err),
@@ -61,15 +79,15 @@ impl<'a> AsRegex<'a> {
         }
     }
 
-    fn handle_literal(&self, walker: Walker, literal: AsOrSet) -> AllReport {
+    fn handle_literal(&mut self, walker: Walker<'a>, literal: AsOrSet<'a>) -> AllReport {
         let report = match self.expect_next_asn() {
             Ok(asn) => self.handle_literal_and_asn(literal, asn)?,
             Err(err) => return err,
         };
-        Ok(report & self.check(walker).to_all()?)
+        Ok(report & self.check_strict(walker).to_all()?)
     }
 
-    fn handle_literal_and_asn(&self, literal: AsOrSet, asn: u64) -> AllReport {
+    fn handle_literal_and_asn(&self, literal: AsOrSet<'a>, asn: u64) -> AllReport {
         match literal {
             AsSet(set) => self.handle_literal_set(asn, set),
             AsNum(n) if asn == n => Ok(OkT),
@@ -85,7 +103,7 @@ impl<'a> AsRegex<'a> {
         }
     }
 
-    fn handle_permit(&self, walker: Walker, permit: AsOrSet) -> AllReport {
+    fn handle_permit(&mut self, walker: Walker<'a>, permit: AsOrSet<'a>) -> AllReport {
         let asn = match self.expect_next_asn() {
             Ok(n) => n,
             Err(err) => return err,
@@ -94,7 +112,7 @@ impl<'a> AsRegex<'a> {
     }
 
     fn handle_range(
-        &self,
+        &mut self,
         mut walker: Walker<'a>,
         mut permit: AsOrSet<'a>,
         asn: u64,
@@ -107,7 +125,7 @@ impl<'a> AsRegex<'a> {
                 }
                 None => {
                     walker.skip_ranges();
-                    return self.check(walker);
+                    return self.check_strict(walker);
                 }
             }
             match walker.next() {
@@ -119,12 +137,14 @@ impl<'a> AsRegex<'a> {
         }
         match report {
             SkipF(items) if items.is_empty() => self.err().to_any(),
-            skips => Some(skips | self.check(walker)?),
+            skips => Some(skips | self.check_strict(walker)?),
         }
     }
 
-    fn handle_start(&self, walker: Walker) -> AllReport {
-        todo!()
+    fn handle_start(&mut self, walker: Walker<'a>) -> AllReport {
+        let report = self.check_strict(walker).to_all();
+        self.path = &[]; // Prevent `self.check` from continuing.
+        report
     }
 
     fn handle_end(&self, walker: Walker) -> AllReport {
@@ -155,7 +175,7 @@ impl<'a> AsRegex<'a> {
     }
 
     fn next_asn(&self) -> Option<Result<u64, AllReport>> {
-        match self.path.first()? {
+        match self.path.last()? {
             AsPathEntry::Seq(n) => Some(Ok(*n)),
             _ => Some(Err(self.path_with_set())),
         }

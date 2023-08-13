@@ -2,6 +2,7 @@ use super::*;
 
 use Remaining::*;
 
+#[derive(Clone)]
 pub struct Walker<'a> {
     itp: &'a Interpreter,
     init_state: &'a HirKind,

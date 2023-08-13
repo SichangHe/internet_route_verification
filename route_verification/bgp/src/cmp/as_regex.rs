@@ -36,7 +36,7 @@ pub struct AsRegex<'a> {
 #[allow(unused_variables)]
 impl<'a> AsRegex<'a> {
     pub fn check(&self, mut walker: Walker) -> AnyReport {
-        let next = walker.next()?;
+        let next = walker.next()?; // Empty regex matches anything.
         self.check_next(walker, next).to_any()
     }
 
@@ -63,8 +63,8 @@ impl<'a> AsRegex<'a> {
     fn handle_literal(&self, walker: Walker, literal: AsOrSet) -> AllReport {
         let asn = match self.next_asn() {
             Some(Some(n)) => n,
-            Some(None) => todo!(),
-            None => todo!(),
+            Some(None) => return self.path_with_set(),
+            None => return self.err(),
         };
         match literal {
             AsSet(_) => todo!(),
@@ -118,12 +118,25 @@ impl<'a> AsRegex<'a> {
 
     fn regex_err(&self) -> AllReport {
         self.c
-            .bad_rpsl_all_report(|| RpslError::InvalidAsRegex(self.expr.into()))
+            .bad_rpsl_all_report(|| RpslError::InvalidAsRegex(self.expr()))
     }
 
     fn unhandled(&self) -> AllReport {
         self.c
-            .skip_all_report(|| SkipReason::AsRegexUnhandled(self.expr.into()))
+            .skip_all_report(|| SkipReason::AsRegexUnhandled(self.expr()))
+    }
+
+    fn path_with_set(&self) -> AllReport {
+        self.c.skip_all_report(|| SkipReason::AsRegexPathWithSet)
+    }
+
+    fn err(&self) -> AllReport {
+        self.c
+            .no_match_all_report(|| MatchProblem::RegexMismatch(self.expr()))
+    }
+
+    pub fn expr(&self) -> String {
+        self.expr.into()
     }
 
     pub fn new(compliance: &'a Compliance<'a>, expr: &'a str, as_path: &'a [AsPathEntry]) -> Self {

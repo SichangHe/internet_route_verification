@@ -119,6 +119,7 @@ pub enum SkipReason {
     AsSetRouteSomeUnrecorded(String),
     AsRegexUnhandled(String),
     AsRegexWithTilde(String),
+    AsRegexPathWithSet,
     SkippedNotFilterResult,
     CommunityCheckUnimplemented(Call),
     PeeringSetUnrecorded(String),
@@ -157,6 +158,7 @@ pub enum MatchProblem {
     RemoteAsSet(String),
     ExceptPeeringRightMatch,
     Peering,
+    RegexMismatch(String),
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

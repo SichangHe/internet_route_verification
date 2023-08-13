@@ -3,7 +3,9 @@ use super::*;
 #[derive(Debug)]
 pub enum Event<'a> {
     Literal(AsOrSet<'a>),
+    /// Permit a case within an upcoming range.
     Permit(AsOrSet<'a>),
+    RangeEnd,
     Start,
     End,
     Repeat {

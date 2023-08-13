@@ -48,6 +48,7 @@ impl<'a> AsRegex<'a> {
         match next {
             Literal(literal) => self.handle_literal(walker, literal),
             Permit(permit) => self.handle_permit(walker, permit),
+            RangeEnd => unreachable!("`RangeEnd` should be handled only in `handle_permit_loose`"),
             Start => self.handle_start(walker),
             End => self.handle_end(walker),
             Repeat {
@@ -61,28 +62,65 @@ impl<'a> AsRegex<'a> {
     }
 
     fn handle_literal(&self, walker: Walker, literal: AsOrSet) -> AllReport {
-        let asn = match self.next_asn() {
-            Some(Some(n)) => n,
-            Some(None) => return self.path_with_set(),
-            None => return self.err(),
+        let report = match self.expect_next_asn() {
+            Ok(asn) => self.handle_literal_and_asn(literal, asn)?,
+            Err(err) => return err,
         };
+        Ok(report & self.check(walker).to_all()?)
+    }
+
+    fn handle_literal_and_asn(&self, literal: AsOrSet, asn: u64) -> AllReport {
         match literal {
-            AsSet(set) => self.handle_literal_set(walker, asn, set),
-            AsNum(n) if asn == n => self.check(walker).to_all(),
+            AsSet(set) => self.handle_literal_set(asn, set),
+            AsNum(n) if asn == n => Ok(OkT),
             AsNum(n) => self.err(),
         }
     }
 
-    fn handle_literal_set(&self, walker: Walker, asn: u64, set: &str) -> AllReport {
+    fn handle_literal_set(&self, asn: u64, set: &str) -> AllReport {
         match self.c.set_has_member(set, asn) {
-            Ok(true) => self.check(walker).to_all(),
+            Ok(true) => Ok(OkT),
             Ok(false) => self.err(),
             Err(skip) => skip.to_all(),
         }
     }
 
     fn handle_permit(&self, walker: Walker, permit: AsOrSet) -> AllReport {
-        todo!()
+        let asn = match self.expect_next_asn() {
+            Ok(n) => n,
+            Err(err) => return err,
+        };
+        self.handle_range(walker, permit, asn).to_all()
+    }
+
+    fn handle_range(
+        &self,
+        mut walker: Walker<'a>,
+        mut permit: AsOrSet<'a>,
+        asn: u64,
+    ) -> AnyReport {
+        let mut report = SkipF(vec![]);
+        loop {
+            match self.handle_literal_and_asn(permit, asn).to_any() {
+                Some(new_report) => {
+                    report |= new_report;
+                }
+                None => {
+                    walker.skip_ranges();
+                    return self.check(walker);
+                }
+            }
+            match walker.next() {
+                Some(Ok(Permit(p))) => permit = p,
+                Some(Ok(RangeEnd)) => break,
+                Some(Err(err)) => return self.handle_interpret_err(err).to_any(),
+                _ => unreachable!("only `Permit` and `RangeEnd` should follow `Permit`"),
+            }
+        }
+        match report {
+            SkipF(items) if items.is_empty() => self.err().to_any(),
+            skips => Some(skips | self.check(walker)?),
+        }
     }
 
     fn handle_start(&self, walker: Walker) -> AllReport {
@@ -108,12 +146,18 @@ impl<'a> AsRegex<'a> {
         todo!()
     }
 
-    /// The first layer of `Option` indicates if the path ends.
-    /// The second layer indicates if the path is a single ASN.
-    fn next_asn(&self) -> Option<Option<u64>> {
+    fn expect_next_asn(&self) -> Result<u64, AllReport> {
+        match self.next_asn() {
+            Some(Ok(n)) => Ok(n),
+            Some(Err(err)) => Err(err),
+            None => Err(self.err()),
+        }
+    }
+
+    fn next_asn(&self) -> Option<Result<u64, AllReport>> {
         match self.path.first()? {
-            AsPathEntry::Seq(n) => Some(Some(*n)),
-            _ => Some(None),
+            AsPathEntry::Seq(n) => Some(Ok(*n)),
+            _ => Some(Err(self.path_with_set())),
         }
     }
 

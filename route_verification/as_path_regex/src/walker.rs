@@ -19,6 +19,13 @@ impl<'a> std::fmt::Debug for Walker<'a> {
 }
 
 impl<'a> Walker<'a> {
+    pub fn skip_ranges(&mut self) {
+        match self.rems.pop() {
+            Some(Ranges(_)) | None => (),
+            Some(other_rem) => self.rems.push(other_rem),
+        }
+    }
+
     pub(crate) fn new(interpreter: &'a Interpreter, remaining: &'a HirKind) -> Self {
         Self {
             itp: interpreter,
@@ -162,9 +169,11 @@ fn handle_ranges<'a>(walker: &mut Walker<'a>, ranges: &'a [ClassUnicodeRange]) -
         walker.rems.push(Ranges(&ranges[1..]));
         let start = range.start().max(walker.itp.least_char());
         let end = range.end().min(walker.itp.largest_char());
-        walker.rems.push(Range(start, end))
+        walker.rems.push(Range(start, end));
+        next(walker)
+    } else {
+        Some(Ok(Event::RangeEnd))
     }
-    next(walker)
 }
 
 fn handle_range<'a>(walker: &mut Walker<'a>, start: char, end: char) -> InnerNext<'a> {

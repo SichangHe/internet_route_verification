@@ -50,7 +50,7 @@ const AS_SET_REGEXES: [(&str, &str, &[&str]); 3] = [
 
 #[test]
 fn interpret_as() -> Result<()> {
-    for ((s, _, _), expected) in AS_REGEXES.into_iter().zip(EXPECTED_SIMPLE_EVENTS_DEBUG) {
+    for ((s, _, _), expected) in AS_REGEXES.into_iter().zip(EXPECTED_AS_EVENTS_DEBUG) {
         let interpreter: Interpreter = s.parse()?;
         let events = interpreter.into_iter().collect::<Result<Vec<_>, _>>()?;
         let events_debug = format!("{events:?}");
@@ -59,8 +59,30 @@ fn interpret_as() -> Result<()> {
     Ok(())
 }
 
-const EXPECTED_SIMPLE_EVENTS_DEBUG: [&str; 3] = [
+const EXPECTED_AS_EVENTS_DEBUG: [&str; 3] = [
     "[Start, Literal(AsNum(20485)), Literal(AsNum(15774)), End]",
     "[Start, Repeat { min: 1, max: None, greedy: true, walker: Walker { init_state: Literal(\"Α\"), rems: [Ir(Literal(\"Α\"))] } }, Literal(AsNum(6509)), Repeat { min: 0, max: None, greedy: true, walker: Walker { init_state: Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}), rems: [Ir(Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}))] } }, End]",
     "[Start, Literal(AsNum(24167)), Repeat { min: 0, max: None, greedy: true, walker: Walker { init_state: Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}), rems: [Ir(Class({'\\0'..='\\t', '\\u{b}'..='\\u{10ffff}'}))] } }, Repeat { min: 0, max: Some(1), greedy: true, walker: Walker { init_state: Capture(Capture { index: 1, name: None, sub: Class({'Β'..='Γ'}) }), rems: [Ir(Capture(Capture { index: 1, name: None, sub: Class({'Β'..='Γ'}) }))] } }, End]",
 ];
+
+#[test]
+fn interpret_as_set() -> Result<()> {
+    for ((s, _, _), expected) in AS_SET_REGEXES.into_iter().zip(EXPECTED_AS_SET_EVENTS_DEBUG) {
+        let interpreter: Interpreter = s.parse()?;
+        let events = interpreter.into_iter().collect::<Result<Vec<_>, _>>()?;
+        let events_debug = format!("{events:?}");
+        assert_eq!(events_debug, expected);
+    }
+    Ok(())
+}
+
+const EXPECTED_AS_SET_EVENTS_DEBUG: [&str; 2] = [
+    "[Start, Repeat { min: 1, max: None, greedy: true, walker: Walker { init_state: Literal(\"Α\"), rems: [Ir(Literal(\"Α\"))] } }, End]",
+    "[Start, Repeat { min: 1, max: None, greedy: true, walker: Walker { init_state: Literal(\"Β\"), rems: [Ir(Literal(\"Β\"))] } }, Repeat { min: 0, max: None, greedy: true, walker: Walker { init_state: Literal(\"Α\"), rems: [Ir(Literal(\"Α\"))] } }, End]",
+];
+
+#[test]
+fn interpret_w_tilde() {
+    let interpreter = AS_SET_REGEXES[2].0.parse::<Interpreter>().unwrap_err();
+    assert_eq!(interpreter, InterpretErr::HasTilde);
+}

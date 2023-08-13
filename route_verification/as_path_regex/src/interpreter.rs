@@ -82,7 +82,7 @@ impl FromStr for Interpreter {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Eq, Error, PartialEq)]
 pub enum InterpretErr {
     #[error("empty regex")]
     Empty,

@@ -1619,6 +1619,7 @@ dependencies = [
  "dashmap",
  "hashbrown 0.14.0",
  "ipnet",
+ "itertools",
  "lazy-regex",
  "maplit",
  "rayon",

@@ -1,3 +1,5 @@
+use lazy_regex::Regex;
+
 use super::*;
 
 #[derive(Debug)]
@@ -27,10 +29,32 @@ pub enum AsOrSet<'a> {
 pub struct Interpreter {
     sets: CharMap<String>,
     ans: CharMap<u64>,
+    expr: Regex,
     parsed: HirKind,
 }
 
 impl Interpreter {
+    pub fn regex(&self) -> &Regex {
+        &self.expr
+    }
+
+    /// char corresponding to `asn`.
+    pub fn get_asn(&self, asn: u64) -> Option<char> {
+        let index = self.ans.char_map.iter().position(|x| *x == asn);
+        // SAFETY: We found the index, which itself is from a char.
+        index.map(|i| unsafe { char::from_u32_unchecked(i as u32 + self.ans.start) })
+    }
+
+    /// char corresponding to recorded AS sets.
+    pub fn as_sets_with_char(&self) -> impl Iterator<Item = (&String, char)> {
+        self.sets.char_map.iter().enumerate().map(|(index, set)| {
+            // SAFETY: `index` must be small enough because we recorded them.
+            let c = unsafe { char::from_u32_unchecked(index as u32 + self.sets.start) };
+            (set, c)
+        })
+    }
+
+    /// ASN or AS set corresponding to `c`.
     pub fn get_char(&self, c: char) -> Result<AsOrSet, InterpretErr> {
         if let Some(s) = self.sets.get(c) {
             return Ok(AsOrSet::AsSet(s));
@@ -74,11 +98,17 @@ impl FromStr for Interpreter {
         let mut ans = CharMap::new(sets.next);
         let s = as_replace_all(&s, ans.by_ref());
         let s = s.replace(' ', "");
+        let expr = Regex::new(&s).map_err(|_| InterpretErr::InvalidRegex)?;
         let parsed = match Parser::new().parse(&s) {
             Ok(p) => p.into_kind(),
             Err(_) => return Err(InterpretErr::InvalidRegex),
         };
-        Ok(Self { sets, ans, parsed })
+        Ok(Self {
+            sets,
+            ans,
+            expr,
+            parsed,
+        })
     }
 }
 

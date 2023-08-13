@@ -1,18 +1,21 @@
-use as_path_regex::{
-    interpreter::{
-        AsOrSet::{self, *},
-        Event::{self, *},
-        InterpretErr::{self, *},
-        Interpreter,
-    },
-    Walker,
-};
+use as_path_regex::interpreter::{InterpretErr::*, Interpreter};
+use itertools::Itertools;
 
 use super::*;
 
 impl<'a> Compliance<'a> {
     pub fn filter_as_regex(&self, expr: &str) -> AnyReport {
-        let path = self.prev_path;
+        let path = self.prev_path.iter().rev();
+        let path = match path
+            .map(|p| match p {
+                Seq(n) => Ok(*n),
+                Set(_) => Err(()),
+            })
+            .collect::<Result<Vec<_>, _>>()
+        {
+            Ok(p) => p,
+            Err(_) => return self.skip_any_report(|| SkipReason::AsRegexPathWithSet),
+        };
         let interpreter: Interpreter = match expr.parse() {
             Ok(i) => i,
             Err(err) => {
@@ -22,200 +25,58 @@ impl<'a> Compliance<'a> {
                 }
             }
         };
-        AsRegex::new(self, expr, path).check(interpreter.into_iter())
+        AsRegex::new(self, interpreter, expr).check(path)
     }
 }
 
-#[derive(Clone)]
 pub struct AsRegex<'a> {
     pub c: &'a Compliance<'a>,
+    pub interpreter: Interpreter,
     pub expr: &'a str,
-    pub full_path: &'a [AsPathEntry],
-    pub path: &'a [AsPathEntry],
+    pub report: SkipFBad,
 }
 
-#[allow(unused_variables)]
 impl<'a> AsRegex<'a> {
-    pub fn check(&mut self, walker: Walker<'a>) -> AnyReport {
-        let mut report = BadF(vec![]);
-        while !self.full_path.is_empty() {
-            self.path = self.full_path;
-            report |= self.check_strict(walker.clone())?;
-            self.full_path = &self.full_path[..(self.full_path.len() - 1)];
+    pub fn check(&mut self, path: Vec<u64>) -> AnyReport {
+        let replacements: Vec<_> = path.iter().map(|n| self.asn_chars(*n)).collect();
+        for chars in replacements.iter().multi_cartesian_product() {
+            let haystack: String = chars.into_iter().collect();
+            if self.interpreter.regex().is_match(&haystack) {
+                return None;
+            }
         }
-        match report {
-            err @ BadF(_) if self.c.get_verbosity().all_err => Some(err),
-            BadF(_) => self.err().to_any(),
+        match mem::take(&mut self.report) {
+            BadF(_) => self
+                .c
+                .no_match_any_report(|| MatchProblem::RegexMismatch(self.expr.into())),
             non_bad => Some(non_bad),
         }
     }
 
-    /// Fail on mismatch.
-    pub fn check_strict(&mut self, mut walker: Walker<'a>) -> AnyReport {
-        let next = walker.next()?; // Empty regex matches anything.
-        self.check_next(walker, next).to_any()
-    }
-
-    pub fn check_next(
-        &mut self,
-        walker: Walker<'a>,
-        next: Result<Event<'a>, InterpretErr>,
-    ) -> AllReport {
-        let next = match next {
-            Ok(n) => n,
-            Err(err) => return self.handle_interpret_err(err),
-        };
-        match next {
-            Literal(literal) => self.handle_literal(walker, literal),
-            Permit(permit) => self.handle_permit(walker, permit),
-            RangeEnd => unreachable!("`RangeEnd` should be handled only in `handle_permit_loose`"),
-            Start => self.handle_start(walker),
-            End => self.handle_end(walker),
-            Repeat {
-                min,
-                max,
-                greedy,
-                walker: new_walker,
-            } => self.handle_repeat(walker, new_walker, min, max, greedy),
-            Or(or_walker) => self.handle_or(walker, or_walker),
-        }
-    }
-
-    fn handle_literal(&mut self, walker: Walker<'a>, literal: AsOrSet<'a>) -> AllReport {
-        let report = match self.expect_next_asn() {
-            Ok(asn) => self.handle_literal_and_asn(literal, asn)?,
-            Err(err) => return err,
-        };
-        Ok(report & self.check_strict(walker).to_all()?)
-    }
-
-    fn handle_literal_and_asn(&self, literal: AsOrSet<'a>, asn: u64) -> AllReport {
-        match literal {
-            AsSet(set) => self.handle_literal_set(asn, set),
-            AsNum(n) if asn == n => Ok(OkT),
-            AsNum(n) => self.err(),
-        }
-    }
-
-    fn handle_literal_set(&self, asn: u64, set: &str) -> AllReport {
-        match self.c.set_has_member(set, asn) {
-            Ok(true) => Ok(OkT),
-            Ok(false) => self.err(),
-            Err(skip) => skip.to_all(),
-        }
-    }
-
-    fn handle_permit(&mut self, walker: Walker<'a>, permit: AsOrSet<'a>) -> AllReport {
-        let asn = match self.expect_next_asn() {
-            Ok(n) => n,
-            Err(err) => return err,
-        };
-        self.handle_range(walker, permit, asn).to_all()
-    }
-
-    fn handle_range(
-        &mut self,
-        mut walker: Walker<'a>,
-        mut permit: AsOrSet<'a>,
-        asn: u64,
-    ) -> AnyReport {
-        let mut report = SkipF(vec![]);
-        loop {
-            match self.handle_literal_and_asn(permit, asn).to_any() {
-                Some(new_report) => {
-                    report |= new_report;
-                }
-                None => {
-                    walker.skip_ranges();
-                    return self.check_strict(walker);
-                }
-            }
-            match walker.next() {
-                Some(Ok(Permit(p))) => permit = p,
-                Some(Ok(RangeEnd)) => break,
-                Some(Err(err)) => return self.handle_interpret_err(err).to_any(),
-                _ => unreachable!("only `Permit` and `RangeEnd` should follow `Permit`"),
+    /// chars corresponding to `asn`.
+    /// Unrecorded ASNs are assigned `X` to avoid being matched.
+    pub fn asn_chars(&mut self, asn: u64) -> Vec<char> {
+        let mut result: Vec<_> = self.interpreter.get_asn(asn).into_iter().collect();
+        for (set, c) in self.interpreter.as_sets_with_char() {
+            match self.c.set_has_member(set, asn) {
+                Ok(true) => result.push(c),
+                Ok(false) => (),
+                Err(r) => self.report |= r.unwrap(),
             }
         }
-        match report {
-            SkipF(items) if items.is_empty() => self.err().to_any(),
-            skips => Some(skips | self.check_strict(walker)?),
+        if result.is_empty() {
+            vec!['X']
+        } else {
+            result
         }
     }
 
-    fn handle_start(&mut self, walker: Walker<'a>) -> AllReport {
-        let report = self.check_strict(walker).to_all();
-        self.full_path = &[]; // Prevent `self.check` from continuing.
-        report
-    }
-
-    fn handle_end(&self, walker: Walker) -> AllReport {
-        match self.path.last() {
-            Some(_) => self.err(),
-            None => Ok(OkT),
-        }
-    }
-
-    fn handle_repeat(
-        &self,
-        walker: Walker,
-        new_walker: Walker,
-        min: u32,
-        max: Option<u32>,
-        greedy: bool,
-    ) -> AllReport {
-        todo!()
-    }
-
-    fn handle_or(&self, walker: Walker, or_walker: Walker) -> AllReport {
-        todo!()
-    }
-
-    fn expect_next_asn(&self) -> Result<u64, AllReport> {
-        match self.path.last() {
-            Some(AsPathEntry::Seq(n)) => Ok(*n),
-            Some(_) => Err(self.path_with_set()),
-            None => Err(self.err()),
-        }
-    }
-
-    fn handle_interpret_err(&self, err: InterpretErr) -> AllReport {
-        match err {
-            HasTilde => unreachable!("We checked `~` before"),
-            InvalidRegex => self.regex_err(),
-            UnknownChar | HadErr => self.unhandled(),
-        }
-    }
-
-    fn regex_err(&self) -> AllReport {
-        self.c
-            .bad_rpsl_all_report(|| RpslError::InvalidAsRegex(self.expr()))
-    }
-
-    fn unhandled(&self) -> AllReport {
-        self.c
-            .skip_all_report(|| SkipReason::AsRegexUnhandled(self.expr()))
-    }
-
-    fn path_with_set(&self) -> AllReport {
-        self.c.skip_all_report(|| SkipReason::AsRegexPathWithSet)
-    }
-
-    fn err(&self) -> AllReport {
-        self.c
-            .no_match_all_report(|| MatchProblem::RegexMismatch(self.expr()))
-    }
-
-    pub fn expr(&self) -> String {
-        self.expr.into()
-    }
-
-    pub fn new(compliance: &'a Compliance<'a>, expr: &'a str, as_path: &'a [AsPathEntry]) -> Self {
+    pub fn new(compliance: &'a Compliance<'a>, interpreter: Interpreter, expr: &'a str) -> Self {
         Self {
             c: compliance,
+            interpreter,
             expr,
-            full_path: as_path,
-            path: as_path,
+            report: BadF(vec![]),
         }
     }
 }

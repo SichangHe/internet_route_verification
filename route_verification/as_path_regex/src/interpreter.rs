@@ -1,5 +1,3 @@
-use lazy_regex::Regex;
-
 use super::*;
 
 #[derive(Debug)]
@@ -12,11 +10,36 @@ pub enum AsOrSet<'a> {
 pub struct Interpreter {
     sets: CharMap<String>,
     ans: CharMap<u64>,
-    expr: Regex,
+    peer_as_char: char,
+    has_as_peering: bool,
+    expr: String,
 }
 
 impl Interpreter {
-    pub fn regex(&self) -> &Regex {
+    pub fn run(&mut self, s: &str) -> Res<&str> {
+        if s.contains('~') {
+            return Err(InterpretErr::HasTilde);
+        }
+        self.sets.next = self.next();
+        let s = as_set_replace_all(s, self.sets.by_ref());
+        self.ans.next = self.next();
+        let s = as_replace_all(&s, self.ans.by_ref());
+        let replacer = self.peer_as_char.to_string();
+        let expr = peer_as_replace_all(&s, replacer);
+        self.has_as_peering = s != expr;
+        self.expr = expr.replace(' ', "");
+        Ok(&self.expr)
+    }
+
+    pub fn as_peering_char(&self) -> char {
+        self.peer_as_char
+    }
+
+    pub fn has_as_peering(&self) -> bool {
+        self.has_as_peering
+    }
+
+    pub fn expr(&self) -> &str {
         &self.expr
     }
 
@@ -37,7 +60,7 @@ impl Interpreter {
     }
 
     /// ASN or AS set corresponding to `c`.
-    pub fn get_char(&self, c: char) -> Result<AsOrSet, InterpretErr> {
+    pub fn get_char(&self, c: char) -> Res<AsOrSet> {
         if let Some(s) = self.sets.get(c) {
             return Ok(AsOrSet::AsSet(s));
         }
@@ -47,31 +70,26 @@ impl Interpreter {
         Err(InterpretErr::UnknownChar)
     }
 
-    pub fn least_char(&self) -> char {
-        // SAFETY: This interpreter is fine from `from_str`.
-        unsafe { char::from_u32_unchecked(self.sets.start) }
+    pub fn start(&self) -> u32 {
+        self.sets.start.min(self.ans.start)
     }
 
-    pub fn largest_char(&self) -> char {
-        // SAFETY: This interpreter is fine from `from_str`.
-        unsafe { char::from_u32_unchecked(self.ans.next - 1) }
+    pub fn next(&self) -> u32 {
+        self.sets.next.max(self.ans.next)
     }
-}
 
-impl FromStr for Interpreter {
-    type Err = InterpretErr;
+    pub const fn new() -> Self {
+        Self::new_with_peer_as_char(PEER_AS_CHAR)
+    }
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.contains('~') {
-            return Err(InterpretErr::HasTilde);
+    pub const fn new_with_peer_as_char(peer_as_char: char) -> Self {
+        Self {
+            sets: CharMap::new_from_alpha(),
+            ans: CharMap::new_from_alpha(),
+            peer_as_char,
+            has_as_peering: false,
+            expr: String::new(),
         }
-        let mut sets = CharMap::new_from_alpha();
-        let s = as_set_replace_all(s, sets.by_ref());
-        let mut ans = CharMap::new(sets.next);
-        let s = as_replace_all(&s, ans.by_ref());
-        let s = s.replace(' ', "");
-        let expr = Regex::new(&s).map_err(|_| InterpretErr::InvalidRegex)?;
-        Ok(Self { sets, ans, expr })
     }
 }
 
@@ -84,3 +102,7 @@ pub enum InterpretErr {
     #[error("encountered unknown character")]
     UnknownChar,
 }
+
+pub const PEER_AS_CHAR: char = 'Å';
+
+pub type Res<T> = Result<T, InterpretErr>;

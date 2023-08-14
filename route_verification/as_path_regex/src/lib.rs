@@ -1,4 +1,4 @@
-use std::{borrow::Cow, str::FromStr};
+use std::borrow::Cow;
 
 use lazy_regex::{regex_replace_all, Captures};
 use thiserror::Error;

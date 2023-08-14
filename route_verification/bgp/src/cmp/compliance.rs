@@ -9,6 +9,7 @@ pub struct Compliance<'a> {
     pub export: bool,
     pub prev_path: &'a [AsPathEntry],
 }
+
 impl<'a> Compliance<'a> {
     pub fn check(&self, policy: &Versions) -> AnyReport {
         Some(
@@ -47,53 +48,23 @@ impl<'a> Compliance<'a> {
             })?,
             None => OkT,
         };
-        let filter_report = self
-            .check_filter(&entry.mp_filter, self.cmp.recursion_limit)
-            .to_all()
-            .map_err(|mut report| {
-                if self.cmp.verbosity.per_entry_err {
-                    report.push(NoMatch(Filter));
-                }
-                report
-            })?;
-        Ok(peering_report & filter_report)
-    }
-
-    /// `Err` contains all the skips.
-    pub fn set_has_member(
-        &self,
-        set: &'a str,
-        asn: u64,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-    ) -> Result<bool, AnyReport> {
-        if depth < 0 {
-            return Err(recursion_any_report(RecurSrc::CheckSetMember(set.into())));
+        let filter_report = CheckFilter {
+            cmp: self.cmp,
+            dump: self.dump,
+            self_num: self.self_num,
+            export: self.export,
+            prev_path: self.prev_path,
+            mp_peerings: &entry.mp_peerings,
         }
-        let hash = visited.make_hash(&set);
-        if visited.contains_with_hash(&set, hash) {
-            return Err(failed_any_report());
-        }
-        let as_set = match self.dump.as_sets.get(set) {
-            Some(s) => s,
-            None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
-        };
-        if as_set.members.contains(&asn) {
-            return Ok(true);
-        }
-        let mut report = SkipF(vec![]);
-        visited.insert_with_hash(set, hash);
-        for set in &as_set.set_members {
-            match self.set_has_member(set, asn, depth - 1, visited) {
-                Ok(true) => return Ok(true),
-                Ok(false) => (),
-                Err(err) => report |= err.unwrap(),
+        .check_filter(&entry.mp_filter, self.cmp.recursion_limit)
+        .to_all()
+        .map_err(|mut report| {
+            if self.cmp.verbosity.per_entry_err {
+                report.push(NoMatch(Filter));
             }
-        }
-        match report {
-            SkipF(items) if items.is_empty() => Ok(false),
-            report => Err(Some(report)),
-        }
+            report
+        })?;
+        Ok(peering_report & filter_report)
     }
 }
 

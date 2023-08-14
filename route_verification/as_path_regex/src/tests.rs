@@ -52,6 +52,7 @@ const AS_SET_REGEXES: [(&str, &str, &[&str]); 3] = [
 
 #[test]
 fn interpret_w_tilde() {
-    let interpreter = AS_SET_REGEXES[2].0.parse::<Interpreter>().unwrap_err();
-    assert_eq!(interpreter, InterpretErr::HasTilde);
+    let mut interpreter = Interpreter::new();
+    let actual = interpreter.run(AS_SET_REGEXES[2].0).unwrap_err();
+    assert_eq!(actual, InterpretErr::HasTilde);
 }

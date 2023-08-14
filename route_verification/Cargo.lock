@@ -800,9 +800,9 @@ dependencies = [
 
 [[package]]
 name = "lazy-regex"
-version = "3.0.0"
+version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a10cfecab9e7e81981b6547d87bd96c38fd90b2d4cfdc79638d91bebfd2568f5"
+checksum = "57451d19ad5e289ff6c3d69c2a2424652995c42b79dafa11e9c4d5508c913c01"
 dependencies = [
  "lazy-regex-proc_macros",
  "once_cell",
@@ -811,14 +811,14 @@ dependencies = [
 
 [[package]]
 name = "lazy-regex-proc_macros"
-version = "3.0.0"
+version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f746dfdd89dad7e689ed6542d65eb11f5af3e52d92708db74700b4449e2d558"
+checksum = "0f0a1d9139f0ee2e862e08a9c5d0ba0470f2aa21cd1e1aa1b1562f83116c725f"
 dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "syn 1.0.109",
+ "syn 2.0.26",
 ]
 
 [[package]]
@@ -1581,6 +1581,7 @@ dependencies = [
  "net-literals",
  "polars",
  "rayon",
+ "route_verification_as_path_regex",
  "route_verification_as_rel",
  "route_verification_bgp",
  "route_verification_bloom",
@@ -1588,6 +1589,15 @@ dependencies = [
  "route_verification_irr",
  "route_verification_lex",
  "route_verification_parse",
+]
+
+[[package]]
+name = "route_verification_as_path_regex"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "lazy-regex",
+ "thiserror",
 ]
 
 [[package]]
@@ -1608,9 +1618,11 @@ dependencies = [
  "dashmap",
  "hashbrown 0.14.0",
  "ipnet",
+ "itertools",
  "lazy-regex",
  "maplit",
  "rayon",
+ "route_verification_as_path_regex",
  "route_verification_as_rel",
  "route_verification_bgpmap",
  "route_verification_bloom",
@@ -1990,18 +2002,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.43"
+version = "1.0.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a35fc5b8971143ca348fa6df4f024d4d55264f3468c71ad1c2f365b0a4d58c42"
+checksum = "611040a08a0439f8248d1990b111c95baa9c704c805fa1f62104b39655fd7f90"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.43"
+version = "1.0.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "463fe12d7993d3b327787537ce8dd4dfa058de32fc2b195ef3cde03dc4771e8f"
+checksum = "090198534930841fab3a5d1bb637cde49e339654e606195f8d9c76eeb081dc96"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -3,7 +3,16 @@ use parse::{Filter::*, *};
 
 use super::*;
 
-impl<'a> Compliance<'a> {
+pub struct CheckFilter<'a> {
+    pub cmp: &'a Compare,
+    pub dump: &'a QueryDump,
+    pub self_num: u64,
+    pub export: bool,
+    pub prev_path: &'a [AsPathEntry],
+    pub mp_peerings: &'a [PeeringAction],
+}
+
+impl<'a> CheckFilter<'a> {
     pub fn check_filter(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::CheckFilter);
@@ -15,7 +24,7 @@ impl<'a> Compliance<'a> {
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
             AsSet(name, op) => self.filter_as_set(name, *op, depth, &mut visited()),
-            AsPathRE(expr) => self.filter_as_regex(expr),
+            AsPathRE(expr) => self.filter_as_regex(expr, depth),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
             Not(filter) => self.filter_not(filter, depth),
@@ -180,9 +189,26 @@ impl<'a> Compliance<'a> {
         }
     }
 
-    fn filter_as_regex(&self, expr: &str) -> AnyReport {
-        // TODO: Implement.
-        self.skip_any_report(|| SkipReason::AsRegexUnimplemented(expr.into()))
+    /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
+    fn filter_as_regex(&self, expr: &str, depth: isize) -> AnyReport {
+        let path = self.prev_path.iter().rev();
+        let path = match path
+            .map(|p| match p {
+                Seq(n) => Ok(*n),
+                Set(_) => Err(()),
+            })
+            .collect::<Result<Vec<_>, _>>()
+        {
+            Ok(p) => p,
+            Err(_) => return self.skip_any_report(|| SkipReason::AsRegexPathWithSet),
+        };
+        AsRegex {
+            c: self,
+            interpreter: Interpreter::new(),
+            expr,
+            report: BadF(vec![]),
+        }
+        .check(path, depth)
     }
 
     fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
@@ -226,8 +252,51 @@ impl<'a> Compliance<'a> {
     fn invalid_filter(&self, reason: &str) -> AnyReport {
         self.bad_rpsl_any_report(|| RpslError::InvalidFilter(reason.into()))
     }
+
+    /// `Err` contains all the skips.
+    pub fn set_has_member(
+        &self,
+        set: &'a str,
+        asn: u64,
+        depth: isize,
+        visited: &mut BloomHashSet<&'a str>,
+    ) -> Result<bool, AnyReport> {
+        if depth < 0 {
+            return Err(recursion_any_report(RecurSrc::CheckSetMember(set.into())));
+        }
+        let hash = visited.make_hash(&set);
+        if visited.contains_with_hash(&set, hash) {
+            return Err(failed_any_report());
+        }
+        let as_set = match self.dump.as_sets.get(set) {
+            Some(s) => s,
+            None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
+        };
+        if as_set.members.contains(&asn) {
+            return Ok(true);
+        }
+        let mut report = SkipF(vec![]);
+        visited.insert_with_hash(set, hash);
+        for set in &as_set.set_members {
+            match self.set_has_member(set, asn, depth - 1, visited) {
+                Ok(true) => return Ok(true),
+                Ok(false) => (),
+                Err(err) => report |= err.unwrap(),
+            }
+        }
+        match report {
+            SkipF(items) if items.is_empty() => Ok(false),
+            report => Err(Some(report)),
+        }
+    }
 }
 
-fn visited<'a>() -> BloomHashSet<&'a str> {
+impl<'a> VerbosityReport for CheckFilter<'a> {
+    fn get_verbosity(&self) -> Verbosity {
+        self.cmp.verbosity
+    }
+}
+
+pub(crate) fn visited<'a>() -> BloomHashSet<&'a str> {
     BloomHashSet::with_capacity(16384, 262144)
 }

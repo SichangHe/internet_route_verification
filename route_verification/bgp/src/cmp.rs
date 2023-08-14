@@ -1,21 +1,24 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
+use as_path_regex::interpreter::{InterpretErr::*, Interpreter};
 use ipnet::*;
 use parse::*;
 
 use super::*;
 
 use {
-    AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
-    SkipReason::*, SpecialCase::*,
+    as_regex::AsRegex, AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*,
+    SkipFBad::*, SkipReason::*, SpecialCase::*,
 };
 
+pub mod as_regex;
 mod compliance;
 mod filter;
 mod hill;
 mod peering;
 
-pub use {compliance::*, filter::*, peering::*};
+pub(crate) use filter::*;
+pub use {compliance::*, peering::*};
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
@@ -61,18 +64,18 @@ impl Compare {
     /// Check `self` against RPSL policy `dump` and generate reports.
     /// Depending on which [`Verbosity`] `self.verbose` is set to,
     /// the reports have different levels of details.
-    /// If `verbosity.stop_at_err`, stops at the first erroneous AS pair.
+    /// If `verbosity.stop_at_first`, stops at the first report.
     pub fn check(&self, dump: &QueryDump) -> Vec<Report> {
         if self.as_path.len() == 1 {
             return self.check_last_export(dump).into_iter().collect();
         }
 
         let mut reports = Vec::with_capacity(self.as_path.len() << 1);
-        let reverse_as_path = self.as_path.iter().rev();
+        let path = self.as_path.iter().rev();
         // Iterate the pairs in `as_path` from right to left, with overlaps.
-        for (from, to) in reverse_as_path.clone().zip(reverse_as_path.skip(1)) {
+        for ((index, from), to) in path.clone().enumerate().zip(path.skip(1)) {
             if let (Seq(from), Seq(to)) = (from, to) {
-                let r = self.check_pair(dump, *from, *to);
+                let r = self.check_pair(dump, *from, *to, &self.as_path[index..]);
                 if !r.is_empty() {
                     reports.extend(r);
                     if self.verbosity.stop_at_first {
@@ -93,7 +96,7 @@ impl Compare {
     pub fn check_last_export(&self, dump: &QueryDump) -> Option<Report> {
         match self.as_path.last()? {
             Seq(from) => match dump.aut_nums.get(from) {
-                Some(from_an) => self.check_export(dump, from_an, *from, None),
+                Some(from_an) => self.check_export(dump, from_an, *from, None, &[]),
                 None => self.verbosity.show_skips.then(|| {
                     let items = aut_num_unrecorded_items(*from);
                     SkipSingleExport { from: *from, items }
@@ -106,9 +109,16 @@ impl Compare {
         }
     }
 
-    pub fn check_pair(&self, dump: &QueryDump, from: u64, to: u64) -> Vec<Report> {
+    /// `prev_path` is previous path for `to`.
+    pub fn check_pair(
+        &self,
+        dump: &QueryDump,
+        from: u64,
+        to: u64,
+        prev_path: &[AsPathEntry],
+    ) -> Vec<Report> {
         let from_report = match dump.aut_nums.get(&from) {
-            Some(from_an) => self.check_export(dump, from_an, from, Some(to)),
+            Some(from_an) => self.check_export(dump, from_an, from, Some(to), prev_path),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(from);
                 SkipExport { from, to, items }
@@ -119,7 +129,7 @@ impl Compare {
             (from_report, _) => from_report,
         };
         let to_report = match dump.aut_nums.get(&to) {
-            Some(to_an) => self.check_import(dump, to_an, from, to),
+            Some(to_an) => self.check_import(dump, to_an, from, to, prev_path),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(to);
                 SkipImport { from, to, items }
@@ -134,6 +144,7 @@ impl Compare {
         from_an: &AutNum,
         from: u64,
         to: Option<u64>,
+        prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if from_an.exports.is_default() {
             return self.verbosity.show_skips.then(|| {
@@ -150,6 +161,7 @@ impl Compare {
             accept_num: to,
             self_num: from,
             export: true,
+            prev_path: &prev_path[prev_path.len().min(1)..],
         })
         .check(&from_an.exports)
         {
@@ -184,6 +196,7 @@ impl Compare {
         to_an: &AutNum,
         from: u64,
         to: u64,
+        prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if to_an.imports.is_default() {
             return self.verbosity.show_skips.then(|| SkipImport {
@@ -198,6 +211,7 @@ impl Compare {
             accept_num: Some(from),
             self_num: to,
             export: false,
+            prev_path,
         })
         .check(&to_an.imports)
         {

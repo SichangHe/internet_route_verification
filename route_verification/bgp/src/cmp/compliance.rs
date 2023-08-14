@@ -6,7 +6,9 @@ pub struct Compliance<'a> {
     pub accept_num: Option<u64>,
     pub self_num: u64,
     pub export: bool,
+    pub prev_path: &'a [AsPathEntry],
 }
+
 impl<'a> Compliance<'a> {
     pub fn check(&self, policy: &Versions) -> AnyReport {
         Some(
@@ -45,15 +47,22 @@ impl<'a> Compliance<'a> {
             })?,
             None => OkT,
         };
-        let filter_report = self
-            .check_filter(&entry.mp_filter, self.cmp.recursion_limit)
-            .to_all()
-            .map_err(|mut report| {
-                if self.cmp.verbosity.per_entry_err {
-                    report.push(NoMatch(Filter));
-                }
-                report
-            })?;
+        let filter_report = CheckFilter {
+            cmp: self.cmp,
+            dump: self.dump,
+            self_num: self.self_num,
+            export: self.export,
+            prev_path: self.prev_path,
+            mp_peerings: &entry.mp_peerings,
+        }
+        .check_filter(&entry.mp_filter, self.cmp.recursion_limit)
+        .to_all()
+        .map_err(|mut report| {
+            if self.cmp.verbosity.per_entry_err {
+                report.push(NoMatch(Filter));
+            }
+            report
+        })?;
         Ok(peering_report & filter_report)
     }
 }

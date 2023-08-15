@@ -11,7 +11,7 @@ pub struct Interpreter {
     sets: CharMap<String>,
     ans: CharMap<u64>,
     peer_as_char: char,
-    has_as_peering: bool,
+    has_peer_as: bool,
     expr: String,
 }
 
@@ -26,7 +26,7 @@ impl Interpreter {
         let s = as_replace_all(&s, self.ans.by_ref());
         let replacer = self.peer_as_char.to_string();
         let expr = peer_as_replace_all(&s, replacer);
-        self.has_as_peering = s != expr;
+        self.has_peer_as = s != expr;
         self.expr = expr.replace(' ', "");
         Ok(&self.expr)
     }
@@ -35,8 +35,8 @@ impl Interpreter {
         self.peer_as_char
     }
 
-    pub fn has_as_peering(&self) -> bool {
-        self.has_as_peering
+    pub fn has_peer_as(&self) -> bool {
+        self.has_peer_as
     }
 
     pub fn expr(&self) -> &str {
@@ -87,7 +87,7 @@ impl Interpreter {
             sets: CharMap::new_from_alpha(),
             ans: CharMap::new_from_alpha(),
             peer_as_char,
-            has_as_peering: false,
+            has_peer_as: false,
             expr: String::new(),
         }
     }

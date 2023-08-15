@@ -28,7 +28,7 @@ impl<'a> AsRegex<'a> {
         };
         let peer_as_filter = self
             .interpreter
-            .has_as_peering()
+            .has_peer_as()
             .then(|| peer_as_filter(self.c.mp_peerings));
         let replacements: Vec<_> = path
             .iter()

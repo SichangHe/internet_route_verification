@@ -35,6 +35,37 @@ impl<T> CharMap<T> {
         self.char_map.get((c as u32 - self.start) as usize)
     }
 
+    /// Find the char corresponding to `e`, or add it if it has been encountered.
+    pub fn find_char_or_push<E>(&mut self, e: E) -> char
+    where
+        E: PartialEq<T> + Into<T> + Clone,
+    {
+        let c = self.find_char(e.clone());
+        match c {
+            Some(c) => c,
+            None => self.push(e.into()),
+        }
+    }
+
+    /// Find the char corresponding to `e`, if it has been encountered.
+    pub fn find_char<E>(&self, e: E) -> Option<char>
+    where
+        E: PartialEq<T>,
+    {
+        let position = self.char_map.iter().position(|t| e == *t);
+        // SAFETY: We encountered this index before and it was a valid char.
+        position.map(|index| unsafe { char::from_u32_unchecked(index as u32 + self.start) })
+    }
+
+    /// Add new element and give it a new char.
+    pub fn push(&mut self, e: T) -> char {
+        self.char_map.push(e);
+        // SAFETY: `self.next` is small enough.
+        let c = unsafe { char::from_u32_unchecked(self.next) };
+        self.next += 1;
+        c
+    }
+
     pub const fn new(start: u32) -> Self {
         Self::new_with_char_map(start, Vec::new())
     }
@@ -55,24 +86,17 @@ impl<T> CharMap<T> {
 
 impl Replacer for CharMap<String> {
     fn replace_append(&mut self, caps: &Captures<'_>, dst: &mut String) {
-        self.char_map.push(caps[0].to_owned());
-        // SAFETY: Number of captures is small so `self.next` is small enough.
-        let c = unsafe { char::from_u32_unchecked(self.next) };
-        self.next += 1;
+        let c = self.find_char_or_push(&caps[0]);
         dst.push(c);
     }
 }
 
 impl Replacer for CharMap<u64> {
     fn replace_append(&mut self, caps: &Captures<'_>, dst: &mut String) {
-        self.char_map.push(
-            caps[0][2..]
-                .parse()
-                .expect(r"expecting `caps[0]` to be `AS\d+`"),
-        );
-        // SAFETY: Number of captures is small so `self.next` is small enough.
-        let c = unsafe { char::from_u32_unchecked(self.next) };
-        self.next += 1;
+        let capture: u64 = caps[0][2..]
+            .parse()
+            .expect(r"expecting `caps[0]` to be `AS\d+`");
+        let c = self.find_char_or_push(capture);
         dst.push(c);
     }
 }

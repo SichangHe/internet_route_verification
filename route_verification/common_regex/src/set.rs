@@ -30,10 +30,10 @@ pub const ASN: &str = "as[0-9]+";
 
 macro_rules! set_of {
     ($base:expr, $or_name:ident, $set_name:ident, $doc:expr) => {
-        pub const $or_name: &str = formatcp!("(?:{})|(?:{})", $base, ASN);
+        pub const $or_name: &str = formatcp!("(?:{}|{})", $base, ASN);
 
         #[doc = $doc]
-        pub const $set_name: &str = formatcp!("(?:{}:)*{}(?::{})", $or_name, $base, $or_name);
+        pub const $set_name: &str = formatcp!("(?:{}:)*{}(?::{})*", $or_name, $base, $or_name);
     };
 }
 
@@ -46,7 +46,7 @@ pub const ANY: &str = "any";
 pub const PEERAS: &str = "peeras";
 
 /// Base AS Set name, including `peeras`.
-pub const AS_SET_BASE: &str = formatcp!("(?:as-{})|(?:{})", OBJECT_NAME, PEERAS);
+pub const AS_SET_BASE: &str = formatcp!("(?:as-{}|{})", OBJECT_NAME, PEERAS);
 
 set_of!(
     AS_SET_BASE,

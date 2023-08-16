@@ -1617,7 +1617,6 @@ name = "route_verification_as_path_regex"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "lazy-regex",
  "route_verification_common_regex",
  "thiserror",
 ]

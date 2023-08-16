@@ -1,14 +1,11 @@
 use std::borrow::Cow;
 
-use lazy_regex::{regex_replace_all, Captures};
+use common_regex::*;
 use thiserror::Error;
 
 use char_map::*;
 
-pub use {
-    interpreter::{InterpretErr, Interpreter},
-    lazy_regex::regex::Replacer,
-};
+pub use interpreter::{InterpretErr, Interpreter};
 
 pub mod char_map;
 pub mod interpreter;

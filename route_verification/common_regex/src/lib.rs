@@ -1,6 +1,6 @@
 pub use const_format::formatcp;
 pub use once_cell::sync::{Lazy, OnceCell};
-pub use regex::{Regex, RegexBuilder};
+pub use regex::{Captures, Regex, RegexBuilder, Replacer};
 
 pub mod set;
 #[cfg(test)]

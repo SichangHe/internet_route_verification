@@ -9,5 +9,7 @@ edition = "2021"
 lazy-regex = "3.0.1"
 thiserror = "1.0.44"
 
+common_regex = { package = "route_verification_common_regex", path = "../common_regex" }
+
 [dev-dependencies]
 anyhow = "1.0.72"

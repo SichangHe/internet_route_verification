@@ -1,7 +1,6 @@
 use std::convert::identity;
 
 use ::lex::{mp_import, peering};
-use lazy_regex::regex_is_match;
 use serde_with::skip_serializing_none;
 
 use super::*;
@@ -40,7 +39,7 @@ pub fn parse_mp_peering(mp_peering: peering::Peering) -> Peering {
 }
 
 pub fn is_peering_set(field: &str) -> bool {
-    regex_is_match!(r"^(AS\d+:)?prng-\S+$"i, field)
+    regex!(formatcp!("^{}$", PEERING_SET)).is_match(field)
 }
 
 pub fn parse_as_expr(as_expr: peering::AsExpr) -> AsExpr {

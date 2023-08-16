@@ -1,6 +1,4 @@
 use self::lex::parse_aut_num_name;
-use lazy_regex::regex_is_match;
-
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -25,5 +23,5 @@ pub fn parse_as_name(field: String) -> Result<AsName> {
 }
 
 pub fn is_as_set(field: &str) -> bool {
-    regex_is_match!(r"^(AS\d+:)?AS-\S+$"i, field)
+    regex!(formatcp!("^{}$", AS_SET)).is_match(field)
 }

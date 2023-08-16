@@ -1,4 +1,4 @@
-use lazy_regex::{regex_captures, regex_is_match};
+use lazy_regex::regex_captures;
 
 use super::*;
 
@@ -26,7 +26,7 @@ impl AsSet {
 }
 
 pub fn is_route_set_name(attr: &str) -> bool {
-    regex_is_match!(r"^(AS\d+:)?rs-\S+$"i, attr)
+    regex!(formatcp!("^{}$", ROUTE_SET)).is_match(attr)
 }
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.2>

@@ -58,7 +58,7 @@ pub fn is_any(attr: &str) -> bool {
 }
 
 pub fn is_filter_set(attr: &str) -> bool {
-    regex_is_match!(r"^(AS\d+:)?fltr-\S+$"i, attr)
+    regex!(formatcp!("^{}$", FILTER_SET)).is_match(attr)
 }
 
 /// Process a `PeerAS` filter.
@@ -94,29 +94,33 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
 }
 
 pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
-    regex_captures!(r"^((?:AS\d+:)?rs-[^\s\^]+)(\^[+-])?$"i, attr).and_then(
-        |(_, name, operator)| {
+    regex!(formatcp!(r"^({})(\^[+-])?$", ROUTE_SET))
+        .captures(attr)
+        .and_then(|caps| {
+            let name = &caps[1];
+            let operator = &caps[2];
             operator
                 .parse()
                 .ok()
                 .map(|op| Filter::RouteSet(name.into(), op))
-        },
-    )
+        })
 }
 
 pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
-    regex_captures!(r"^((?:AS\d+:)?AS-[^\s\^]+)(\^[+-])?$"i, attr).and_then(
-        |(_, name, operator)| {
+    regex!(formatcp!(r"^({})(\^[+-])?$", AS_SET))
+        .captures(attr)
+        .and_then(|caps| {
+            let name = &caps[1];
+            let operator = &caps[2];
             operator
                 .parse()
                 .ok()
                 .map(|op| Filter::AsSet(name.into(), op))
-        },
-    )
+        })
 }
 
 pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
-    regex_captures!(r"^AS(\d+)(\^[+-])?$"i, attr).and_then(|(_, number, operator)| {
+    regex_captures!(r"^AS([0-9]+)(\^[+-])?$"i, attr).and_then(|(_, number, operator)| {
         operator
             .parse()
             .ok()

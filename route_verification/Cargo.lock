@@ -1730,6 +1730,7 @@ dependencies = [
  "maplit",
  "net-literals",
  "rayon",
+ "route_verification_common_regex",
  "route_verification_io",
  "route_verification_lex",
  "serde",

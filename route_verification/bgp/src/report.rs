@@ -121,6 +121,7 @@ pub enum SkipReason {
     AsRegexPathWithSet,
     SkippedNotFilterResult,
     CommunityCheckUnimplemented(Call),
+    UnknownFilter(String),
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,
     AutNumUnrecorded(u64),

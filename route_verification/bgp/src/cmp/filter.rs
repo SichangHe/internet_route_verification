@@ -30,6 +30,7 @@ impl<'a> CheckFilter<'a> {
             Not(filter) => self.filter_not(filter, depth),
             Group(filter) => self.check_filter(filter, depth),
             Community(community) => self.filter_community(community),
+            Unknown(unknown) => self.skip_any_report(|| UnknownFilter(unknown.into())),
             Invalid(reason) => self.invalid_filter(reason),
         }
     }

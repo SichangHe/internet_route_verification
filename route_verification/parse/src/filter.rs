@@ -1,5 +1,6 @@
 use ::lex::{self, Call};
 use lazy_regex::{regex_captures, regex_is_match};
+use log::warn;
 
 use super::*;
 use RangeOperator::NoOp;
@@ -38,8 +39,6 @@ pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filt
         Filter::Any
     } else if regex_is_match!(r"^peeras$"i, &attr) {
         peer_as_filter(mp_peerings)
-    } else if attr.ends_with("^-") || attr.ends_with("^+") {
-        Filter::AsPathRE(attr)
     } else if is_filter_set(&attr) {
         Filter::FilterSet(attr)
     } else if let Some(filter) = try_parse_route_set(&attr) {
@@ -49,7 +48,8 @@ pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filt
     } else if let Some(filter) = try_parse_as_num(&attr) {
         filter
     } else {
-        Filter::AsPathRE(attr)
+        warn!("parse_path_attribute: Unknown filter: {attr}.");
+        Filter::Unknown(attr)
     }
 }
 
@@ -87,9 +87,13 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
                 Filter::Invalid(err)
             }
         },
-        _ => Filter::Invalid(format!(
-            "using PeerAs but mp-peerings {mp_peerings:?} are not a single AS expression"
-        )),
+        _ => {
+            let err = format!(
+                "Using PeerAs but mp-peerings {mp_peerings:?} are not a single AS expression"
+            );
+            error!("peer_as_filter: {err})");
+            Filter::Invalid(err)
+        }
     }
 }
 
@@ -174,9 +178,6 @@ pub enum Filter {
     /// >    enclosing the expression in '<' and '>'.  An AS-path policy filter
     /// >    matches the set of routes which traverses a sequence of ASes
     /// >    matched by the AS-path regular expression.
-    ///
-    // TODO: Is this true?
-    /// We also throw unrecognized filters under this.
     AsPathRE(String),
     And {
         left: Box<Filter>,
@@ -189,6 +190,7 @@ pub enum Filter {
     Not(Box<Filter>),
     Group(Box<Filter>),
     Community(Call),
+    Unknown(String),
     Invalid(String),
 }
 
@@ -237,6 +239,7 @@ impl std::fmt::Debug for Filter {
             Not(arg0) => f.debug_tuple("Not").field(arg0).finish(),
             Group(arg0) => f.debug_tuple("Group").field(arg0).finish(),
             Community(arg0) => f.debug_tuple("Community").field(arg0).finish(),
+            Unknown(arg0) => f.debug_tuple("Unknown").field(arg0).finish(),
             Invalid(arg0) => f.debug_tuple("Invalid").field(arg0).finish(),
         }
     }

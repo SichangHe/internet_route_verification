@@ -78,6 +78,28 @@ pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
     }
 }
 
+/// >  The syntax of a peering specification is:
+/// >
+/// >  <as-expression> [<router-expression-1>] [at <router-expression-2>]
+/// > | <peering-set-name>
+/// >
+/// >  where <as-expression> is an expression over AS numbers and AS sets
+/// >  using operators AND, OR, and EXCEPT, and <router-expression-1> and
+/// >  <router-expression-2> are expressions over router IP addresses,
+/// >  inet-rtr names, and rtr-set names using operators AND, OR, and
+/// >  EXCEPT.  The binary "EXCEPT" operator is the set subtraction
+/// >  operator and has the same precedence as the operator AND (it is
+/// >  semantically equivalent to "AND NOT" combination).  That is "(AS1
+/// >  OR AS2) EXCEPT AS2" equals "AS1".
+/// >
+/// >  This form identifies all the peerings between any local router in
+/// >  <router-expression-2> to any of their peer routers in <router-
+/// >  expression-1> in the ASes in <as-expression>.  If <router-
+/// >  expression-2> is not specified, it defaults to all routers of the
+/// >  local AS that peer with ASes in <as-expression>.  If <router-
+/// >  expression-1> is not specified, it defaults to all routers of the
+/// >  peer ASes in <as-expression> that peer with the local AS.
+///
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
 #[skip_serializing_none]
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

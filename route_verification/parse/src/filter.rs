@@ -130,6 +130,14 @@ pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
 
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-18>
+///
+/// > Range operators can also be applied to address prefix sets.  In this
+/// > case, they distribute over the members of the set.  For example, for
+/// > a route-set (defined later) rs-foo, rs-foo^+ contains all the
+/// > inclusive more specifics of all the prefixes in rs-foo.
+///
+/// <https://www.rfc-editor.org/rfc/rfc2622#page-5>
+///
 /// Note: although `RouteSet`, `AsNum`, and `AsSet` here use `RangeOperator`,
 /// the RFC only allows `^-` and `^+`.
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

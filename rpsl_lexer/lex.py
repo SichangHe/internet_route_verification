@@ -245,6 +245,7 @@ as_expr <<= as_expr_and | as_expr_or | as_expr_except | as_expr_base
 # -----------------------------------------------------------------------------
 # Further parse community(), community.append(), etc.
 # -----------------------------------------------------------------------------
+# TODO: a range operator can be applied to an address prefix set.
 address_prefix_set = Group(
     Suppress("{") + Opt(delimited_list(field_wo_brace, delim=",")) + Suppress("}")
 )

@@ -5,6 +5,30 @@ use lazy_regex::regex_captures;
 use super::*;
 
 /// An address prefix `IpNet` followed by an optional range operator `RangeOperator`.
+///
+/// > `<address-prefix-range>` An address prefix range is an address prefix
+/// >    followed by an optional range operator.  The range operators are:
+/// >
+/// > ^- is the exclusive more specifics operator; it stands for the more
+/// >    specifics of the address prefix excluding the address prefix
+/// >    itself.  For example, 128.9.0.0/16^- contains all the more
+/// >    specifics of 128.9.0.0/16 excluding 128.9.0.0/16.
+/// >
+/// > ^+ is the inclusive more specifics operator; it stands for the more
+/// >    specifics of the address prefix including the address prefix
+/// >    itself.  For example, 5.0.0.0/8^+ contains all the more specifics
+/// >    of 5.0.0.0/8 including 5.0.0.0/8.
+/// >
+/// > ^n where n is an integer, stands for all the length n specifics of
+/// >    the address prefix.  For example, 30.0.0.0/8^16 contains all the
+/// >    more specifics of 30.0.0.0/8 which are of length 16 such as
+/// >    30.9.0.0/16.
+/// >
+/// > ^n-m where n and m are integers, stands for all the length n to
+/// >    length m specifics of the address prefix.  For example,
+/// >    30.0.0.0/8^24-32 contains all the more specifics of 30.0.0.0/8
+/// >    which are of length 24 to 32 such as 30.9.9.96/28.
+///
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-5>.
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AddrPfxRange {

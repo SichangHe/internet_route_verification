@@ -1,3 +1,18 @@
+//! > An RPSL object is textually represented as a list of attribute-value
+//! > pairs.  Each attribute-value pair is written on a separate line.  The
+//! > attribute name starts at column 0, followed by character ":" and
+//! > followed by the value of the attribute.  The attribute which has the
+//! > same name as the object's class should be specified first.  The
+//! > object's representation ends when a blank line is encountered.  An
+//! > attribute's value can be split over multiple lines, by having a
+//! > space, a tab or a plus ('+') character as the first character of the
+//! > continuation lines.  The character "+" for line continuation allows
+//! > attribute values to contain blank lines.  More spaces may optionally
+//! > be used after the continuation character to increase readability.
+//! > The order of attribute-value pairs is significant.
+//!
+//! <https://www.rfc-editor.org/rfc/rfc2622#page-6>
+
 use std::borrow::Cow;
 use std::io::{Result, *};
 

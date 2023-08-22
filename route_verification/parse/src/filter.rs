@@ -98,7 +98,7 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
 }
 
 pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
-    regex!(formatcp!(r"^({})(\^[+-])?$", ROUTE_SET))
+    regex!(formatcp!(r"^({})((:?\^[+-])?)$", ROUTE_SET))
         .captures(attr)
         .and_then(|caps| {
             let name = &caps[1];
@@ -111,7 +111,7 @@ pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
 }
 
 pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
-    regex!(formatcp!(r"^({})(\^[+-])?$", AS_SET))
+    regex!(formatcp!(r"^({})((:?\^[+-])?)$", AS_SET))
         .captures(attr)
         .and_then(|caps| {
             let name = &caps[1];

@@ -29,6 +29,13 @@ pub fn is_route_set_name(attr: &str) -> bool {
     regex!(formatcp!("^{}$", ROUTE_SET)).is_match(attr)
 }
 
+/// > The attributes of the route-set class are shown in Figure 12.  The
+/// > route-set attribute defines the name of the set.  It is an RPSL name
+/// > that starts with "rs-".  The members attribute lists the members of
+/// > the set.  The members attribute is a list of address prefixes or
+/// > other route-set names.  Note that, the route-set class is a set of
+/// > route prefixes, not of RPSL route objects.
+///
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.2>
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RouteSet {

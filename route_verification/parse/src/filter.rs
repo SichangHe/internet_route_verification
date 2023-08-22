@@ -128,8 +128,14 @@ pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
     })
 }
 
+/// > The filter attribute defines the set's policy filter.  A policy
+/// > filter is a logical expression which when applied to a set of routes
+/// > returns a subset of these routes.  We say that the policy filter
+/// > matches the subset returned.  The policy filter can match routes
+/// > using any BGP path attribute, such as the destination address prefix
+/// > (or NLRI), AS-path, or community attributes.
+///
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.4>
-/// <https://www.rfc-editor.org/rfc/rfc2622#page-18>
 ///
 /// > Range operators can also be applied to address prefix sets.  In this
 /// > case, they distribute over the members of the set.  For example, for
@@ -145,22 +151,32 @@ pub enum Filter {
     /// `<filter-set-name>`: An RPSL name that starts with `fltr-`.
     FilterSet(String),
     Any,
-    /// An explicit list of address prefixes enclosed in braces '{' and '}'.  The policy filter matches the set of routes whose destination address-prefix is in the set.
-    /// An address prefix can be optionally followed by a range operator.
+    /// > Address-Prefix Set This is an explicit list of address prefixes
+    /// >    enclosed in braces '{' and '}'.  The policy filter matches the set
+    /// >    of routes whose destination address-prefix is in the set.
+    ///
+    /// > An address prefix can be optionally followed by a range operator
     AddrPrefixSet(Vec<AddrPfxRange>),
-    /// `<route-set-name>`: <https://www.rfc-editor.org/rfc/rfc2622#section-5.2>.
-    /// A route set name matches the set of routes that are members of the set.
-    /// May also be implicitly defined route sets
-    /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.3>.
+    /// > Route Set Name  A route set name matches the set of routes that are
+    /// > members of the set.  A route set name may be a name of a route-set
+    /// > object, an AS number, or a name of an as-set object (AS numbers and
+    /// > as-set names implicitly define route sets; please see Section 5.3).
+    ///
+    /// > A route set name can also be followed by one of the operators '^-',
+    /// > '^+'…
     RouteSet(String, RangeOperator),
     /// An AS number.
     AsNum(u64, RangeOperator),
     /// A name of an as-set object.
     AsSet(String, RangeOperator),
-    /// An AS-path regular expression can be used as a policy filter by enclosing the expression in `<' and `>'.
-    /// Basically, we do not deal with this at present.
+    /// > AS Path Regular Expressions
+    /// >    An AS-path regular expression can be used as a policy filter by
+    /// >    enclosing the expression in '<' and '>'.  An AS-path policy filter
+    /// >    matches the set of routes which traverses a sequence of ASes
+    /// >    matched by the AS-path regular expression.
+    ///
+    // TODO: Is this true?
     /// We also throw unrecognized filters under this.
-    /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
     AsPathRE(String),
     And {
         left: Box<Filter>,

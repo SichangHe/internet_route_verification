@@ -98,27 +98,23 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
 }
 
 pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
-    regex!(formatcp!(r"^({})((:?\^[+-])?)$", ROUTE_SET))
+    regex!(formatcp!(r"^({})(\^[+-])?$", ROUTE_SET))
         .captures(attr)
         .and_then(|caps| {
             let name = &caps[1];
-            let operator = &caps[2];
-            operator
-                .parse()
-                .ok()
+            caps.get(2)
+                .map_or(Some(NoOp), |operator| operator.as_str().parse().ok())
                 .map(|op| Filter::RouteSet(name.into(), op))
         })
 }
 
 pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
-    regex!(formatcp!(r"^({})((:?\^[+-])?)$", AS_SET))
+    regex!(formatcp!(r"^({})(\^[+-])?$", AS_SET))
         .captures(attr)
         .and_then(|caps| {
             let name = &caps[1];
-            let operator = &caps[2];
-            operator
-                .parse()
-                .ok()
+            caps.get(2)
+                .map_or(Some(NoOp), |operator| operator.as_str().parse().ok())
                 .map(|op| Filter::AsSet(name.into(), op))
         })
 }

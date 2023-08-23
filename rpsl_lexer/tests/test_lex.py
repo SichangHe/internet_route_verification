@@ -973,6 +973,7 @@ MP_FILTER_EXAMPLES = [
     "ANY AND NOT community.contains(8501:1120)",
     "AS26415 {2001:503:c27::/48, 2001:503:231d::/48}",
     "ANY ANY NOT AS39326:FLTR-FILTERLIST",
+    "{0.0.0.0/0} AND {::/0}",
 ]
 
 LEXED_MP_FILTER_EXAMPLES = [
@@ -1052,6 +1053,12 @@ LEXED_MP_FILTER_EXAMPLES = [
                     "right": {"not": {"filter": "AS39326:FLTR-FILTERLIST"}},
                 }
             },
+        }
+    },
+    {
+        "and": {
+            "left": {"address-prefix-set": ["0.0.0.0/0"]},
+            "right": {"address-prefix-set": ["::/0"]},
         }
     },
 ]

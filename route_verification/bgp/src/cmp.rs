@@ -71,9 +71,9 @@ impl Compare {
         }
 
         let mut reports = Vec::with_capacity(self.as_path.len() << 1);
-        let path = self.as_path.iter().rev();
+        let path = self.as_path.iter();
         // Iterate the pairs in `as_path` from right to left, with overlaps.
-        for ((index, from), to) in path.clone().enumerate().zip(path.skip(1)) {
+        for ((index, from), to) in path.clone().enumerate().rev().zip(path.rev().skip(1)) {
             if let (Seq(from), Seq(to)) = (from, to) {
                 let r = self.check_pair(dump, *from, *to, &self.as_path[index..]);
                 if !r.is_empty() {

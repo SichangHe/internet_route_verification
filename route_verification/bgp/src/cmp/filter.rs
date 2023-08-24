@@ -192,7 +192,7 @@ impl<'a> CheckFilter<'a> {
 
     /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
     fn filter_as_regex(&self, expr: &str, depth: isize) -> AnyReport {
-        let path = self.prev_path.iter().rev();
+        let path = self.prev_path.iter();
         let path = match path
             .map(|p| match p {
                 Seq(n) => Ok(*n),

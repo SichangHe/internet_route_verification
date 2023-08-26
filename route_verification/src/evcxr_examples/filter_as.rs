@@ -3,11 +3,11 @@ use super::*;
 fn reports_for_paths_containing_certain_as(
     an: u64,
     query: &QueryDump,
-    bgp_lines: &mut Vec<Line>,
+    bgp_lines: &[Line],
     db: &AsRelDb,
 ) -> Result<()> {
-    let mut filtered_bgp_lines: Vec<&mut Line> = bgp_lines
-        .par_iter_mut()
+    let mut filtered_bgp_lines: Vec<&Line> = bgp_lines
+        .par_iter()
         .filter_map(|line| {
             line.compare
                 .as_path
@@ -16,14 +16,6 @@ fn reports_for_paths_containing_certain_as(
         })
         .collect();
     println!("{}", filtered_bgp_lines.len());
-    filtered_bgp_lines.par_iter_mut().for_each(|line| {
-        line.compare.verbosity = Verbosity::minimum_all();
-        line.report = Some(line.compare.check_with_relationship(query, db))
-    });
-
-    for line in &filtered_bgp_lines[..10] {
-        line.display();
-    }
 
     let mut target = File::create(format!("AS{an}_non_skip_reports.txt"))?;
 
@@ -31,6 +23,12 @@ fn reports_for_paths_containing_certain_as(
         let mut all_non_skip = chunk
             .par_iter()
             .filter_map(|line| {
+                let mut line = (*line).clone();
+                line.compare.verbosity = Verbosity {
+                    all_err: true,
+                    ..Verbosity::minimum_all()
+                };
+                line.report = Some(line.compare.check_with_relationship(query, db));
                 line.report
                     .as_ref()
                     .unwrap()

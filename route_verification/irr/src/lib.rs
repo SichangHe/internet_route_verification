@@ -140,6 +140,7 @@ where
     }
     pd.route_sets.extend(conclude_set(pd.pseudo_route_sets));
 
+    drop((pd.send_aut_num, pd.send_peering_set, pd.send_filter_set));
     let (aut_nums, pseudo_as_sets) = aut_num_worker.join().unwrap()?;
     pd.as_sets.extend(pseudo_as_sets);
     let peering_sets = peering_set_worker.join().unwrap()?;

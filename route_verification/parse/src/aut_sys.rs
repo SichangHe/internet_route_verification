@@ -1,4 +1,4 @@
-use self::lex::parse_aut_num_name;
+use self::lex::{is_pseudo_set, parse_aut_num_name};
 use super::*;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -14,7 +14,7 @@ pub enum AsName {
 pub fn parse_as_name(field: String) -> Result<AsName> {
     Ok(if is_any(&field) {
         AsName::Any
-    } else if is_as_set(&field) {
+    } else if is_as_set(&field) || is_pseudo_set(&field) {
         AsName::Set(field) // AS set.
     } else {
         let num = parse_aut_num_name(&field).context("parsing as name")?;

@@ -69,7 +69,7 @@ pub fn parse_lexed_as_sets(lexed: Vec<lex::AsOrRouteSet>) -> BTreeMap<String, As
 }
 
 pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
-    if !is_as_set(&lexed.name) {
+    if !is_as_set(&lexed.name) && !is_pseudo_set(&lexed.name) {
         bail!("invalid AS Set name in {lexed:?}");
     }
     let max_length = lexed.members.len();
@@ -99,7 +99,7 @@ pub fn parse_lexed_route_sets(lexed: Vec<lex::AsOrRouteSet>) -> BTreeMap<String,
 }
 
 pub fn parse_lexed_route_set(lexed: lex::AsOrRouteSet) -> Result<(String, RouteSet)> {
-    if !is_route_set_name(&lexed.name) {
+    if !is_route_set_name(&lexed.name) && !is_pseudo_set(&lexed.name) {
         bail!(
             "{} is an invalid route set name—parsing {lexed:?}",
             lexed.name
@@ -187,4 +187,8 @@ pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(u
     let mut routes: Vec<_> = routes?;
     routes.sort_unstable();
     Ok((num, routes))
+}
+
+pub fn is_pseudo_set(s: &str) -> bool {
+    matches!(s.as_bytes().get(1), Some(&b'#'))
 }

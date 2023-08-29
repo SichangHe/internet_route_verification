@@ -15,18 +15,25 @@ use parse::{
 };
 use rayon::prelude::*;
 
+pub mod mbrs;
 pub mod worker;
 
+use mbrs::*;
 use worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
-pub fn gather_members(body: &str) -> Vec<String> {
+pub fn gather_members(obj: &RPSLObject) -> Vec<String> {
     let mut members = Vec::new();
-    for RpslExpr { key, expr } in expressions(lines_continued(body.lines())) {
-        if key == "members" || key == "mp-members" {
-            members.extend(regex!(r",\s*").split(&expr).filter_map(|s| {
-                let r = s.trim();
-                (!r.is_empty()).then(|| r.into())
-            }));
+    for RpslExpr { key, expr } in expressions(lines_continued(obj.body.lines())) {
+        match key.as_str() {
+            "members" | "mp-members" => {
+                members.extend(split_commas(&expr).map(Into::into));
+            }
+            "mbrs-by-ref" => match expr.as_str() {
+                "ANY" => members.push(ref_set(&obj.name)),
+                _ => members
+                    .extend(split_commas(&expr).map(|mntner| mntner_ref_set(mntner, &obj.name))),
+            },
+            _ => (),
         }
     }
     members
@@ -67,7 +74,7 @@ pub fn parse_object(
 }
 
 fn parse_as_set(obj: RPSLObject, as_sets: &mut Vec<AsOrRouteSet>) {
-    let members = gather_members(&obj.body);
+    let members = gather_members(&obj);
     as_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
     match as_sets.len() {
         l if l % 0xFF == 0 => debug!("Parsed {l} as_sets."),
@@ -93,7 +100,7 @@ fn parse_route(obj: RPSLObject, as_routes: &mut BTreeMap<String, Vec<String>>) {
 }
 
 fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
-    let members = gather_members(&obj.body);
+    let members = gather_members(&obj);
     route_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
     match route_sets.len() {
         l if l % 0xFF == 0 => debug!("Parsed {l} route_sets."),
@@ -133,8 +140,8 @@ where
         )?;
     }
 
-    drop((send_aut_num, send_peering_set, send_filter_set));
-    let aut_nums = aut_num_worker.join().unwrap()?;
+    let (aut_nums, pseudo_as_sets) = aut_num_worker.join().unwrap()?;
+    as_sets.extend(pseudo_as_sets);
     let peering_sets = peering_set_worker.join().unwrap()?;
     let filter_sets = filter_set_worker.join().unwrap()?;
 
@@ -159,4 +166,13 @@ where
         .map(|db| read_db(db).map(parse_lexed))
         .collect::<Result<_>>()?;
     Ok(merge_dumps(dumps))
+}
+
+/// Split by `,`s followed by any number of whitespace.
+/// Ignore empty parts.
+pub fn split_commas(expr: &str) -> impl Iterator<Item = &str> {
+    regex!(r",\s*").split(expr).filter_map(|s| {
+        let r = s.trim();
+        (!r.is_empty()).then_some(r)
+    })
 }

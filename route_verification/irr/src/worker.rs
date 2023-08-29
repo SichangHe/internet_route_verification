@@ -10,7 +10,10 @@ use io::{cmd::PipedChild, serialize::from_str};
 
 use super::*;
 
-pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<Vec<AutNum>>>)> {
+pub fn spawn_aut_num_worker() -> Result<(
+    Sender<RPSLObject>,
+    JoinHandle<Result<(Vec<AutNum>, Vec<AsOrRouteSet>)>>,
+)> {
     let (send, recv) = channel();
     let worker = spawn(|| {
         aut_num_worker(recv).map_err(|e| {
@@ -21,13 +24,15 @@ pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<V
     Ok((send, worker))
 }
 
-fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<Vec<AutNum>> {
+fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRouteSet>)> {
     let mut aut_num_child =
         PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_lexer.aut_num"]))?;
 
     let mut aut_nums = Vec::new();
+    let mut pseduo_as_sets = BTreeMap::new();
     while let Ok(obj) = recv.recv() {
         obj.write_to(&mut aut_num_child.stdin)?;
+        gather_ref(&obj, &mut pseduo_as_sets);
         let line = read_line_wait(&mut aut_num_child.stdout)?;
         let mut aut_num: AutNum = from_str(&line)?;
         (aut_num.name, aut_num.body) = (obj.name, obj.body);
@@ -38,7 +43,7 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<Vec<AutNum>> {
         }
     }
     warn!("aut_num_worker exiting normally.");
-    Ok(aut_nums)
+    Ok((aut_nums, conclude_set(pseduo_as_sets)))
 }
 
 pub fn spawn_peering_set_worker(

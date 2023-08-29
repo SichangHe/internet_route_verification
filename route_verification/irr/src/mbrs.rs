@@ -1,6 +1,6 @@
 use super::*;
 
-pub fn gather_ref(obj: &RPSLObject, set: &mut BTreeMap<String, BTreeMap<String, Vec<String>>>) {
+pub fn gather_ref(obj: &RPSLObject, set: &mut Map2DStringVec) {
     let mut member_ofs = Vec::new();
     let mut mnt_by = Vec::new();
     for RpslExpr { key, expr } in expressions(lines_continued(obj.body.lines())) {
@@ -21,7 +21,7 @@ pub fn gather_ref(obj: &RPSLObject, set: &mut BTreeMap<String, BTreeMap<String, 
     }
 }
 
-pub fn conclude_set(set: BTreeMap<String, BTreeMap<String, Vec<String>>>) -> Vec<AsOrRouteSet> {
+pub fn conclude_set(set: Map2DStringVec) -> Vec<AsOrRouteSet> {
     let mntner_set_count: usize = set.values().map(BTreeMap::len).sum();
     let mut conclusion = Vec::with_capacity(set.len() + mntner_set_count);
     for (ref_set, mntner_ref_sets) in set {

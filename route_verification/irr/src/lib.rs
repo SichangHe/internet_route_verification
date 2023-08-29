@@ -16,6 +16,8 @@ use parse::{
 use rayon::prelude::*;
 
 pub mod mbrs;
+#[cfg(test)]
+mod tests;
 pub mod worker;
 
 use mbrs::*;

@@ -56,8 +56,8 @@ pub fn parse_object(obj: RPSLObject, pd: &mut PreDump) -> Result<()> {
     match obj.class.as_str() {
         "aut-num" => pd.send_aut_num.send(obj)?,
         "as-set" => parse_as_set(obj, &mut pd.as_sets),
-        "route" | "route6" => parse_route(obj, &mut pd.as_routes),
-        "route-set" => parse_route_set(obj, &mut pd.route_sets, &mut pd.pseudo_route_sets),
+        "route" | "route6" => parse_route(obj, &mut pd.as_routes, &mut pd.pseudo_route_sets),
+        "route-set" => parse_route_set(obj, &mut pd.route_sets),
         "filter-set" => pd.send_filter_set.send(obj)?,
         "peering-set" => pd.send_peering_set.send(obj)?,
         _ => (),
@@ -74,7 +74,12 @@ fn parse_as_set(obj: RPSLObject, as_sets: &mut Vec<AsOrRouteSet>) {
     }
 }
 
-fn parse_route(obj: RPSLObject, as_routes: &mut BTreeMap<String, Vec<String>>) {
+fn parse_route(
+    obj: RPSLObject,
+    as_routes: &mut BTreeMap<String, Vec<String>>,
+    pseudo_route_sets: &mut Map2DStringVec,
+) {
+    gather_ref(&obj, pseudo_route_sets);
     for RpslExpr {
         key,
         expr, /*AS*/
@@ -91,12 +96,7 @@ fn parse_route(obj: RPSLObject, as_routes: &mut BTreeMap<String, Vec<String>>) {
     error!("Route object {} does not have an `origin` field.", obj.name);
 }
 
-fn parse_route_set(
-    obj: RPSLObject,
-    route_sets: &mut Vec<AsOrRouteSet>,
-    pseudo_route_sets: &mut Map2DStringVec,
-) {
-    gather_ref(&obj, pseudo_route_sets);
+fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
     let members = gather_members(&obj);
     route_sets.push(AsOrRouteSet::new(obj.name, obj.body, members));
     match route_sets.len() {

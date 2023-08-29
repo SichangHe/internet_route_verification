@@ -11,6 +11,10 @@ pub fn gather_ref(obj: &RPSLObject, set: &mut Map2DStringVec) {
             _ => (),
         }
     }
+    if !member_ofs.is_empty() && mnt_by.is_empty() {
+        warn!("AutNum {} with `member-of` without `mnt-by`.", obj.name);
+        return;
+    }
     for member_of in &member_ofs {
         let referenced_set = set.entry(ref_set(member_of)).or_default();
         for mntner in &mnt_by {

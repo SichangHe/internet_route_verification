@@ -21,6 +21,8 @@ pub mod worker;
 use mbrs::*;
 use worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
+/// Gather `members` and `mp-members` expressions.
+/// Translate `mbrs-by-ref` expressions to pseudo sets.
 pub fn gather_members(obj: &RPSLObject) -> Vec<String> {
     let mut members = Vec::new();
     for RpslExpr { key, expr } in expressions(lines_continued(obj.body.lines())) {
@@ -107,6 +109,7 @@ fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
 
 const ONE_MEBIBYTE: usize = 1024 * 1024;
 
+/// Read and lex RPSL database.
 pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
 where
     R: Read,

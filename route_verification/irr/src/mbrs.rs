@@ -1,5 +1,6 @@
 use super::*;
 
+/// Gather `member-of` and `mnt-by` expressions.
 pub fn gather_ref(obj: &RPSLObject, set: &mut Map2DStringVec) {
     let mut member_ofs = Vec::new();
     let mut mnt_by = Vec::new();
@@ -21,6 +22,10 @@ pub fn gather_ref(obj: &RPSLObject, set: &mut Map2DStringVec) {
     }
 }
 
+/// Flatten map `set` from set names to "maps from maintainer names to members"
+/// into vector of sets.
+/// Make the pseudo sets with maintainer names into members of pseudo sets
+/// corresponding to set names.
 pub fn conclude_set(set: Map2DStringVec) -> Vec<AsOrRouteSet> {
     let mntner_set_count: usize = set.values().map(BTreeMap::len).sum();
     let mut conclusion = Vec::with_capacity(set.len() + mntner_set_count);

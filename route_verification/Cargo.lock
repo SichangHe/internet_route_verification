@@ -1677,8 +1677,8 @@ name = "route_verification_common_regex"
 version = "0.1.0"
 dependencies = [
  "const_format",
+ "lazy-regex",
  "once_cell",
- "regex",
 ]
 
 [[package]]

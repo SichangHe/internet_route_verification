@@ -23,3 +23,10 @@ fn all_names() {
         assert!(!regex!(name).is_match(""));
     }
 }
+
+#[test]
+fn range_operator() {
+    for op in ["^-", "^+", "^32", "^20-24"] {
+        assert!(regex!(RANGE_OPERATOR).is_match(op));
+    }
+}

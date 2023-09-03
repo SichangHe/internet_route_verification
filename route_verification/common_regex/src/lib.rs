@@ -20,3 +20,5 @@ macro_rules! regex {
         })
     }};
 }
+
+pub const RANGE_OPERATOR: &str = r"\^(:?\-|\+|[0-9]+(:?\-[0-9]+)?)";

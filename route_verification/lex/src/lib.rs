@@ -2,7 +2,6 @@ use std::{collections::BTreeMap, mem};
 
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
-use serde_with::skip_serializing_none;
 
 pub mod action;
 pub mod community;

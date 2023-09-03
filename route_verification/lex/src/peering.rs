@@ -1,10 +1,13 @@
 use super::*;
 
-#[skip_serializing_none]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Peering {
     pub as_expr: AsExpr,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub router_expr1: Option<AsExpr>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub router_expr2: Option<AsExpr>,
 }
 

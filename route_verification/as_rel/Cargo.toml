@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.72"
-bzip2 = "0.4.4"
-hashbrown = "0.14.0"
-log = "0.4.19"
+anyhow.workspace = true
+bzip2.workspace = true
+hashbrown.workspace = true
+log.workspace = true

@@ -4,23 +4,23 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0"
-dashmap = "5.5"
-hashbrown = { version = "0.14", features = ["rayon"] }
-ipnet = { version = "2.8", features = ["serde"] }
-itertools = "0.11"
-lazy-regex = "3.0"
-rayon = "1.7"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+anyhow.workspace = true
+dashmap.workspace = true
+hashbrown.workspace = true
+ipnet.workspace = true
+itertools.workspace = true
+lazy-regex.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
-as_path_regex = { package = "route_verification_as_path_regex", path = "../as_path_regex" }
-as_rel = { package = "route_verification_as_rel", path = "../as_rel" }
-bloom = { package = "route_verification_bloom", path = "../bloom" }
-map = { package = "route_verification_bgpmap", path = "../bgpmap" }
-io = { package = "route_verification_io", path = "../io" }
-lex = { package = "route_verification_lex", path = "../lex" }
-parse = { package = "route_verification_parse", path = "../parse" }
+as_path_regex.workspace = true
+as_rel.workspace = true
+bloom.workspace = true
+bgpmap.workspace = true
+io.workspace = true
+lex.workspace = true
+parse.workspace = true
 
 [dev-dependencies]
-maplit = "1.0"
+maplit.workspace = true

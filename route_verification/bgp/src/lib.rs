@@ -18,8 +18,8 @@ pub mod verbosity;
 pub mod wrapper;
 
 pub use {
+    bgpmap::{self as map, AsPathEntry},
     cmp::Compare,
-    map::{self, AsPathEntry},
     query::{customer_set, AsProperty, AsSetRoute, QueryDump},
     report::{MatchProblem, Report, ReportItem, SkipReason},
     stats::{AsPairStats, AsStats, UpDownHillStats},
@@ -27,6 +27,6 @@ pub use {
     wrapper::{parse_mrt, Line},
 };
 
-use map::*;
+use bgpmap::*;
 use report::*;
 use verbosity::*;

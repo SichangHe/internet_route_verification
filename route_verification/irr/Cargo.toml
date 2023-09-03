@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0"
-lazy-regex = "3.0"
-log = "0.4"
-rayon = "1.7"
+anyhow.workspace = true
+lazy-regex.workspace = true
+log.workspace = true
+rayon.workspace = true
 
-lex = { package = "route_verification_lex", path = "../lex" }
-io = { package = "route_verification_io", path = "../io" }
-parse = { package = "route_verification_parse", path = "../parse" }
+lex.workspace = true
+io.workspace = true
+parse.workspace = true

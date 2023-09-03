@@ -1,7 +1,6 @@
 use std::convert::identity;
 
 use ::lex::{mp_import, peering};
-use serde_with::skip_serializing_none;
 
 use super::*;
 
@@ -101,11 +100,14 @@ pub fn parse_complex_as_expr(comp: peering::ComplexAsExpr) -> AsExpr {
 /// >  peer ASes in <as-expression> that peer with the local AS.
 ///
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
-#[skip_serializing_none]
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Peering {
     pub remote_as: AsExpr,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub remote_router: Option<RouterExpr>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub local_router: Option<RouterExpr>,
 }
 

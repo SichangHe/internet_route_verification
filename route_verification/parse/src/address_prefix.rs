@@ -51,15 +51,18 @@ impl FromStr for AddrPfxRange {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, prefix, operator) = get_address_prefix_range_fields(s).context(format!(
+        let (prefix, operator) = get_address_prefix_range_fields(s).context(format!(
             "{s} does not have valid address prefix range structure"
         ))?;
         let address_prefix = prefix
             .parse()
             .context(format!("parsing {prefix} as address prefix"))?;
-        let range_operator = operator
-            .parse()
-            .context(format!("parsing {operator} as range operator"))?;
+        let range_operator = match operator {
+            Some(operator) => operator
+                .parse()
+                .context(format!("parsing {operator} as range operator"))?,
+            None => RangeOperator::NoOp,
+        };
         Ok(Self {
             address_prefix,
             range_operator,
@@ -89,8 +92,9 @@ pub fn address_prefix_contains(
     }
 }
 
-pub fn get_address_prefix_range_fields(s: &str) -> Option<(&str, &str, &str)> {
-    regex_captures!(r"^([[[:xdigit:]]\.:/]+)(\^[-+\d]+)?$", s)
+pub fn get_address_prefix_range_fields(s: &str) -> Option<(&str, Option<&str>)> {
+    let caps = regex!(formatcp!(r"^([[[:xdigit:]]\.:/]+)({})?$", RANGE_OPERATOR)).captures(s)?;
+    Some((caps.get(1)?.into(), caps.get(2).map(Into::into)))
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

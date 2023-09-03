@@ -1,5 +1,5 @@
 use ::lex::{self, Call};
-use lazy_regex::{regex_captures, regex_is_match};
+use lazy_regex::regex_is_match;
 use log::warn;
 
 use super::*;
@@ -98,7 +98,7 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
 }
 
 pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
-    regex!(formatcp!(r"^({})(\^[+-])?$", ROUTE_SET))
+    regex!(formatcp!(r"^({})({})?$", ROUTE_SET, RANGE_OPERATOR))
         .captures(attr)
         .and_then(|caps| {
             let name = &caps[1];
@@ -109,7 +109,7 @@ pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
 }
 
 pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
-    regex!(formatcp!(r"^({})(\^[+-])?$", AS_SET))
+    regex!(formatcp!(r"^({})({})?$", AS_SET, RANGE_OPERATOR))
         .captures(attr)
         .and_then(|caps| {
             let name = &caps[1];
@@ -120,12 +120,13 @@ pub fn try_parse_as_set(attr: &str) -> Option<Filter> {
 }
 
 pub fn try_parse_as_num(attr: &str) -> Option<Filter> {
-    regex_captures!(r"^AS([0-9]+)(\^[+-])?$"i, attr).and_then(|(_, number, operator)| {
-        operator
-            .parse()
-            .ok()
-            .and_then(|op| number.parse().ok().map(|num| Filter::AsNum(num, op)))
-    })
+    let caps = regex!(formatcp!(r"^as([0-9]+)({})?$", RANGE_OPERATOR)).captures(attr)?;
+    let num = caps.get(1)?.as_str().parse().ok()?;
+    let op = match caps.get(2) {
+        Some(operator) => operator.as_str().parse().ok()?,
+        None => NoOp,
+    };
+    Some(Filter::AsNum(num, op))
 }
 
 /// > The filter attribute defines the set's policy filter.  A policy

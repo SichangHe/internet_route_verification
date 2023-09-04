@@ -28,7 +28,7 @@ pub fn parse_lexed(lexed: lex::Dump) -> Dump {
 pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> BTreeMap<u64, AutNum> {
     lexed
         .into_par_iter()
-        .filter_map(|l| parse_lexed_aut_num(l).map_err(|e| error!("{e:#}")).ok())
+        .filter_map(|l| parse_lexed_aut_num(l).map_err(|e| error!("{e:?}")).ok())
         .collect()
 }
 
@@ -64,7 +64,7 @@ pub fn parse_aut_num_name(name: &str) -> Result<u64> {
 pub fn parse_lexed_as_sets(lexed: Vec<lex::AsOrRouteSet>) -> BTreeMap<String, AsSet> {
     lexed
         .into_par_iter()
-        .filter_map(|l| parse_lexed_as_set(l).map_err(|e| error!("{e:#}")).ok())
+        .filter_map(|l| parse_lexed_as_set(l).map_err(|e| error!("{e:?}")).ok())
         .collect()
 }
 
@@ -94,7 +94,7 @@ pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
 pub fn parse_lexed_route_sets(lexed: Vec<lex::AsOrRouteSet>) -> BTreeMap<String, RouteSet> {
     lexed
         .into_par_iter()
-        .filter_map(|l| parse_lexed_route_set(l).map_err(|e| error!("{e:#}")).ok())
+        .filter_map(|l| parse_lexed_route_set(l).map_err(|e| error!("{e:?}")).ok())
         .collect()
 }
 
@@ -123,7 +123,7 @@ pub fn parse_lexed_route_set(lexed: lex::AsOrRouteSet) -> Result<(String, RouteS
 pub fn parse_lexed_peering_sets(lexed: Vec<lex::PeeringSet>) -> BTreeMap<String, PeeringSet> {
     lexed
         .into_par_iter()
-        .filter_map(|l| parse_lexed_peering_set(l).map_err(|e| error!("{e:#}")).ok())
+        .filter_map(|l| parse_lexed_peering_set(l).map_err(|e| error!("{e:?}")).ok())
         .collect()
 }
 
@@ -146,7 +146,7 @@ pub fn parse_lexed_peering_set(lexed: lex::PeeringSet) -> Result<(String, Peerin
 pub fn parse_lexed_filter_sets(lexed: Vec<lex::FilterSet>) -> BTreeMap<String, FilterSet> {
     lexed
         .into_par_iter()
-        .filter_map(|l| parse_lexed_filter_set(l).map_err(|e| error!("{e:#}")).ok())
+        .filter_map(|l| parse_lexed_filter_set(l).map_err(|e| error!("{e:?}")).ok())
         .collect()
 }
 

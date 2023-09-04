@@ -17,7 +17,7 @@ pub fn spawn_aut_num_worker() -> Result<(
     let (send, recv) = channel();
     let worker = spawn(|| {
         aut_num_worker(recv).map_err(|e| {
-            error!("aut_num_worker: {e:#}.");
+            error!("aut_num_worker: {e:?}.");
             e
         })
     });
@@ -51,7 +51,7 @@ pub fn spawn_peering_set_worker(
     let (send, recv) = channel();
     let worker = spawn(|| {
         peering_set_worker(recv).map_err(|e| {
-            error!("peering_set_worker: {e:#}.");
+            error!("peering_set_worker: {e:?}.");
             e
         })
     });
@@ -83,7 +83,7 @@ pub fn spawn_filter_set_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Resul
     let (send, recv) = channel();
     let worker = spawn(|| {
         filter_set_worker(recv).map_err(|e| {
-            error!("filter_set_worker: {e:#}.");
+            error!("filter_set_worker: {e:?}.");
             e
         })
     });

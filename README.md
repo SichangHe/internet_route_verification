@@ -14,6 +14,12 @@ WIP
     export RUST_LOG=route_verification=trace
     ```
 
+- Maybe you want to enable backtrace in error messages:
+
+    ```sh
+    export RUST_BACKTRACE=1
+    ```
+
 - Run at `route_verification/`:
 
     ```sh

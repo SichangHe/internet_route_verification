@@ -25,7 +25,7 @@ pub fn parse_filter(mp_filter: lex::Filter, mp_peerings: &[PeeringAction]) -> Fi
             set.into_iter()
                 .filter_map(|s| {
                     s.parse() // We expect low a chance of error here.
-                        .map_err(|e| error!("parsing {s} as address prefix: {e:#}"))
+                        .map_err(|e| error!("parsing {s} as address prefix: {e:?}"))
                         .ok()
                 })
                 .collect(),

@@ -214,6 +214,8 @@ def parse_import_term(
         import_factor = parse_import_factor(lexed)
         return [import_factor]
 
+    return None
+
 
 def parse_import_expression_except(
     lexed: dict, afi_entries: set[tuple[str, str]]
@@ -255,6 +257,7 @@ def try_get_and(key: str, left: dict[str, dict], right: dict[str, dict]) -> dict
             return left_value
     elif right_value := right.get(key):
         return right_value
+    return None
 
 
 def try_get_merge(
@@ -269,6 +272,7 @@ def try_get_merge(
             return left_value
     elif right_value := right.get(key):
         return right_value
+    return None
 
 
 def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | list]:
@@ -370,7 +374,7 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]]):
     if protocol_2 := lexed.get("protocol-2"):
         print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
 
-    parsed_list = parse_afi_import_expression(lexed, set([("any", "any")]))
+    parsed_list = parse_afi_import_expression(lexed, set([("ipv4", "unicast")]))
     for afi_entries, parsed in parsed_list:
         for version, cast in afi_entries:
             version_entry = result.get(version, {})

@@ -21,10 +21,12 @@ def red(string: str) -> str:
     return f"\033[91m{string}\033[0m"
 
 
-def parse_mp_import(expr: str, imports: dict[str, dict[str, list[dict]]]):
+def parse_mp_import(
+    expr: str, imports: dict[str, dict[str, list[dict]]], is_mp: bool = False
+):
     try:
         lexed = lex_with(mp_import, expr)
-        import_export(lexed, imports)
+        import_export(lexed, imports, is_mp)
     except Exception as err:
         tag = red("[parse_mp_import]")
         print(f"{tag} {err} parsing `{expr}`.", file=sys.stderr)

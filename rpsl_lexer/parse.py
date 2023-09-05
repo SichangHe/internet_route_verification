@@ -367,14 +367,16 @@ def parse_afi_import_expression(
     return []
 
 
-def import_export(lexed: dict, result: dict[str, dict[str, list]]):
+def import_export(lexed: dict, result: dict[str, dict[str, list]], is_mp: bool = False):
     """Parse lexed <mp-import> or <mp-export>."""
-    if protocol_1 := lexed.get("protocol-1"):
-        print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
-    if protocol_2 := lexed.get("protocol-2"):
-        print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
+    if is_mp:
+        if protocol_1 := lexed.get("protocol-1"):
+            print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
+        if protocol_2 := lexed.get("protocol-2"):
+            print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
 
-    parsed_list = parse_afi_import_expression(lexed, set([("ipv4", "unicast")]))
+    afi_entries = set([("any", "any") if is_mp else ("ipv4", "unicast")])
+    parsed_list = parse_afi_import_expression(lexed, afi_entries)
     for afi_entries, parsed in parsed_list:
         for version, cast in afi_entries:
             version_entry = result.get(version, {})

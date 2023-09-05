@@ -11,7 +11,7 @@ from .rpsl_object import FilterSet
 def parse_filter_set():
     filters = []
     for key, expr in expressions(stdin_lines()):
-        if key == "filter":
+        if key == "filter" or key == "mp-filter":
             try:
                 lexed = lex_with(mp_filter, expr)
                 parsed = clean_mp_filter(lexed)

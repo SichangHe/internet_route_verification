@@ -11,7 +11,7 @@ from .rpsl_object import PeeringSet
 def parse_peering_set():
     peerings = []
     for key, expr in expressions(stdin_lines()):
-        if key == "peering":
+        if key == "peering" or key == "mp-peering":
             try:
                 lexed = lex_with(mp_peering, expr)
                 if parsed := clean_mp_peering(lexed):

@@ -63,7 +63,7 @@ def gather_members(obj: RPSLObject) -> list[str]:
 def gather_peerings(obj: RPSLObject) -> list[dict]:
     peerings = []
     for key, expr in expressions(lines_continued(obj.body.splitlines())):
-        if key == "peering":
+        if key == "peering" or key == "mp-peering":
             try:
                 lexed = lex_with(mp_peering, expr)
                 if parsed := clean_mp_peering(lexed):

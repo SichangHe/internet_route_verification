@@ -591,8 +591,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
     },
     "IGNORE",
     {
-        "any": {
-            "any": [
+        "ipv4": {
+            "unicast": [
                 {
                     "mp_peerings": [
                         {"mp_peering": {"as_expr": "AS3"}, "actions": {"pref": "3"}}
@@ -724,8 +724,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
         },
     },
     {
-        "any": {
-            "any": [
+        "ipv4": {
+            "unicast": [
                 {
                     "mp_peerings": [
                         {
@@ -826,8 +826,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
         }
     },
     {
-        "any": {
-            "any": [
+        "ipv4": {
+            "unicast": [
                 {
                     "mp_peerings": [
                         {
@@ -866,8 +866,8 @@ PARSED_MP_IMPORT_EXAMPLES = [
     },
     "SKIP",
     {
-        "any": {
-            "any": [
+        "ipv4": {
+            "unicast": [
                 {
                     "mp_peerings": [
                         {

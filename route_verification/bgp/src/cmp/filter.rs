@@ -62,12 +62,25 @@ impl<'a> CheckFilter<'a> {
         }
         if self.maybe_filter_customers(num, op) {
             self.special_any_report(|| ExportCustomers)
+        } else if self.maybe_filter_as_is_origin(num, op) {
+            self.special_any_report(|| AsIsOriginButNoRoute(num))
         } else {
             self.no_match_any_report(|| MatchProblem::FilterAsNum(num, op))
         }
     }
 
-    fn maybe_filter_customers(&self, num: u64, op: RangeOperator) -> bool {
+    /// Check if the AS number in the `<filter>` is the origin in the AS path.
+    pub fn maybe_filter_as_is_origin(&self, num: u64, op: RangeOperator) -> bool {
+        match (op, self.prev_path.last()) {
+            (RangeOperator::NoOp, Some(Seq(n))) => *n == num,
+            _ => false,
+        }
+    }
+
+    /// Check for this case:
+    /// - The AS number itself is the `<filter>`.
+    /// - Exporting customers routes.
+    pub fn maybe_filter_customers(&self, num: u64, op: RangeOperator) -> bool {
         if self.export && self.cmp.verbosity.check_customer && num == self.self_num {
             self.filter_as_set(
                 &customer_set(num),

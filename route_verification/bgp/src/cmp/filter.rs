@@ -71,9 +71,8 @@ impl<'a> CheckFilter<'a> {
 
     /// Check if the AS number in the `<filter>` is the origin in the AS path.
     pub fn maybe_filter_as_is_origin(&self, num: u64, op: RangeOperator) -> bool {
-        match (op, self.prev_path.last()) {
-            (RangeOperator::NoOp, Some(Seq(n))) => *n == num,
-            (RangeOperator::NoOp, None) => self.self_num == num,
+        match (op, self.last_on_path()) {
+            (RangeOperator::NoOp, Some(n)) => n == num,
             _ => false,
         }
     }
@@ -92,6 +91,16 @@ impl<'a> CheckFilter<'a> {
             .is_none()
         } else {
             false
+        }
+    }
+
+    /// The last AS number on the AS path.
+    /// `None` if it is a set.
+    pub fn last_on_path(&self) -> Option<u64> {
+        match self.prev_path.last() {
+            Some(Seq(n)) => Some(*n),
+            None => Some(self.self_num),
+            _ => None,
         }
     }
 
@@ -197,10 +206,23 @@ impl<'a> CheckFilter<'a> {
             report |= self.skip_any_report(|| SkipReason::AsSetRouteSomeUnrecorded(name.into()))?;
         }
 
+        self.maybe_filter_as_set_is_origin(&mut report, as_set_route);
+
         if let BadF(_) = report {
             self.no_match_any_report(|| MatchProblem::FilterAsSet(name.into(), op))
         } else {
             Some(report)
+        }
+    }
+
+    /// Same as `maybe_filter_as_is_origin` but for each member in `as_set_route`.
+    fn maybe_filter_as_set_is_origin(&self, report: &mut SkipFBad, as_set_route: &'a AsSetRoute) {
+        if let Some(last) = self.last_on_path() {
+            if as_set_route.contains_member(last) {
+                *report |= self
+                    .special_any_report(|| AsIsOriginButNoRoute(last))
+                    .expect("special_any_report never returns None");
+            }
         }
     }
 

@@ -10,6 +10,8 @@ pub use pseudo_set::*;
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsSetRoute {
     /// Should always be sorted.
+    pub members: Vec<u64>,
+    /// Should always be sorted.
     pub routes: Vec<IpNet>,
     pub unrecorded_nums: Vec<u64>,
     pub set_members: Vec<String>,
@@ -27,18 +29,26 @@ impl AsSetRoute {
         self.unrecorded_nums.shrink_to_fit();
     }
 
+    /// If contains AS as a member.
+    pub fn contains_member(&self, num: u64) -> bool {
+        self.members.binary_search(&num).is_ok()
+    }
+
     /// Fill in routes for the AS with `as_set` with routes in `as_routes`.
     /// The process is done only once, and the result [`AsSetRoute`] is cleaned.
     pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<u64, Vec<IpNet>>) -> Self {
         let mut routes = Vec::with_capacity(as_set.members.len() << 2);
         let mut unrecorded_nums = Vec::new();
-        for member in &as_set.members {
+        let mut members = as_set.members.clone();
+        members.sort();
+        for member in &members {
             match as_routes.get(member) {
                 Some(as_route) => routes.extend(as_route),
                 None => unrecorded_nums.push(*member),
             }
         }
         let mut result = Self {
+            members,
             routes,
             unrecorded_nums,
             set_members: as_set.set_members.clone(),

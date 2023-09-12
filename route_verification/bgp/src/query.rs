@@ -10,21 +10,25 @@ pub use pseudo_set::*;
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsSetRoute {
     /// Should always be sorted.
+    pub members: Vec<u64>,
+    /// Should always be sorted.
     pub routes: Vec<IpNet>,
     pub unrecorded_nums: Vec<u64>,
     pub set_members: Vec<String>,
 }
 
 impl AsSetRoute {
-    /// Clean up `routes` and `unrecorded_nums` so they are compact ordered
+    /// Clean up `members`, `routes` and `unrecorded_nums` into compact ordered
     /// sets.
     pub fn clean_up(&mut self) {
-        self.routes.sort_unstable();
-        self.routes.dedup();
-        self.routes.shrink_to_fit();
-        self.unrecorded_nums.sort_unstable();
-        self.unrecorded_nums.dedup();
-        self.unrecorded_nums.shrink_to_fit();
+        clean_vec(&mut self.members);
+        clean_vec(&mut self.routes);
+        clean_vec(&mut self.unrecorded_nums);
+    }
+
+    /// If contains AS as a member.
+    pub fn contains_member(&self, num: u64) -> bool {
+        self.members.binary_search(&num).is_ok()
     }
 
     /// Fill in routes for the AS with `as_set` with routes in `as_routes`.
@@ -39,6 +43,7 @@ impl AsSetRoute {
             }
         }
         let mut result = Self {
+            members: as_set.members.clone(),
             routes,
             unrecorded_nums,
             set_members: as_set.set_members.clone(),
@@ -46,6 +51,12 @@ impl AsSetRoute {
         result.clean_up();
         result
     }
+}
+
+pub fn clean_vec<T: Ord>(v: &mut Vec<T>) {
+    v.sort();
+    v.shrink_to_fit();
+    v.dedup();
 }
 
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]

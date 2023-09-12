@@ -3,7 +3,7 @@ use super::*;
 /// Check a specific line.
 /// Copy this after running code from [`parse_bgp_lines`].
 fn as_neighbors_vs_rules(query: QueryDump, db: AsRelDb) -> Result<()> {
-    let mut line: Line = Line::from_raw("TABLE_DUMP2|1687212013|B|105.16.0.247|37100|103.2.88.0/24|37100 6939 7545 17559 139609 45891 134525|IGP|105.16.0.247|0|0|no-export|NAG||".into())?;
+    let mut line: Line = Line::from_raw("TABLE_DUMP2|1687212000|B|85.114.0.217|8492|1.32.0.0/17|8492 6939 4788|IGP|85.114.0.217|0|0|8492:1208 8492:1601|NAG||".into())?;
     line.compare.verbosity = Verbosity {
         all_err: true,
         ..Verbosity::minimum_all()

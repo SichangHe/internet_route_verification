@@ -73,6 +73,7 @@ impl<'a> CheckFilter<'a> {
     pub fn maybe_filter_as_is_origin(&self, num: u64, op: RangeOperator) -> bool {
         match (op, self.prev_path.last()) {
             (RangeOperator::NoOp, Some(Seq(n))) => *n == num,
+            (RangeOperator::NoOp, None) => self.self_num == num,
             _ => false,
         }
     }

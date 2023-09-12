@@ -137,7 +137,7 @@ pub enum SpecialCase {
     UphillTier1,
     /// Export customer routes while specifying the AS itself as `<filter>`.
     ExportCustomers,
-    /// AS in `<filter>` is the source on the path, but the route mismatches.
+    /// AS in `<filter>` is the origin on the path, but the route mismatches.
     AsIsOriginButNoRoute(u64),
     /// Route between Tier 1 ASes.
     Tier1Pair,

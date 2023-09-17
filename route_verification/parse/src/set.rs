@@ -9,6 +9,7 @@ pub struct AsSet {
     /// AS numbers; should be kept sorted.
     pub members: Vec<u64>,
     pub set_members: Vec<String>,
+    pub is_any: bool,
 }
 
 impl AsSet {
@@ -21,6 +22,17 @@ impl AsSet {
             body,
             members,
             set_members,
+            is_any: false,
+        }
+    }
+
+    pub fn new_any(mut body: String) -> Self {
+        body.shrink_to_fit();
+        Self {
+            body,
+            members: vec![],
+            set_members: vec![],
+            is_any: true,
         }
     }
 }

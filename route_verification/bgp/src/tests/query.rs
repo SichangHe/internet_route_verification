@@ -14,5 +14,5 @@ fn psedo_customer_set() -> Result<()> {
 }
 
 fn expected_as_sets() -> HashMap<String, AsSet> {
-    hashmap! {"c#2914".into()=> AsSet { body: "".into(), members: vec![4096, 9583], set_members: vec![] }, "c#1239".into()=> AsSet { body: "".into(), members: vec![3130], set_members: vec![] }}
+    hashmap! {"c#2914".into()=> AsSet { body: "".into(), members: vec![4096, 9583], set_members: vec![], is_any: false }, "c#1239".into()=> AsSet { body: "".into(), members: vec![3130], set_members: vec![], is_any: false }}
 }

@@ -26,11 +26,7 @@ pub fn make_customer_pseudo_set(db: &AsRelDb) -> BTreeMap<String, AsSet> {
         .map(|(aut_num, customers)| {
             (
                 customer_set(aut_num),
-                AsSet {
-                    body: "".into(),
-                    members: customers,
-                    set_members: vec![],
-                },
+                AsSet::new("".into(), customers, vec![]),
             )
         })
         .collect()

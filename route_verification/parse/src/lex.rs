@@ -79,7 +79,7 @@ pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
         let member = parse_as_name(member)
             .with_context(|| format!("parsing AS Set {}\n{}", lexed.name, lexed.body))?;
         match member {
-            AsName::Any => bail!("AS Set {} contains `ANY`", lexed.name),
+            AsName::Any => return Ok((lexed.name, AsSet::new_any(lexed.body))),
             AsName::Num(n) => members.push(n),
             AsName::Set(set) => set_members.push(set),
             AsName::Invalid(reason) => {

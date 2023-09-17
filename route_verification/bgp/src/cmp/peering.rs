@@ -106,7 +106,7 @@ impl<'a> CheckPeering<'a> {
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
 
-        if as_set.members.binary_search(&self.accept_num).is_ok() {
+        if as_set.is_any || as_set.members.binary_search(&self.accept_num).is_ok() {
             return None;
         }
 

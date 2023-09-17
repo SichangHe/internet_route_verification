@@ -309,7 +309,7 @@ impl<'a> CheckFilter<'a> {
             Some(s) => s,
             None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
         };
-        if as_set.members.contains(&asn) {
+        if as_set.is_any || as_set.members.contains(&asn) {
             return Ok(true);
         }
         let mut report = SkipF(vec![]);

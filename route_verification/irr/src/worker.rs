@@ -30,11 +30,36 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRo
 
     let mut aut_nums = Vec::new();
     let mut pseduo_as_sets = BTreeMap::new();
+    let mut n_skip = 0;
+    let mut n_parse_err = 0;
+    let mut n_unknown_err = 0;
     while let Ok(obj) = recv.recv() {
         obj.write_to(&mut aut_num_child.stdin)?;
         gather_ref(&obj, &mut pseduo_as_sets);
-        let line = read_line_wait(&mut aut_num_child.stdout)?;
-        let mut aut_num: AutNum = from_str(&line)?;
+        let mut aut_num: AutNum = loop {
+            let line = read_line_wait(&mut aut_num_child.stdout)?;
+            if line.starts_with('{') {
+                break from_str(&line)?;
+            }
+            let mut splits = line.splitn(2, ':');
+            match (splits.next().as_ref(), splits.next()) {
+                (Some(&"Ignore"), Some(content)) => {
+                    debug!("aut_num_child: {}", content.trim());
+                }
+                (Some(&"ParseException"), Some(_)) => {
+                    n_parse_err += 1;
+                    error!("aut_num_child: {}", line.trim());
+                }
+                (Some(&"Skip"), Some(content)) => {
+                    n_skip += 1;
+                    warn!("aut_num_child: {}", content.trim());
+                }
+                _ => {
+                    n_unknown_err += 1;
+                    error!("aut_num_child: unknown: {}", line.trim());
+                }
+            }
+        };
         (aut_num.name, aut_num.body) = (obj.name, obj.body);
         aut_nums.push(aut_num);
         match aut_nums.len() {
@@ -42,6 +67,8 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRo
             _ => (),
         }
     }
+    // TODO: Return these.
+    debug!("aut_num_child: {n_skip} skips, {n_parse_err} parsing errors, {n_unknown_err} unknown errors.");
     warn!("aut_num_worker exiting normally.");
     Ok((aut_nums, conclude_set(pseduo_as_sets)))
 }

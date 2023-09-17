@@ -28,8 +28,7 @@ def parse_mp_import(
         lexed = lex_with(mp_import, expr)
         import_export(lexed, imports, is_mp)
     except Exception as err:
-        tag = red("[parse_mp_import]")
-        print(f"{tag} {err} parsing `{expr}`.", file=sys.stderr)
+        print(f"{err} parsing `{expr}`.")
 
 
 def parse_aut_num(obj: RPSLObject):

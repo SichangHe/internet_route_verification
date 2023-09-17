@@ -1,4 +1,3 @@
-from sys import stderr
 from typing import Iterable
 
 from pyparsing import ParseException, ParserElement
@@ -11,7 +10,7 @@ def lex_with(lexer: ParserElement, string: str) -> dict:
     try:
         return lexer.parse_string(string, parse_all=True).as_dict()
     except ParseException:
-        raise ValueError(f"ParseException parsing `{string}`")
+        raise ValueError(f"ParseException: Parsing `{string}`")
 
 
 def clean_action(
@@ -285,7 +284,7 @@ def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | 
     # TODO: Deal with multiple <mp-peering>s.
     if len(right_peerings) > 1:
         raise ValueError(
-            f"Skipping REFINE expression with multiple <mp-peering>s: {right}."
+            f"Skip: Skipping REFINE expression with multiple <mp-peering>s: {right}."
         )
     right_peering_action = right_peerings[0]
     right_peering = right_peering_action["mp_peering"]
@@ -371,9 +370,9 @@ def import_export(lexed: dict, result: dict[str, dict[str, list]], is_mp: bool =
     """Parse lexed <mp-import> or <mp-export>."""
     if is_mp:
         if protocol_1 := lexed.get("protocol-1"):
-            print(f"Ignoring protocol-1: {protocol_1}.", file=stderr)
+            print(f"Ignore: Ignoring protocol-1: {protocol_1}.")
         if protocol_2 := lexed.get("protocol-2"):
-            print(f"Ignoring protocol-2: {protocol_2}.", file=stderr)
+            print(f"Ignore: Ignoring protocol-2: {protocol_2}.")
 
     afi_entries = set([("any", "any") if is_mp else ("ipv4", "unicast")])
     parsed_list = parse_afi_import_expression(lexed, afi_entries)

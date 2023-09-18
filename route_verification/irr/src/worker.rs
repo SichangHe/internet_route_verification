@@ -10,10 +10,8 @@ use io::{cmd::PipedChild, serialize::from_str};
 
 use super::*;
 
-pub fn spawn_aut_num_worker() -> Result<(
-    Sender<RPSLObject>,
-    JoinHandle<Result<(Vec<AutNum>, Vec<AsOrRouteSet>)>>,
-)> {
+pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<AutNumWorkerOutput>>)>
+{
     let (send, recv) = channel();
     let worker = spawn(|| {
         aut_num_worker(recv).map_err(|e| {
@@ -24,7 +22,7 @@ pub fn spawn_aut_num_worker() -> Result<(
     Ok((send, worker))
 }
 
-fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRouteSet>)> {
+fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<AutNumWorkerOutput> {
     let mut aut_num_child =
         PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_lexer.aut_num"]))?;
 
@@ -65,10 +63,18 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRo
             _ => (),
         }
     }
-    // TODO: Return these.
-    debug!("aut_num_child counts: {counts}.");
     warn!("aut_num_worker exiting normally.");
-    Ok((aut_nums, conclude_set(pseduo_as_sets)))
+    Ok(AutNumWorkerOutput {
+        aut_nums,
+        pseudo_as_sets: conclude_set(pseduo_as_sets),
+        counts,
+    })
+}
+
+pub struct AutNumWorkerOutput {
+    pub aut_nums: Vec<AutNum>,
+    pub pseudo_as_sets: Vec<AsOrRouteSet>,
+    pub counts: Counts,
 }
 
 pub fn spawn_peering_set_worker(

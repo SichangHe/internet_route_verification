@@ -16,11 +16,13 @@ use parse::{
 use rayon::prelude::*;
 
 pub mod mbrs;
+pub mod stats;
 #[cfg(test)]
 mod tests;
 pub mod worker;
 
 use mbrs::*;
+use stats::Counts;
 use worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
 /// Gather `members` and `mp-members` expressions.

@@ -63,7 +63,7 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<AutNumWorkerOutput> {
             _ => (),
         }
     }
-    warn!("aut_num_worker exiting normally.");
+    debug!("aut_num_worker exiting normally.");
     Ok(AutNumWorkerOutput {
         aut_nums,
         pseudo_as_sets: conclude_set(pseduo_as_sets),
@@ -105,7 +105,7 @@ fn peering_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<PeeringSet>> {
             _ => (),
         }
     }
-    warn!("peering_set_worker exiting normally.");
+    debug!("peering_set_worker exiting normally.");
     Ok(peering_sets)
 }
 
@@ -137,6 +137,6 @@ fn filter_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<FilterSet>> {
             _ => (),
         }
     }
-    warn!("filter_set_worker exiting normally.");
+    debug!("filter_set_worker exiting normally.");
     Ok(filter_sets)
 }

@@ -10,10 +10,8 @@ use io::{cmd::PipedChild, serialize::from_str};
 
 use super::*;
 
-pub fn spawn_aut_num_worker() -> Result<(
-    Sender<RPSLObject>,
-    JoinHandle<Result<(Vec<AutNum>, Vec<AsOrRouteSet>)>>,
-)> {
+pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<AutNumWorkerOutput>>)>
+{
     let (send, recv) = channel();
     let worker = spawn(|| {
         aut_num_worker(recv).map_err(|e| {
@@ -24,17 +22,40 @@ pub fn spawn_aut_num_worker() -> Result<(
     Ok((send, worker))
 }
 
-fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRouteSet>)> {
+fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<AutNumWorkerOutput> {
     let mut aut_num_child =
         PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_lexer.aut_num"]))?;
 
     let mut aut_nums = Vec::new();
     let mut pseduo_as_sets = BTreeMap::new();
+    let mut counts = Counts::default();
     while let Ok(obj) = recv.recv() {
         obj.write_to(&mut aut_num_child.stdin)?;
         gather_ref(&obj, &mut pseduo_as_sets);
-        let line = read_line_wait(&mut aut_num_child.stdout)?;
-        let mut aut_num: AutNum = from_str(&line)?;
+        let mut aut_num: AutNum = loop {
+            let line = read_line_wait(&mut aut_num_child.stdout)?;
+            if line.starts_with('{') {
+                break from_str(&line)?;
+            }
+            let mut splits = line.splitn(2, ':');
+            match (splits.next().as_ref(), splits.next()) {
+                (Some(&"Ignore"), Some(content)) => {
+                    debug!("aut_num_child: {}", content.trim());
+                }
+                (Some(&"ParseException"), Some(_)) => {
+                    counts.lex_err += 1;
+                    warn!("aut_num_child: {}", line.trim());
+                }
+                (Some(&"Skip"), Some(content)) => {
+                    counts.skip += 1;
+                    warn!("aut_num_child: {}", content.trim());
+                }
+                _ => {
+                    counts.unknown_err += 1;
+                    error!("aut_num_child: unknown: {}", line.trim());
+                }
+            }
+        };
         (aut_num.name, aut_num.body) = (obj.name, obj.body);
         aut_nums.push(aut_num);
         match aut_nums.len() {
@@ -42,8 +63,18 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<(Vec<AutNum>, Vec<AsOrRo
             _ => (),
         }
     }
-    warn!("aut_num_worker exiting normally.");
-    Ok((aut_nums, conclude_set(pseduo_as_sets)))
+    debug!("aut_num_worker exiting normally.");
+    Ok(AutNumWorkerOutput {
+        aut_nums,
+        pseudo_as_sets: conclude_set(pseduo_as_sets),
+        counts,
+    })
+}
+
+pub struct AutNumWorkerOutput {
+    pub aut_nums: Vec<AutNum>,
+    pub pseudo_as_sets: Vec<AsOrRouteSet>,
+    pub counts: Counts,
 }
 
 pub fn spawn_peering_set_worker(
@@ -74,7 +105,7 @@ fn peering_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<PeeringSet>> {
             _ => (),
         }
     }
-    warn!("peering_set_worker exiting normally.");
+    debug!("peering_set_worker exiting normally.");
     Ok(peering_sets)
 }
 
@@ -106,6 +137,6 @@ fn filter_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<FilterSet>> {
             _ => (),
         }
     }
-    warn!("filter_set_worker exiting normally.");
+    debug!("filter_set_worker exiting normally.");
     Ok(filter_sets)
 }

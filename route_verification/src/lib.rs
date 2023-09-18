@@ -36,8 +36,8 @@ pub fn parse_all(args: Vec<String>) -> Result<()> {
     let output_dir = &args[3];
     debug!("Will dump to {output_dir}.");
 
-    let parsed = fs::parse_all(input_dir)?;
-    parsed.log_count();
+    let (parsed, counts) = fs::parse_all(input_dir)?;
+    println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 
     debug!("Starting to write the parsed dump.");
     parsed.pal_write(output_dir)?;

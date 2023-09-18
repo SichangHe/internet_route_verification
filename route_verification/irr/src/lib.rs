@@ -60,7 +60,7 @@ pub fn parse_object(obj: RPSLObject, pd: &mut PreDump) -> Result<()> {
     match obj.class.as_str() {
         "aut-num" => pd.send_aut_num.send(obj)?,
         "as-set" => parse_as_set(obj, &mut pd.as_sets),
-        "route" | "route6" => parse_route(obj, &mut pd.as_routes, &mut pd.pseudo_route_sets),
+        "route" | "route6" => parse_route(obj, pd),
         "route-set" => parse_route_set(obj, &mut pd.route_sets),
         "filter-set" => pd.send_filter_set.send(obj)?,
         "peering-set" => pd.send_peering_set.send(obj)?,
@@ -78,25 +78,22 @@ fn parse_as_set(obj: RPSLObject, as_sets: &mut Vec<AsOrRouteSet>) {
     }
 }
 
-fn parse_route(
-    obj: RPSLObject,
-    as_routes: &mut BTreeMap<String, Vec<String>>,
-    pseudo_route_sets: &mut Map2DStringVec,
-) {
-    gather_ref(&obj, pseudo_route_sets);
+fn parse_route(obj: RPSLObject, pd: &mut PreDump) {
+    gather_ref(&obj, &mut pd.pseudo_route_sets);
     for RpslExpr {
         key,
         expr, /*AS*/
     } in expressions(lines_continued(obj.body.lines()))
     {
         if key == "origin" {
-            as_routes
+            pd.as_routes
                 .entry(expr.to_uppercase())
                 .or_default()
                 .push(obj.name /*The route*/);
             return;
         }
     }
+    pd.counts.unknown_err += 1;
     error!("Route object {} does not have an `origin` field.", obj.name);
 }
 
@@ -112,7 +109,7 @@ fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
 const ONE_MEBIBYTE: usize = 1024 * 1024;
 
 /// Read and lex RPSL database.
-pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
+pub fn read_db<R>(db: BufReader<R>) -> Result<(Dump, Counts)>
 where
     R: Read,
 {
@@ -129,14 +126,18 @@ where
         send_peering_set,
         send_filter_set,
         as_routes,
+        counts: Default::default(),
     };
 
     for obj in rpsl_objects(io_wrapper_lines(db)) {
         if obj.body.len() > ONE_MEBIBYTE {
             // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
+            pd.counts.skip += 1;
             warn!(
-                "Skipping {} object `{}` with body larger than 1MiB.",
-                obj.class, obj.name
+                "Skipping {} object `{}` with a {}MiB body.",
+                obj.class,
+                obj.name,
+                obj.body.len() / ONE_MEBIBYTE
             );
             continue;
         }
@@ -146,19 +147,25 @@ where
     pd.route_sets.extend(conclude_set(pd.pseudo_route_sets));
 
     drop((pd.send_aut_num, pd.send_peering_set, pd.send_filter_set));
-    let (aut_nums, pseudo_as_sets) = aut_num_worker.join().unwrap()?;
-    pd.as_sets.extend(pseudo_as_sets);
+    let an_out = aut_num_worker.join().unwrap()?;
+    pd.as_sets.extend(an_out.pseudo_as_sets);
     let peering_sets = peering_set_worker.join().unwrap()?;
     let filter_sets = filter_set_worker.join().unwrap()?;
 
-    Ok(Dump {
-        aut_nums,
-        as_sets: pd.as_sets,
-        route_sets: pd.route_sets,
-        peering_sets,
-        filter_sets,
-        as_routes: pd.as_routes,
-    })
+    let counts = pd.counts + an_out.counts;
+    debug!("read_db counts: {counts}.");
+
+    Ok((
+        Dump {
+            aut_nums: an_out.aut_nums,
+            as_sets: pd.as_sets,
+            route_sets: pd.route_sets,
+            peering_sets,
+            filter_sets,
+            as_routes: pd.as_routes,
+        },
+        counts,
+    ))
 }
 
 pub struct PreDump {
@@ -169,19 +176,37 @@ pub struct PreDump {
     pub send_peering_set: Sender<RPSLObject>,
     pub send_filter_set: Sender<RPSLObject>,
     pub as_routes: BTreeMap<String, Vec<String>>,
+    pub counts: Counts,
 }
 
 /// When some DBs have the same keys, any value could be used.
-pub fn parse_dbs<I, R>(dbs: I) -> Result<dump::Dump>
+pub fn parse_dbs<I, R>(dbs: I) -> Result<(dump::Dump, Counts)>
 where
     I: IntoParallelIterator<Item = BufReader<R>>,
     R: Read,
 {
-    let dumps = dbs
+    let (dumps, counts) = dbs
         .into_par_iter()
-        .map(|db| read_db(db).map(parse_lexed))
-        .collect::<Result<_>>()?;
-    Ok(merge_dumps(dumps))
+        .fold(
+            || Ok((Vec::new(), Counts::default())),
+            |acc: Result<_>, db| {
+                let (mut dumps, counts) = acc?;
+                let (parsed, l_counts) = read_db(db)?;
+                let (dump, p_counts) = parse_lexed(parsed);
+                dumps.push(dump);
+                Ok((dumps, counts + l_counts + p_counts))
+            },
+        )
+        .reduce(
+            || Ok((Vec::new(), Counts::default())),
+            |acc, x| {
+                let (mut dumps, counts) = acc?;
+                let (new_dumps, new_counts) = x?;
+                dumps.extend(new_dumps);
+                Ok((dumps, counts + new_counts))
+            },
+        )?;
+    Ok((merge_dumps(dumps), counts))
 }
 
 /// Split by `,`s followed by any number of whitespace.

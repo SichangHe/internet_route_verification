@@ -136,8 +136,10 @@ impl Dump {
             .collect::<Result<Vec<_>, _>>()?;
         Ok(merge_dumps(dumps))
     }
+}
 
-    pub fn log_count(&self) {
+impl std::fmt::Display for Dump {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self {
             aut_nums,
             as_sets,
@@ -146,15 +148,15 @@ impl Dump {
             filter_sets,
             as_routes,
         } = self;
-        debug!(
-            "Parsed {} aut_nums, {} as_sets, {} route_sets, {} peering_sets, {} filter_sets, {} as_routes.",
+        f.write_fmt(format_args!(
+            "{} aut_nums, {} as_sets, {} route_sets, {} peering_sets, {} filter_sets, {} as_routes",
             aut_nums.len(),
             as_sets.len(),
             route_sets.len(),
             peering_sets.len(),
             filter_sets.len(),
             as_routes.len(),
-        )
+        ))
     }
 }
 
@@ -181,6 +183,9 @@ where
 }
 
 /// Merge `dumps` into a single [`Dump`] in parallel, with no ordering guarantee.
-pub fn merge_dumps(dumps: Vec<Dump>) -> Dump {
+pub fn merge_dumps<I>(dumps: I) -> Dump
+where
+    I: IntoParallelIterator<Item = Dump>,
+{
     dumps.into_par_iter().reduce(Dump::default, Dump::merge)
 }

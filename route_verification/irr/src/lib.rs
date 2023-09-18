@@ -16,13 +16,11 @@ use parse::{
 use rayon::prelude::*;
 
 pub mod mbrs;
-pub mod stats;
 #[cfg(test)]
 mod tests;
 pub mod worker;
 
 use mbrs::*;
-use stats::Counts;
 use worker::{spawn_aut_num_worker, spawn_filter_set_worker, spawn_peering_set_worker};
 
 /// Gather `members` and `mp-members` expressions.
@@ -111,7 +109,7 @@ fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
 const ONE_MEBIBYTE: usize = 1024 * 1024;
 
 /// Read and lex RPSL database.
-pub fn read_db<R>(db: BufReader<R>) -> Result<Dump>
+pub fn read_db<R>(db: BufReader<R>) -> Result<(Dump, Counts)>
 where
     R: Read,
 {
@@ -154,18 +152,20 @@ where
     let peering_sets = peering_set_worker.join().unwrap()?;
     let filter_sets = filter_set_worker.join().unwrap()?;
 
-    // TODO: Return this.
     let counts = pd.counts + an_out.counts;
     debug!("read_db counts: {counts}.");
 
-    Ok(Dump {
-        aut_nums: an_out.aut_nums,
-        as_sets: pd.as_sets,
-        route_sets: pd.route_sets,
-        peering_sets,
-        filter_sets,
-        as_routes: pd.as_routes,
-    })
+    Ok((
+        Dump {
+            aut_nums: an_out.aut_nums,
+            as_sets: pd.as_sets,
+            route_sets: pd.route_sets,
+            peering_sets,
+            filter_sets,
+            as_routes: pd.as_routes,
+        },
+        counts,
+    ))
 }
 
 pub struct PreDump {
@@ -180,16 +180,33 @@ pub struct PreDump {
 }
 
 /// When some DBs have the same keys, any value could be used.
-pub fn parse_dbs<I, R>(dbs: I) -> Result<dump::Dump>
+pub fn parse_dbs<I, R>(dbs: I) -> Result<(dump::Dump, Counts)>
 where
     I: IntoParallelIterator<Item = BufReader<R>>,
     R: Read,
 {
-    let dumps = dbs
+    let (dumps, counts) = dbs
         .into_par_iter()
-        .map(|db| read_db(db).map(parse_lexed))
-        .collect::<Result<_>>()?;
-    Ok(merge_dumps(dumps))
+        .fold(
+            || Ok((Vec::new(), Counts::default())),
+            |acc: Result<_>, db| {
+                let (mut dumps, counts) = acc?;
+                let (parsed, l_counts) = read_db(db)?;
+                let (dump, p_counts) = parse_lexed(parsed);
+                dumps.push(dump);
+                Ok((dumps, counts + l_counts + p_counts))
+            },
+        )
+        .reduce(
+            || Ok((Vec::new(), Counts::default())),
+            |acc, x| {
+                let (mut dumps, counts) = acc?;
+                let (new_dumps, new_counts) = x?;
+                dumps.extend(new_dumps);
+                Ok((dumps, counts + new_counts))
+            },
+        )?;
+    Ok((merge_dumps(dumps), counts))
 }
 
 /// Split by `,`s followed by any number of whitespace.

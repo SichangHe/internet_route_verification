@@ -43,8 +43,8 @@ fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<AutNumWorkerOutput> {
                     debug!("aut_num_child: {}", content.trim());
                 }
                 (Some(&"ParseException"), Some(_)) => {
-                    counts.parse_err += 1;
-                    error!("aut_num_child: {}", line.trim());
+                    counts.lex_err += 1;
+                    warn!("aut_num_child: {}", line.trim());
                 }
                 (Some(&"Skip"), Some(content)) => {
                     counts.skip += 1;

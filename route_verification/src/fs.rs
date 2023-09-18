@@ -3,6 +3,7 @@ use std::{fs::*, io::*, path::Path};
 use chardetng::EncodingDetector;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
+use lex::Counts;
 use rayon::prelude::*;
 
 use super::{
@@ -18,10 +19,10 @@ pub fn parse(filename: &str, output_dir: &str) -> Result<()> {
         .encoding(Some(encoding))
         .build(File::open(filename)?);
     let reader = BufReader::new(decoder);
-    let dump = read_db(reader)?;
-    dump.log_count();
-
-    let parsed = parse_lexed(dump);
+    let (dump, l_counts) = read_db(reader)?;
+    let (parsed, p_counts) = parse_lexed(dump);
+    let counts = l_counts + p_counts;
+    println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
     debug!("Starting to write the parsed dump.");
     parsed.pal_write(output_dir)?;
     debug!("Wrote the parsed dump.");
@@ -31,12 +32,12 @@ pub fn parse(filename: &str, output_dir: &str) -> Result<()> {
 
 pub fn read(input_dir: &str) -> Result<()> {
     let dump = Dump::pal_read(input_dir)?;
-    dump.log_count();
+    debug!("read: Parsed {dump}.");
     dump.split_n_cpus()?;
     Ok(())
 }
 
-pub fn parse_all(input_dir: &str) -> Result<Dump> {
+pub fn parse_all(input_dir: &str) -> Result<(Dump, Counts)> {
     let readers = read_dir(input_dir)?
         .par_bridge()
         .map(|entry| {
@@ -54,10 +55,11 @@ pub fn parse_all(input_dir: &str) -> Result<Dump> {
     parse_dbs(readers)
 }
 pub fn parse_priority(priority_dir: &str, backup_dir: &str, output_dir: &str) -> Result<()> {
-    let priority = parse_all(priority_dir)?;
-    let backup = parse_all(backup_dir)?;
+    let (priority, p_counts) = parse_all(priority_dir)?;
+    let (backup, b_counts) = parse_all(backup_dir)?;
     let parsed = backup.merge(priority);
-    parsed.log_count();
+    let counts = p_counts + b_counts;
+    println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 
     debug!("Starting to write the parsed dump.");
     parsed.pal_write(output_dir)?;
@@ -104,7 +106,7 @@ where
 
 pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     let parsed = Dump::pal_read(parsed_dir)?;
-    parsed.log_count();
+    debug!("report: Parsed {parsed}.");
 
     let query = QueryDump::from_dump(parsed);
     debug!("Converted Dump to QueryDump");

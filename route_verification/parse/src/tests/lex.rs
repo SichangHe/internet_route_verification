@@ -1,4 +1,4 @@
-use ::lex::{action::Action::*, test_util::expected_dump};
+use ::lex::{action::Action::*, test_util::expected_dump, Counts};
 use maplit::btreemap;
 use net_literals::ip;
 
@@ -25,20 +25,32 @@ fn parse_name() {
 #[test]
 fn parse_dump() {
     let lexed = expected_dump();
-    let Dump {
-        aut_nums,
-        as_sets,
-        route_sets,
-        peering_sets,
-        filter_sets,
-        as_routes,
-    } = parse_lexed(lexed);
+    let (
+        Dump {
+            aut_nums,
+            as_sets,
+            route_sets,
+            peering_sets,
+            filter_sets,
+            as_routes,
+        },
+        Counts {
+            skip,
+            lex_err,
+            parse_err,
+            unknown_err,
+        },
+    ) = parse_lexed(lexed);
     assert_eq!(aut_nums, expected_aut_nums());
     assert_eq!(as_sets, expected_as_sets());
     assert_eq!(route_sets, expected_route_sets());
     assert_eq!(peering_sets, expected_peering_sets());
     assert_eq!(filter_sets, expected_filter_sets());
     assert_eq!(as_routes, expected_as_routes());
+    assert_eq!(skip, 0);
+    assert_eq!(lex_err, 0);
+    assert_eq!(parse_err, 0);
+    assert_eq!(unknown_err, 0);
 }
 
 fn expected_aut_nums() -> BTreeMap<u64, AutNum> {

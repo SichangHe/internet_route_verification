@@ -1,26 +1,30 @@
-use ::lex::{self, Call};
+use ::lex::{self, Call, Counts};
 use lazy_regex::regex_is_match;
 use log::warn;
 
 use super::*;
 use RangeOperator::NoOp;
 
-pub fn parse_filter(mp_filter: lex::Filter, mp_peerings: &[PeeringAction]) -> Filter {
+pub fn parse_filter(
+    mp_filter: lex::Filter,
+    mp_peerings: &[PeeringAction],
+    counts: &mut Counts,
+) -> Filter {
     use lex::Filter::*;
     match mp_filter {
         Any => Filter::Any,
         And { left, right } => Filter::And {
-            left: Box::new(parse_filter(*left, mp_peerings)),
-            right: Box::new(parse_filter(*right, mp_peerings)),
+            left: Box::new(parse_filter(*left, mp_peerings, counts)),
+            right: Box::new(parse_filter(*right, mp_peerings, counts)),
         },
         Or { left, right } => Filter::Or {
-            left: Box::new(parse_filter(*left, mp_peerings)),
-            right: Box::new(parse_filter(*right, mp_peerings)),
+            left: Box::new(parse_filter(*left, mp_peerings, counts)),
+            right: Box::new(parse_filter(*right, mp_peerings, counts)),
         },
-        Not(filter) => Filter::Not(Box::new(parse_filter(*filter, mp_peerings))),
-        Group(group) => Filter::Group(Box::new(parse_filter(*group, mp_peerings))),
+        Not(filter) => Filter::Not(Box::new(parse_filter(*filter, mp_peerings, counts))),
+        Group(group) => Filter::Group(Box::new(parse_filter(*group, mp_peerings, counts))),
         Community(call) => Filter::Community(call),
-        PathAttr(attr) => parse_path_attribute(attr, mp_peerings),
+        PathAttr(attr) => parse_path_attribute(attr, mp_peerings, counts),
         AddrPrefixSet(set) => Filter::AddrPrefixSet(
             set.into_iter()
                 .filter_map(|s| {
@@ -34,7 +38,11 @@ pub fn parse_filter(mp_filter: lex::Filter, mp_peerings: &[PeeringAction]) -> Fi
     }
 }
 
-pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filter {
+pub fn parse_path_attribute(
+    attr: String,
+    mp_peerings: &[PeeringAction],
+    counts: &mut Counts,
+) -> Filter {
     if is_any(&attr) {
         Filter::Any
     } else if regex_is_match!(r"^peeras$"i, &attr) {
@@ -48,6 +56,7 @@ pub fn parse_path_attribute(attr: String, mp_peerings: &[PeeringAction]) -> Filt
     } else if let Some(filter) = try_parse_as_num(&attr) {
         filter
     } else {
+        counts.parse_err += 1;
         warn!("parse_path_attribute: Unknown filter: {attr}.");
         Filter::Unknown(attr)
     }

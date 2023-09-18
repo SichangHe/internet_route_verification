@@ -33,29 +33,20 @@ pub fn parse_lexed(lexed: lex::Dump) -> (Dump, Counts) {
 }
 
 pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> (BTreeMap<u64, AutNum>, Counts) {
-    lexed
-        .into_par_iter()
-        .fold(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut acc, mut counts), lexed| match parse_lexed_aut_num(lexed, &mut counts) {
-                Ok((num, aut_num)) => {
-                    acc.insert(num, aut_num);
-                    (acc, counts)
-                }
-                Err(e) => {
-                    counts.parse_err += 1;
-                    error!("{e:?}");
-                    (acc, counts)
-                }
-            },
-        )
-        .reduce(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut map0, counts0), (map1, counts1)| {
-                map0.extend(map1);
-                (map0, counts0 + counts1)
-            },
-        )
+    par_process_map_counts(
+        lexed,
+        |(mut acc, mut counts), lexed| match parse_lexed_aut_num(lexed, &mut counts) {
+            Ok((num, aut_num)) => {
+                acc.insert(num, aut_num);
+                (acc, counts)
+            }
+            Err(e) => {
+                counts.parse_err += 1;
+                error!("{e:?}");
+                (acc, counts)
+            }
+        },
+    )
 }
 
 pub fn parse_lexed_aut_num(aut_num: lex::AutNum, counts: &mut Counts) -> Result<(u64, AutNum)> {
@@ -88,29 +79,20 @@ pub fn parse_aut_num_name(name: &str) -> Result<u64> {
 }
 
 pub fn parse_lexed_as_sets(lexed: Vec<lex::AsOrRouteSet>) -> (BTreeMap<String, AsSet>, Counts) {
-    lexed
-        .into_par_iter()
-        .fold(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut acc, mut counts), lexed| match parse_lexed_as_set(lexed) {
-                Ok((name, as_set)) => {
-                    acc.insert(name, as_set);
-                    (acc, counts)
-                }
-                Err(e) => {
-                    counts.parse_err += 1;
-                    error!("{e:?}");
-                    (acc, counts)
-                }
-            },
-        )
-        .reduce(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut map0, counts0), (map1, counts1)| {
-                map0.extend(map1);
-                (map0, counts0 + counts1)
-            },
-        )
+    par_process_map_counts(
+        lexed,
+        |(mut acc, mut counts), lexed| match parse_lexed_as_set(lexed) {
+            Ok((name, as_set)) => {
+                acc.insert(name, as_set);
+                (acc, counts)
+            }
+            Err(e) => {
+                counts.parse_err += 1;
+                error!("{e:?}");
+                (acc, counts)
+            }
+        },
+    )
 }
 
 pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
@@ -139,29 +121,20 @@ pub fn parse_lexed_as_set(lexed: lex::AsOrRouteSet) -> Result<(String, AsSet)> {
 pub fn parse_lexed_route_sets(
     lexed: Vec<lex::AsOrRouteSet>,
 ) -> (BTreeMap<String, RouteSet>, Counts) {
-    lexed
-        .into_par_iter()
-        .fold(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut acc, mut counts), lexed| match parse_lexed_route_set(lexed) {
-                Ok((name, route_set)) => {
-                    acc.insert(name, route_set);
-                    (acc, counts)
-                }
-                Err(e) => {
-                    counts.parse_err += 1;
-                    error!("{e:?}");
-                    (acc, counts)
-                }
-            },
-        )
-        .reduce(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut map0, counts0), (map1, counts1)| {
-                map0.extend(map1);
-                (map0, counts0 + counts1)
-            },
-        )
+    par_process_map_counts(
+        lexed,
+        |(mut acc, mut counts), lexed| match parse_lexed_route_set(lexed) {
+            Ok((name, route_set)) => {
+                acc.insert(name, route_set);
+                (acc, counts)
+            }
+            Err(e) => {
+                counts.parse_err += 1;
+                error!("{e:?}");
+                (acc, counts)
+            }
+        },
+    )
 }
 
 pub fn parse_lexed_route_set(lexed: lex::AsOrRouteSet) -> Result<(String, RouteSet)> {
@@ -189,29 +162,20 @@ pub fn parse_lexed_route_set(lexed: lex::AsOrRouteSet) -> Result<(String, RouteS
 pub fn parse_lexed_peering_sets(
     lexed: Vec<lex::PeeringSet>,
 ) -> (BTreeMap<String, PeeringSet>, Counts) {
-    lexed
-        .into_par_iter()
-        .fold(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut acc, mut counts), lexed| match parse_lexed_peering_set(lexed) {
-                Ok((name, peering_set)) => {
-                    acc.insert(name, peering_set);
-                    (acc, counts)
-                }
-                Err(e) => {
-                    counts.parse_err += 1;
-                    error!("{e:?}");
-                    (acc, counts)
-                }
-            },
-        )
-        .reduce(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut map0, counts0), (map1, counts1)| {
-                map0.extend(map1);
-                (map0, counts0 + counts1)
-            },
-        )
+    par_process_map_counts(
+        lexed,
+        |(mut acc, mut counts), lexed| match parse_lexed_peering_set(lexed) {
+            Ok((name, peering_set)) => {
+                acc.insert(name, peering_set);
+                (acc, counts)
+            }
+            Err(e) => {
+                counts.parse_err += 1;
+                error!("{e:?}");
+                (acc, counts)
+            }
+        },
+    )
 }
 
 pub fn parse_lexed_peering_set(lexed: lex::PeeringSet) -> Result<(String, PeeringSet)> {
@@ -233,29 +197,20 @@ pub fn parse_lexed_peering_set(lexed: lex::PeeringSet) -> Result<(String, Peerin
 pub fn parse_lexed_filter_sets(
     lexed: Vec<lex::FilterSet>,
 ) -> (BTreeMap<String, FilterSet>, Counts) {
-    lexed
-        .into_par_iter()
-        .fold(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut acc, mut counts), lexed| match parse_lexed_filter_set(lexed, &mut counts) {
-                Ok((name, filter_set)) => {
-                    acc.insert(name, filter_set);
-                    (acc, counts)
-                }
-                Err(e) => {
-                    counts.parse_err += 1;
-                    error!("{e:?}");
-                    (acc, counts)
-                }
-            },
-        )
-        .reduce(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut map0, counts0), (map1, counts1)| {
-                map0.extend(map1);
-                (map0, counts0 + counts1)
-            },
-        )
+    par_process_map_counts(
+        lexed,
+        |(mut acc, mut counts), lexed| match parse_lexed_filter_set(lexed, &mut counts) {
+            Ok((name, filter_set)) => {
+                acc.insert(name, filter_set);
+                (acc, counts)
+            }
+            Err(e) => {
+                counts.parse_err += 1;
+                error!("{e:?}");
+                (acc, counts)
+            }
+        },
+    )
 }
 
 pub fn parse_lexed_filter_set(
@@ -282,22 +237,32 @@ pub fn parse_lexed_filter_set(
 pub fn parse_lexed_as_routes(
     as_routes: BTreeMap<String, Vec<String>>,
 ) -> (BTreeMap<u64, Vec<IpNet>>, Counts) {
-    as_routes
+    par_process_map_counts(
+        as_routes,
+        |(mut acc, mut counts), lexed| match parse_lexed_as_route(&lexed) {
+            Ok((num, routes)) => {
+                acc.insert(num, routes);
+                (acc, counts)
+            }
+            Err(e) => {
+                counts.parse_err += 1;
+                error!("Parsing routes for {lexed:?}: {e}.");
+                (acc, counts)
+            }
+        },
+    )
+}
+
+pub fn par_process_map_counts<I, In, F, K, V>(input: I, transform: F) -> (BTreeMap<K, V>, Counts)
+where
+    I: IntoParallelIterator<Item = In>,
+    F: Fn((BTreeMap<K, V>, Counts), In) -> (BTreeMap<K, V>, Counts) + Send + Sync,
+    K: Ord + Send + Sync,
+    V: Send + Sync,
+{
+    input
         .into_par_iter()
-        .fold(
-            || (BTreeMap::new(), Counts::default()),
-            |(mut acc, mut counts), lexed| match parse_lexed_as_route(&lexed) {
-                Ok((num, routes)) => {
-                    acc.insert(num, routes);
-                    (acc, counts)
-                }
-                Err(e) => {
-                    counts.parse_err += 1;
-                    error!("Parsing routes for {lexed:?}: {e}.");
-                    (acc, counts)
-                }
-            },
-        )
+        .fold(|| (BTreeMap::new(), Counts::default()), transform)
         .reduce(
             || (BTreeMap::new(), Counts::default()),
             |(mut map0, counts0), (map1, counts1)| {

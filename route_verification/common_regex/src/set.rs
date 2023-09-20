@@ -56,7 +56,7 @@ set_of!(
 );
 
 /// Base Route Set name.
-pub const ROUTE_SET_BASE: &str = formatcp!("rs-{}", OBJECT_NAME);
+pub const ROUTE_SET_BASE: &str = formatcp!("(?:rs-{}|{})", OBJECT_NAME, PEERAS);
 
 set_of!(
     ROUTE_SET_BASE,

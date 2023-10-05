@@ -9,10 +9,7 @@ use anyhow::Result;
 use lazy_regex::regex;
 use lex::*;
 use log::{debug, error, warn};
-use parse::{
-    ir::{self, merge_irs},
-    parse_lexed,
-};
+use parse::{merge_irs, parse_lexed, Ir};
 use rayon::prelude::*;
 
 pub mod mbrs;
@@ -180,7 +177,7 @@ pub struct PreAst {
 }
 
 /// When some DBs have the same keys, any value could be used.
-pub fn parse_dbs<I, R>(dbs: I) -> Result<(ir::Ir, Counts)>
+pub fn parse_dbs<I, R>(dbs: I) -> Result<(Ir, Counts)>
 where
     I: IntoParallelIterator<Item = BufReader<R>>,
     R: Read,

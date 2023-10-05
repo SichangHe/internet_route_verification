@@ -3,9 +3,9 @@ use lazy_regex::regex_captures;
 
 use super::*;
 
-pub fn parse_lexed(lexed: lex::Dump) -> (Dump, Counts) {
-    debug!("Start to parse lexed dump.");
-    let lex::Dump {
+pub fn parse_lexed(lexed: lex::Ast) -> (Ir, Counts) {
+    debug!("Start to parse lexed AST.");
+    let lex::Ast {
         aut_nums,
         as_sets,
         route_sets,
@@ -19,7 +19,7 @@ pub fn parse_lexed(lexed: lex::Dump) -> (Dump, Counts) {
     let (peering_sets, ps_counts) = parse_lexed_peering_sets(peering_sets);
     let (filter_sets, fs_counts) = parse_lexed_filter_sets(filter_sets);
     let (as_routes, ar_counts) = parse_lexed_as_routes(as_routes);
-    let dump = Dump {
+    let ir = Ir {
         aut_nums,
         as_sets,
         route_sets,
@@ -27,9 +27,9 @@ pub fn parse_lexed(lexed: lex::Dump) -> (Dump, Counts) {
         filter_sets,
         as_routes,
     };
-    debug!("parse_lexed: Parsed {dump}.");
+    debug!("parse_lexed: Parsed {ir}.");
     let counts = an_counts + as_counts + rs_counts + ps_counts + fs_counts + ar_counts;
-    (dump, counts)
+    (ir, counts)
 }
 
 pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> (BTreeMap<u64, AutNum>, Counts) {

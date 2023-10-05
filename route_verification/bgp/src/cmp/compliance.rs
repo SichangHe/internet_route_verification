@@ -2,7 +2,7 @@ use super::*;
 
 pub struct Compliance<'a> {
     pub cmp: &'a Compare,
-    pub dump: &'a QueryDump,
+    pub query: &'a QueryIr,
     pub accept_num: Option<u64>,
     pub self_num: u64,
     pub export: bool,
@@ -49,7 +49,7 @@ impl<'a> Compliance<'a> {
         };
         let filter_report = CheckFilter {
             cmp: self.cmp,
-            dump: self.dump,
+            query: self.query,
             self_num: self.self_num,
             export: self.export,
             prev_path: self.prev_path,

@@ -2,7 +2,7 @@ use super::*;
 
 /// Generate statistics for AS neighbors vs rules.
 /// Copy this after running code from [`parse_bgp_lines`].
-fn as_neighbors_vs_rules(query: QueryDump, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     fn n_rules(versions: &Versions) -> u32 {
         let Versions { any, ipv4, ipv6 } = versions;
         [any, ipv4, ipv6]

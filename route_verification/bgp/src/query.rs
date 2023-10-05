@@ -94,9 +94,9 @@ fn all_providers(versions: &Versions, num: u64, db: &AsRelDb) -> bool {
     })
 }
 
-/// Cleaned RPSL dump ready for query.
+/// Cleaned RPSL intermediate representation ready for query.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct QueryDump {
+pub struct QueryIr {
     pub aut_nums: HashMap<u64, AutNum>,
     pub as_sets: HashMap<String, AsSet>,
     pub route_sets: HashMap<String, RouteSet>,
@@ -110,17 +110,17 @@ pub struct QueryDump {
     pub as_properties: HashMap<u64, AsProperty>,
 }
 
-impl QueryDump {
-    /// Clean `dump` and use it to create a [`QueryDump`].
-    pub fn from_dump(dump: Dump) -> Self {
-        let Dump {
+impl QueryIr {
+    /// Clean `ir` and use it to create a [`QueryIr`].
+    pub fn from_ir(ir: Ir) -> Self {
+        let Ir {
             aut_nums,
             as_sets,
             route_sets,
             peering_sets,
             filter_sets,
             mut as_routes,
-        } = dump;
+        } = ir;
         as_routes.par_iter_mut().for_each(|(_, routes)| {
             routes.sort();
             routes.dedup();
@@ -150,12 +150,12 @@ impl QueryDump {
         }
     }
 
-    /// Same as [`from_dump`](#method.from_dump),
+    /// Same as [`from_ir`](#method.from_ir),
     /// but with customer pseudo sets injected under names `c#{aut_num}`.
-    pub fn from_dump_and_as_relationship(mut dump: Dump, db: &AsRelDb) -> Self {
+    pub fn from_ir_and_as_relationship(mut ir: Ir, db: &AsRelDb) -> Self {
         let pseudo_sets = make_customer_pseudo_set(db);
-        dump.as_sets.extend(pseudo_sets);
-        let as_properties = dump
+        ir.as_sets.extend(pseudo_sets);
+        let as_properties = ir
             .aut_nums
             .iter()
             .filter_map(|(num, aut_num)| {
@@ -164,7 +164,7 @@ impl QueryDump {
             .collect();
         Self {
             as_properties,
-            ..Self::from_dump(dump)
+            ..Self::from_ir(ir)
         }
     }
 }

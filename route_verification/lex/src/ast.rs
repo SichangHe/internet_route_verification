@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Dump {
+pub struct Ast {
     pub aut_nums: Vec<AutNum>,
     pub as_sets: Vec<AsOrRouteSet>,
     pub route_sets: Vec<AsOrRouteSet>,
@@ -11,7 +11,7 @@ pub struct Dump {
     pub as_routes: BTreeMap<String, Vec<String>>,
 }
 
-impl Dump {
+impl Ast {
     pub fn log_count(&self) {
         let Self {
             aut_nums,

@@ -4,8 +4,8 @@ use log::{debug, error};
 use serde::{Deserialize, Serialize};
 
 pub mod action;
+pub mod ast;
 pub mod community;
-pub mod dump;
 pub mod filter;
 pub mod lines;
 pub mod mp_import;
@@ -19,8 +19,8 @@ pub mod tests;
 
 pub use {
     action::Actions,
+    ast::Ast,
     community::Call,
-    dump::Dump,
     filter::Filter,
     lines::{expressions, io_wrapper_lines, lines_continued, rpsl_objects, RPSLObject, RpslExpr},
     mp_import::Versions,

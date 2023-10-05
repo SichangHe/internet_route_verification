@@ -39,9 +39,9 @@ pub fn parse_all(args: Vec<String>) -> Result<()> {
     let (parsed, counts) = fs::parse_all(input_dir)?;
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 
-    debug!("Starting to write the parsed dump.");
+    debug!("Starting to write the parsed IR.");
     parsed.pal_write(output_dir)?;
-    debug!("Wrote the parsed dump.");
+    debug!("Wrote the parsed IR.");
 
     Ok(())
 }
@@ -63,11 +63,11 @@ pub fn parse_priority(args: Vec<String>) -> Result<()> {
 
 pub fn report(args: Vec<String>) -> Result<()> {
     if args.len() < 4 {
-        bail!("Specify a directory to read parsed dump from and a MRT file to read from!");
+        bail!("Specify a directory to read parsed IR from and a MRT file to read from!");
     }
 
     let parsed_dir = &args[2];
-    debug!("Will read parsed dump from {parsed_dir}.");
+    debug!("Will read parsed IR from {parsed_dir}.");
 
     let mrt_dir = &args[3];
     debug!("Will read MRT file from {mrt_dir}.");

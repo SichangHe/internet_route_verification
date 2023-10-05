@@ -2,7 +2,7 @@ use super::*;
 
 use {AsPathEntry::Seq, Report::*, ReportItem::*, SkipReason::*, SpecialCase::*};
 
-const DUMP: &str = r#"{"aut_nums":{"45891":{"body":"","imports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Set":"AS45891:AS-CUSTOMERS"}}}}],"mp_filter":"Any"}]}},"exports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":139609}}}}],"mp_filter":{"AsNum":[45891,"NoOp"]}},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":60725}}}}],"mp_filter":{"AsNum":[45891,"NoOp"]}}]}}}},"as_sets":{},"route_sets":{},"peering_sets":{},"filter_sets":{},"as_routes":{"134525":["103.2.88.0/24"],"45891":[]}}"#;
+const IR: &str = r#"{"aut_nums":{"45891":{"body":"","imports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Set":"AS45891:AS-CUSTOMERS"}}}}],"mp_filter":"Any"}]}},"exports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":139609}}}}],"mp_filter":{"AsNum":[45891,"NoOp"]}},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":60725}}}}],"mp_filter":{"AsNum":[45891,"NoOp"]}}]}}}},"as_sets":{},"route_sets":{},"peering_sets":{},"filter_sets":{},"as_routes":{"134525":["103.2.88.0/24"],"45891":[]}}"#;
 
 const DB_FILE: &str = "139609|45891|-1
 45891|134525|-1
@@ -41,14 +41,14 @@ fn expected_reports_with_customers() -> Vec<Report> {
     ]
 }
 
-fn dump() -> Result<Dump> {
-    Ok(serde_json::from_str(DUMP)?)
+fn ir() -> Result<Ir> {
+    Ok(serde_json::from_str(IR)?)
 }
 
 fn db() -> Result<AsRelDb> {
     AsRelDb::from_lines(DB_FILE.lines())
 }
 
-fn query() -> Result<QueryDump> {
-    Ok(QueryDump::from_dump_and_as_relationship(dump()?, &db()?))
+fn query() -> Result<QueryIr> {
+    Ok(QueryIr::from_ir_and_as_relationship(ir()?, &db()?))
 }

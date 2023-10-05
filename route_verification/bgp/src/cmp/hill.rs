@@ -1,10 +1,10 @@
 use super::*;
 
 impl Compare {
-    pub fn check_with_relationship(&self, dump: &QueryDump, db: &AsRelDb) -> Vec<Report> {
-        let mut reports = self.check(dump);
+    pub fn check_with_relationship(&self, query: &QueryIr, db: &AsRelDb) -> Vec<Report> {
+        let mut reports = self.check(query);
         for report in reports.iter_mut() {
-            self.alter_report_with_relationship(report, dump, db);
+            self.alter_report_with_relationship(report, query, db);
         }
         if !self.verbosity.show_meh {
             reports.retain(|r| !r.is_meh());
@@ -12,7 +12,7 @@ impl Compare {
         reports
     }
 
-    fn alter_report_with_relationship(&self, report: &mut Report, dump: &QueryDump, db: &AsRelDb) {
+    fn alter_report_with_relationship(&self, report: &mut Report, query: &QueryIr, db: &AsRelDb) {
         match report {
             BadImport { from, to, items } => match db.get(*to, *from) {
                 Some(P2C) if self.verbosity.special_uphill => {
@@ -23,7 +23,7 @@ impl Compare {
                     *report = self.meh_import(*from, *to, mem::take(items), reason);
                 }
                 Some(P2P) if self.verbosity.check_import_only_provider => {
-                    if let Some(property) = dump.as_properties.get(to) {
+                    if let Some(property) = query.as_properties.get(to) {
                         if property.import_only_provider {
                             let reason = ImportPeerOIFPS;
                             *report = self.meh_import(*from, *to, mem::take(items), reason);
@@ -31,7 +31,7 @@ impl Compare {
                     }
                 }
                 Some(C2P) if self.verbosity.check_import_only_provider => {
-                    if let Some(property) = dump.as_properties.get(to) {
+                    if let Some(property) = query.as_properties.get(to) {
                         if property.import_only_provider {
                             let reason = ImportCustomerOIFPS;
                             *report = self.meh_import(*from, *to, mem::take(items), reason);

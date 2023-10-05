@@ -5,7 +5,7 @@ use super::*;
 
 pub struct CheckFilter<'a> {
     pub cmp: &'a Compare,
-    pub dump: &'a QueryDump,
+    pub query: &'a QueryIr,
     pub self_num: u64,
     pub export: bool,
     pub prev_path: &'a [AsPathEntry],
@@ -36,7 +36,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
-        let filter_set = match self.dump.filter_sets.get(name) {
+        let filter_set = match self.query.filter_sets.get(name) {
             Some(f) => f,
             None => return self.skip_any_report(|| SkipReason::FilterSetUnrecorded(name.into())),
         };
@@ -48,7 +48,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn filter_as_num(&self, num: u64, op: RangeOperator) -> AnyReport {
-        let routes = match self.dump.as_routes.get(&num) {
+        let routes = match self.query.as_routes.get(&num) {
             Some(r) => r,
             None => {
                 return match self.cmp.goes_through_num(num) {
@@ -122,7 +122,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterRouteSet(name.into()));
         }
-        let route_set = match self.dump.route_sets.get(name) {
+        let route_set = match self.query.route_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::RouteSetUnrecorded(name.into())),
         };
@@ -174,7 +174,7 @@ impl<'a> CheckFilter<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::FilterAsSet(name.into()));
         }
-        let as_set_route = match self.dump.as_set_routes.get(name) {
+        let as_set_route = match self.query.as_set_routes.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetRouteUnrecorded(name.into())),
         };
@@ -305,7 +305,7 @@ impl<'a> CheckFilter<'a> {
         if visited.contains_with_hash(&set, hash) {
             return Err(failed_any_report());
         }
-        let as_set = match self.dump.as_sets.get(set) {
+        let as_set = match self.query.as_sets.get(set) {
             Some(s) => s,
             None => return Err(self.skip_any_report(|| SkipReason::AsSetUnrecorded(set.into()))),
         };

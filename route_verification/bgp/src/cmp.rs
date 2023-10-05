@@ -22,7 +22,7 @@ pub use {compliance::*, peering::*};
 
 pub const RECURSION_LIMIT: isize = 0x100;
 
-/// All information needed for a route to be compared to [`QueryDump`].
+/// All information needed for a route to be compared to [`QueryIr`].
 /// The main usage is to generate [`Report`]s with [`check`](#method.check).
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Compare {
@@ -30,7 +30,7 @@ pub struct Compare {
     pub prefix: IpNet,
     /// AS path for the propagation.
     pub as_path: Vec<AsPathEntry>,
-    /// Recursion limit when checking against [`QueryDump`].
+    /// Recursion limit when checking against [`QueryIr`].
     /// Default to [`RECURSION_LIMIT`]
     pub recursion_limit: isize,
     /// [`Verbosity`] level when generating report.
@@ -61,13 +61,13 @@ impl Compare {
         Ok(Self::new(prefix, as_path))
     }
 
-    /// Check `self` against RPSL policy `dump` and generate reports.
+    /// Check `self` against RPSL policy `query` and generate reports.
     /// Depending on which [`Verbosity`] `self.verbose` is set to,
     /// the reports have different levels of details.
     /// If `verbosity.stop_at_first`, stops at the first report.
-    pub fn check(&self, dump: &QueryDump) -> Vec<Report> {
+    pub fn check(&self, query: &QueryIr) -> Vec<Report> {
         if self.as_path.len() == 1 {
-            return self.check_last_export(dump).into_iter().collect();
+            return self.check_last_export(query).into_iter().collect();
         }
 
         let mut reports = Vec::with_capacity(self.as_path.len() << 1);
@@ -75,7 +75,7 @@ impl Compare {
         // Iterate the pairs in `as_path` from right to left, with overlaps.
         for ((index, from), to) in path.clone().enumerate().rev().zip(path.rev().skip(1)) {
             if let (Seq(from), Seq(to)) = (from, to) {
-                let r = self.check_pair(dump, *from, *to, &self.as_path[index..]);
+                let r = self.check_pair(query, *from, *to, &self.as_path[index..]);
                 if !r.is_empty() {
                     reports.extend(r);
                     if self.verbosity.stop_at_first {
@@ -93,10 +93,10 @@ impl Compare {
         reports
     }
 
-    pub fn check_last_export(&self, dump: &QueryDump) -> Option<Report> {
+    pub fn check_last_export(&self, query: &QueryIr) -> Option<Report> {
         match self.as_path.last()? {
-            Seq(from) => match dump.aut_nums.get(from) {
-                Some(from_an) => self.check_export(dump, from_an, *from, None, &[]),
+            Seq(from) => match query.aut_nums.get(from) {
+                Some(from_an) => self.check_export(query, from_an, *from, None, &[]),
                 None => self.verbosity.show_skips.then(|| {
                     let items = aut_num_unrecorded_items(*from);
                     SkipSingleExport { from: *from, items }
@@ -112,13 +112,13 @@ impl Compare {
     /// `prev_path` is previous path for `to`.
     pub fn check_pair(
         &self,
-        dump: &QueryDump,
+        query: &QueryIr,
         from: u64,
         to: u64,
         prev_path: &[AsPathEntry],
     ) -> Vec<Report> {
-        let from_report = match dump.aut_nums.get(&from) {
-            Some(from_an) => self.check_export(dump, from_an, from, Some(to), prev_path),
+        let from_report = match query.aut_nums.get(&from) {
+            Some(from_an) => self.check_export(query, from_an, from, Some(to), prev_path),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(from);
                 SkipExport { from, to, items }
@@ -128,8 +128,8 @@ impl Compare {
             (Some(r), true) => return vec![r],
             (from_report, _) => from_report,
         };
-        let to_report = match dump.aut_nums.get(&to) {
-            Some(to_an) => self.check_import(dump, to_an, from, to, prev_path),
+        let to_report = match query.aut_nums.get(&to) {
+            Some(to_an) => self.check_import(query, to_an, from, to, prev_path),
             None => self.verbosity.show_skips.then(|| {
                 let items = aut_num_unrecorded_items(to);
                 SkipImport { from, to, items }
@@ -140,7 +140,7 @@ impl Compare {
 
     pub fn check_export(
         &self,
-        dump: &QueryDump,
+        query: &QueryIr,
         from_an: &AutNum,
         from: u64,
         to: Option<u64>,
@@ -157,7 +157,7 @@ impl Compare {
         }
         let mut report = match (Compliance {
             cmp: self,
-            dump,
+            query,
             accept_num: to,
             self_num: from,
             export: true,
@@ -192,7 +192,7 @@ impl Compare {
 
     pub fn check_import(
         &self,
-        dump: &QueryDump,
+        query: &QueryIr,
         to_an: &AutNum,
         from: u64,
         to: u64,
@@ -207,7 +207,7 @@ impl Compare {
         }
         let mut report = match (Compliance {
             cmp: self,
-            dump,
+            query,
             accept_num: Some(from),
             self_num: to,
             export: false,

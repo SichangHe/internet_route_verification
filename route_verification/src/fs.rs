@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use super::{
     bgp::*,
     irr::*,
-    parse::{parse_lexed, Dump},
+    parse::{parse_lexed, Ir},
     Result, *,
 };
 
@@ -19,25 +19,25 @@ pub fn parse(filename: &str, output_dir: &str) -> Result<()> {
         .encoding(Some(encoding))
         .build(File::open(filename)?);
     let reader = BufReader::new(decoder);
-    let (dump, l_counts) = read_db(reader)?;
-    let (parsed, p_counts) = parse_lexed(dump);
+    let (ast, l_counts) = read_db(reader)?;
+    let (parsed, p_counts) = parse_lexed(ast);
     let counts = l_counts + p_counts;
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
-    debug!("Starting to write the parsed dump.");
+    debug!("Starting to write the parsed IR.");
     parsed.pal_write(output_dir)?;
-    debug!("Wrote the parsed dump.");
+    debug!("Wrote the parsed IR.");
 
     Ok(())
 }
 
 pub fn read(input_dir: &str) -> Result<()> {
-    let dump = Dump::pal_read(input_dir)?;
-    debug!("read: Parsed {dump}.");
-    dump.split_n_cpus()?;
+    let ir = Ir::pal_read(input_dir)?;
+    debug!("read: Parsed {ir}.");
+    ir.split_n_cpus()?;
     Ok(())
 }
 
-pub fn parse_all(input_dir: &str) -> Result<(Dump, Counts)> {
+pub fn parse_all(input_dir: &str) -> Result<(Ir, Counts)> {
     let readers = read_dir(input_dir)?
         .par_bridge()
         .map(|entry| {
@@ -61,9 +61,9 @@ pub fn parse_priority(priority_dir: &str, backup_dir: &str, output_dir: &str) ->
     let counts = p_counts + b_counts;
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 
-    debug!("Starting to write the parsed dump.");
+    debug!("Starting to write the parsed IR.");
     parsed.pal_write(output_dir)?;
-    debug!("Wrote the parsed dump.");
+    debug!("Wrote the parsed IR.");
 
     Ok(())
 }
@@ -105,11 +105,11 @@ where
 }
 
 pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
-    let parsed = Dump::pal_read(parsed_dir)?;
+    let parsed = Ir::pal_read(parsed_dir)?;
     debug!("report: Parsed {parsed}.");
 
-    let query = QueryDump::from_dump(parsed);
-    debug!("Converted Dump to QueryDump");
+    let query = QueryIr::from_ir(parsed);
+    debug!("Converted Ir to QueryIr");
 
     let mut bgp_lines = parse_mrt(mrt_dir)?;
     debug!("Read {} lines from {mrt_dir}", bgp_lines.len());

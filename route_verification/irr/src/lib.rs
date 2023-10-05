@@ -10,7 +10,7 @@ use lazy_regex::regex;
 use lex::*;
 use log::{debug, error, warn};
 use parse::{
-    dump::{self, merge_dumps},
+    ir::{self, merge_irs},
     parse_lexed,
 };
 use rayon::prelude::*;
@@ -56,14 +56,14 @@ pub fn read_line_wait(reader: &mut BufReader<ChildStdout>) -> Result<String> {
     Ok(String::from_utf8(line)?)
 }
 
-pub fn parse_object(obj: RPSLObject, pd: &mut PreDump) -> Result<()> {
+pub fn parse_object(obj: RPSLObject, pa: &mut PreAst) -> Result<()> {
     match obj.class.as_str() {
-        "aut-num" => pd.send_aut_num.send(obj)?,
-        "as-set" => parse_as_set(obj, &mut pd.as_sets),
-        "route" | "route6" => parse_route(obj, pd),
-        "route-set" => parse_route_set(obj, &mut pd.route_sets),
-        "filter-set" => pd.send_filter_set.send(obj)?,
-        "peering-set" => pd.send_peering_set.send(obj)?,
+        "aut-num" => pa.send_aut_num.send(obj)?,
+        "as-set" => parse_as_set(obj, &mut pa.as_sets),
+        "route" | "route6" => parse_route(obj, pa),
+        "route-set" => parse_route_set(obj, &mut pa.route_sets),
+        "filter-set" => pa.send_filter_set.send(obj)?,
+        "peering-set" => pa.send_peering_set.send(obj)?,
         _ => (),
     }
     Ok(())
@@ -78,22 +78,22 @@ fn parse_as_set(obj: RPSLObject, as_sets: &mut Vec<AsOrRouteSet>) {
     }
 }
 
-fn parse_route(obj: RPSLObject, pd: &mut PreDump) {
-    gather_ref(&obj, &mut pd.pseudo_route_sets);
+fn parse_route(obj: RPSLObject, pa: &mut PreAst) {
+    gather_ref(&obj, &mut pa.pseudo_route_sets);
     for RpslExpr {
         key,
         expr, /*AS*/
     } in expressions(lines_continued(obj.body.lines()))
     {
         if key == "origin" {
-            pd.as_routes
+            pa.as_routes
                 .entry(expr.to_uppercase())
                 .or_default()
                 .push(obj.name /*The route*/);
             return;
         }
     }
-    pd.counts.unknown_lex_err += 1;
+    pa.counts.unknown_lex_err += 1;
     error!("Route object {} does not have an `origin` field.", obj.name);
 }
 
@@ -109,7 +109,7 @@ fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
 const ONE_MEBIBYTE: usize = 1024 * 1024;
 
 /// Read and lex RPSL database.
-pub fn read_db<R>(db: BufReader<R>) -> Result<(Dump, Counts)>
+pub fn read_db<R>(db: BufReader<R>) -> Result<(Ast, Counts)>
 where
     R: Read,
 {
@@ -118,7 +118,7 @@ where
     let (send_aut_num, aut_num_worker) = spawn_aut_num_worker()?;
     let (send_peering_set, peering_set_worker) = spawn_peering_set_worker()?;
     let (send_filter_set, filter_set_worker) = spawn_filter_set_worker()?;
-    let mut pd = PreDump {
+    let mut pa = PreAst {
         as_sets,
         route_sets,
         pseudo_route_sets,
@@ -132,7 +132,7 @@ where
     for obj in rpsl_objects(io_wrapper_lines(db)) {
         if obj.body.len() > ONE_MEBIBYTE {
             // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
-            pd.counts.lex_skip += 1;
+            pa.counts.lex_skip += 1;
             warn!(
                 "Skipping {} object `{}` with a {}MiB body.",
                 obj.class,
@@ -142,33 +142,33 @@ where
             continue;
         }
 
-        parse_object(obj, &mut pd)?;
+        parse_object(obj, &mut pa)?;
     }
-    pd.route_sets.extend(conclude_set(pd.pseudo_route_sets));
+    pa.route_sets.extend(conclude_set(pa.pseudo_route_sets));
 
-    drop((pd.send_aut_num, pd.send_peering_set, pd.send_filter_set));
+    drop((pa.send_aut_num, pa.send_peering_set, pa.send_filter_set));
     let an_out = aut_num_worker.join().unwrap()?;
-    pd.as_sets.extend(an_out.pseudo_as_sets);
+    pa.as_sets.extend(an_out.pseudo_as_sets);
     let peering_sets = peering_set_worker.join().unwrap()?;
     let filter_sets = filter_set_worker.join().unwrap()?;
 
-    let counts = pd.counts + an_out.counts;
+    let counts = pa.counts + an_out.counts;
     debug!("read_db counts: {counts}.");
 
     Ok((
-        Dump {
+        Ast {
             aut_nums: an_out.aut_nums,
-            as_sets: pd.as_sets,
-            route_sets: pd.route_sets,
+            as_sets: pa.as_sets,
+            route_sets: pa.route_sets,
             peering_sets,
             filter_sets,
-            as_routes: pd.as_routes,
+            as_routes: pa.as_routes,
         },
         counts,
     ))
 }
 
-pub struct PreDump {
+pub struct PreAst {
     pub as_sets: Vec<AsOrRouteSet>,
     pub route_sets: Vec<AsOrRouteSet>,
     pub pseudo_route_sets: Map2DStringVec,
@@ -180,33 +180,33 @@ pub struct PreDump {
 }
 
 /// When some DBs have the same keys, any value could be used.
-pub fn parse_dbs<I, R>(dbs: I) -> Result<(dump::Dump, Counts)>
+pub fn parse_dbs<I, R>(dbs: I) -> Result<(ir::Ir, Counts)>
 where
     I: IntoParallelIterator<Item = BufReader<R>>,
     R: Read,
 {
-    let (dumps, counts) = dbs
+    let (irs, counts) = dbs
         .into_par_iter()
         .fold(
             || Ok((Vec::new(), Counts::default())),
             |acc: Result<_>, db| {
-                let (mut dumps, counts) = acc?;
+                let (mut irs, counts) = acc?;
                 let (parsed, l_counts) = read_db(db)?;
-                let (dump, p_counts) = parse_lexed(parsed);
-                dumps.push(dump);
-                Ok((dumps, counts + l_counts + p_counts))
+                let (ir, p_counts) = parse_lexed(parsed);
+                irs.push(ir);
+                Ok((irs, counts + l_counts + p_counts))
             },
         )
         .reduce(
             || Ok((Vec::new(), Counts::default())),
             |acc, x| {
-                let (mut dumps, counts) = acc?;
-                let (new_dumps, new_counts) = x?;
-                dumps.extend(new_dumps);
-                Ok((dumps, counts + new_counts))
+                let (mut irs, counts) = acc?;
+                let (new_irs, new_counts) = x?;
+                irs.extend(new_irs);
+                Ok((irs, counts + new_counts))
             },
         )?;
-    Ok((merge_dumps(dumps), counts))
+    Ok((merge_irs(irs), counts))
 }
 
 /// Split by `,`s followed by any number of whitespace.

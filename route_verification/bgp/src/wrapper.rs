@@ -34,8 +34,8 @@ impl Line {
     }
 
     /// Generate report on `self` and store in `self.report`.
-    pub fn check(&mut self, dump: &QueryDump) {
-        self.report = Some(self.compare.check(dump));
+    pub fn check(&mut self, query: &QueryIr) {
+        self.report = Some(self.compare.check(query));
     }
 
     pub fn display(&self) {

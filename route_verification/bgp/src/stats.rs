@@ -16,17 +16,17 @@ pub use as_pair::AsPairStats;
 pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
-    pub fn as_stats(&mut self, dump: &QueryDump, db: &AsRelDb, map: &DashMap<u64, AsStats>) {
+    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u64, AsStats>) {
         self.verbosity = Verbosity::minimum_all();
-        let reports = self.check_with_relationship(dump, db);
+        let reports = self.check_with_relationship(query, db);
         for report in reports {
             as_::one(map, report);
         }
     }
 
-    pub fn up_down_hill_stats(&mut self, dump: &QueryDump, db: &AsRelDb) -> UpDownHillStats {
+    pub fn up_down_hill_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> UpDownHillStats {
         self.verbosity = Verbosity::minimum_all();
-        let reports = self.check(dump);
+        let reports = self.check(query);
         let mut result = UpDownHillStats::default();
         for report in reports.iter() {
             up_down_hill::one(&mut result, report, db);
@@ -36,12 +36,12 @@ impl Compare {
 
     pub fn as_pair_stats(
         &mut self,
-        dump: &QueryDump,
+        query: &QueryIr,
         db: &AsRelDb,
         map: &DashMap<(u64, u64), AsPairStats>,
     ) {
         self.verbosity = Verbosity::minimum_all();
-        let reports = self.check_with_relationship(dump, db);
+        let reports = self.check_with_relationship(query, db);
         for report in reports {
             as_pair::one(db, map, report);
         }

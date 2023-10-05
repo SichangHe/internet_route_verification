@@ -1,4 +1,4 @@
-use ::lex::{action::Action::*, test_util::expected_dump, Counts};
+use ::lex::{action::Action::*, test_util::expected_ast, Counts};
 use maplit::btreemap;
 use net_literals::ip;
 
@@ -23,10 +23,10 @@ fn parse_name() {
 }
 
 #[test]
-fn parse_dump() {
-    let lexed = expected_dump();
+fn parse_ast() {
+    let lexed = expected_ast();
     let (
-        Dump {
+        Ir {
             aut_nums,
             as_sets,
             route_sets,

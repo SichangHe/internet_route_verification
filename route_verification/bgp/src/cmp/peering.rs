@@ -101,7 +101,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemoteAsSet(name.into()));
         }
-        let as_set = match self.c.dump.as_sets.get(name) {
+        let as_set = match self.c.query.as_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
         };
@@ -137,7 +137,7 @@ impl<'a> CheckPeering<'a> {
         if depth <= 0 {
             return recursion_any_report(RecurSrc::RemotePeeringSet(name.into()));
         }
-        let peering_set = match self.c.dump.peering_sets.get(name) {
+        let peering_set = match self.c.query.peering_sets.get(name) {
             Some(r) => r,
             None => return self.skip_any_report(|| SkipReason::PeeringSetUnrecorded(name.into())),
         };

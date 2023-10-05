@@ -20,7 +20,7 @@ pub mod wrapper;
 pub use {
     bgpmap::{self as map, AsPathEntry},
     cmp::Compare,
-    query::{customer_set, AsProperty, AsSetRoute, QueryDump},
+    query::{customer_set, AsProperty, AsSetRoute, QueryIr},
     report::{MatchProblem, Report, ReportItem, SkipReason},
     stats::{AsPairStats, AsStats, UpDownHillStats},
     verbosity::Verbosity,

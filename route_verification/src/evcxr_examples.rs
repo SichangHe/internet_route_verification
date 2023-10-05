@@ -45,9 +45,9 @@ use std::{
 
 fn read_parsed_rpsl() -> Result<()> {
     let start = Instant::now();
-    let parsed = Dump::pal_read("parsed_all")?;
-    println!("Read dump in {}ms.", start.elapsed().as_millis());
-    let query = QueryDump::from_dump(parsed);
+    let parsed = Ir::pal_read("parsed_all")?;
+    println!("Read IR in {}ms.", start.elapsed().as_millis());
+    let query = QueryIr::from_ir(parsed);
 
     let start = Instant::now();
     let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt")?)
@@ -69,8 +69,8 @@ fn parse_bgp_lines() -> Result<()> {
     env::set_var("POLARS_TABLE_WIDTH", "160");
 
     let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
-    let parsed = Dump::pal_read("parsed_all")?;
-    let query: QueryDump = QueryDump::from_dump_and_as_relationship(parsed, &db);
+    let parsed = Ir::pal_read("parsed_all")?;
+    let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
     println!("{:#?}", query.aut_nums.iter().next());
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
 
@@ -80,7 +80,7 @@ fn parse_bgp_lines() -> Result<()> {
 /// Generate all the reports.
 /// Copy this after running code from [`parse_bgp_lines`],
 /// except maybe the `db` line.
-fn gen_all_reports(query: QueryDump, mut bgp_lines: Vec<Line>) {
+fn gen_all_reports(query: QueryIr, mut bgp_lines: Vec<Line>) {
     let start = Instant::now();
     bgp_lines.par_iter_mut().for_each(|line| line.check(&query));
     println!("Used {}ms", start.elapsed().as_millis());
@@ -89,7 +89,7 @@ fn gen_all_reports(query: QueryDump, mut bgp_lines: Vec<Line>) {
 /// Benchmark for `match_ips`.
 /// Copy this after running code from [`parse_bgp_lines`],
 /// except maybe the `db` line.
-fn benchmark_match_ips(query: QueryDump, bgp_lines: Vec<Line>) {
+fn benchmark_match_ips(query: QueryIr, bgp_lines: Vec<Line>) {
     const SIZE: usize = 0x10000;
     let start = Instant::now();
     let n_error: usize = bgp_lines[..SIZE]

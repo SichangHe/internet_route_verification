@@ -10,9 +10,9 @@ use itertools::izip;
 
 use super::*;
 
-/// Parsed RPSL dump.
+/// Parsed RPSL intermediate representation.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Dump {
+pub struct Ir {
     pub aut_nums: BTreeMap<u64, AutNum>,
     pub as_sets: BTreeMap<String, AsSet>,
     pub route_sets: BTreeMap<String, RouteSet>,
@@ -44,7 +44,7 @@ where
     splits
 }
 
-impl Dump {
+impl Ir {
     pub fn split_n(self, n: usize) -> Vec<Self> {
         let Self {
             aut_nums,
@@ -96,10 +96,10 @@ impl Dump {
         P: AsRef<Path>,
     {
         let splits = self.split_n_cpus()?;
-        pal_write_dump(&splits, directory)
+        pal_write_ir(&splits, directory)
     }
 
-    /// When both [`Dump`]s have the same keys, choose `other`'s value.
+    /// When both [`Ir`]s have the same keys, choose `other`'s value.
     pub fn merge(mut self, other: Self) -> Self {
         let Self {
             aut_nums,
@@ -118,8 +118,8 @@ impl Dump {
         self
     }
 
-    /// Read a [`Dump`] from `directory` in parallel.
-    /// All files need to JSON and serialized from [Dump],
+    /// Read a [`Ir`] from `directory` in parallel.
+    /// All files need to JSON and serialized from [`Ir`],
     /// presumably, they were written using [`pal_write`](#method.pal_write)
     /// in the first place.
     /// No guarantee about the priorities of the files.
@@ -130,15 +130,15 @@ impl Dump {
         let readers = read_dir(directory)?
             .map(|p| Ok(BufReader::new(File::open(p?.path())?)))
             .collect::<Result<Vec<_>>>()?;
-        let dumps = readers
+        let irs = readers
             .into_par_iter()
             .map(from_reader)
             .collect::<Result<Vec<_>, _>>()?;
-        Ok(merge_dumps(dumps))
+        Ok(merge_irs(irs))
     }
 }
 
-impl std::fmt::Display for Dump {
+impl std::fmt::Display for Ir {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self {
             aut_nums,
@@ -160,7 +160,7 @@ impl std::fmt::Display for Dump {
     }
 }
 
-pub fn pal_write_dump<P>(splits: &Vec<Dump>, directory: P) -> Result<()>
+pub fn pal_write_ir<P>(splits: &Vec<Ir>, directory: P) -> Result<()>
 where
     P: AsRef<Path>,
 {
@@ -169,10 +169,10 @@ where
     let writes = splits
         .par_iter()
         .enumerate()
-        .map(|(index, dump)| {
+        .map(|(index, ir)| {
             let path = directory.clone().join(format!("{index}.json"));
             let file = File::create(path)?;
-            let json = serde_json::to_string(dump)?;
+            let json = serde_json::to_string(ir)?;
             Ok((file, json))
         })
         .collect::<Result<Vec<_>>>()?;
@@ -182,10 +182,10 @@ where
     Ok(())
 }
 
-/// Merge `dumps` into a single [`Dump`] in parallel, with no ordering guarantee.
-pub fn merge_dumps<I>(dumps: I) -> Dump
+/// Merge `irs` into a single [`Ir`] in parallel, with no ordering guarantee.
+pub fn merge_irs<I>(irs: I) -> Ir
 where
-    I: IntoParallelIterator<Item = Dump>,
+    I: IntoParallelIterator<Item = Ir>,
 {
-    dumps.into_par_iter().reduce(Dump::default, Dump::merge)
+    irs.into_par_iter().reduce(Ir::default, Ir::merge)
 }

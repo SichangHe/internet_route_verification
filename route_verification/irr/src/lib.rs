@@ -93,7 +93,7 @@ fn parse_route(obj: RPSLObject, pd: &mut PreDump) {
             return;
         }
     }
-    pd.counts.unknown_err += 1;
+    pd.counts.unknown_lex_err += 1;
     error!("Route object {} does not have an `origin` field.", obj.name);
 }
 
@@ -132,7 +132,7 @@ where
     for obj in rpsl_objects(io_wrapper_lines(db)) {
         if obj.body.len() > ONE_MEBIBYTE {
             // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
-            pd.counts.skip += 1;
+            pd.counts.lex_skip += 1;
             warn!(
                 "Skipping {} object `{}` with a {}MiB body.",
                 obj.class,

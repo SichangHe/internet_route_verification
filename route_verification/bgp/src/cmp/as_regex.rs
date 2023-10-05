@@ -29,7 +29,7 @@ impl<'a> AsRegex<'a> {
         let peer_as_filter = self
             .interpreter
             .has_peer_as()
-            .then(|| peer_as_filter(self.c.mp_peerings));
+            .then(|| peer_as_filter(self.c.mp_peerings, &mut Default::default()));
         let replacements: Vec<_> = path
             .iter()
             .map(|n| self.asn_chars(*n, peer_as_filter.as_ref(), depth - 1))

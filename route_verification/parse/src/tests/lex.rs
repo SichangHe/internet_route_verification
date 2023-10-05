@@ -34,12 +34,7 @@ fn parse_dump() {
             filter_sets,
             as_routes,
         },
-        Counts {
-            skip,
-            lex_err,
-            parse_err,
-            unknown_err,
-        },
+        counts,
     ) = parse_lexed(lexed);
     assert_eq!(aut_nums, expected_aut_nums());
     assert_eq!(as_sets, expected_as_sets());
@@ -47,10 +42,8 @@ fn parse_dump() {
     assert_eq!(peering_sets, expected_peering_sets());
     assert_eq!(filter_sets, expected_filter_sets());
     assert_eq!(as_routes, expected_as_routes());
-    assert_eq!(skip, 0);
-    assert_eq!(lex_err, 0);
-    assert_eq!(parse_err, 0);
-    assert_eq!(unknown_err, 0);
+    let expected_counts = Counts::default();
+    assert_eq!(counts, expected_counts);
 }
 
 fn expected_aut_nums() -> BTreeMap<u64, AutNum> {

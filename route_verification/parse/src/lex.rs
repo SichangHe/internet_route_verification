@@ -41,7 +41,7 @@ pub fn parse_lexed_aut_nums(lexed: Vec<lex::AutNum>) -> (BTreeMap<u64, AutNum>, 
                 (acc, counts)
             }
             Err(e) => {
-                counts.parse_err += 1;
+                counts.parse_aut_num += 1;
                 error!("{e:?}");
                 (acc, counts)
             }
@@ -87,7 +87,7 @@ pub fn parse_lexed_as_sets(lexed: Vec<lex::AsOrRouteSet>) -> (BTreeMap<String, A
                 (acc, counts)
             }
             Err(e) => {
-                counts.parse_err += 1;
+                counts.parse_as_set += 1;
                 error!("{e:?}");
                 (acc, counts)
             }
@@ -129,7 +129,7 @@ pub fn parse_lexed_route_sets(
                 (acc, counts)
             }
             Err(e) => {
-                counts.parse_err += 1;
+                counts.parse_route_set += 1;
                 error!("{e:?}");
                 (acc, counts)
             }
@@ -170,7 +170,7 @@ pub fn parse_lexed_peering_sets(
                 (acc, counts)
             }
             Err(e) => {
-                counts.parse_err += 1;
+                counts.parse_peering_set += 1;
                 error!("{e:?}");
                 (acc, counts)
             }
@@ -205,7 +205,7 @@ pub fn parse_lexed_filter_sets(
                 (acc, counts)
             }
             Err(e) => {
-                counts.parse_err += 1;
+                counts.parse_filter_set += 1;
                 error!("{e:?}");
                 (acc, counts)
             }
@@ -245,7 +245,7 @@ pub fn parse_lexed_as_routes(
                 (acc, counts)
             }
             Err(e) => {
-                counts.parse_err += 1;
+                counts.parse_as_route += 1;
                 error!("Parsing routes for {lexed:?}: {e}.");
                 (acc, counts)
             }

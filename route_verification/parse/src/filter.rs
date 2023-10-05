@@ -46,7 +46,7 @@ pub fn parse_path_attribute(
     if is_any(&attr) {
         Filter::Any
     } else if regex_is_match!(r"^peeras$"i, &attr) {
-        peer_as_filter(mp_peerings)
+        peer_as_filter(mp_peerings, counts)
     } else if is_filter_set(&attr) {
         Filter::FilterSet(attr)
     } else if let Some(filter) = try_parse_route_set(&attr) {
@@ -56,7 +56,7 @@ pub fn parse_path_attribute(
     } else if let Some(filter) = try_parse_as_num(&attr) {
         filter
     } else {
-        counts.parse_err += 1;
+        counts.parse_path_attr += 1;
         warn!("parse_path_attribute: Unknown filter: {attr}.");
         Filter::Unknown(attr)
     }
@@ -73,7 +73,7 @@ pub fn is_filter_set(attr: &str) -> bool {
 /// Process a `PeerAS` filter.
 /// PeerAS can be used instead of the AS number of the peer AS.
 /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
-pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
+pub fn peer_as_filter(mp_peerings: &[PeeringAction], counts: &mut Counts) -> Filter {
     match (mp_peerings.len(), mp_peerings.first()) {
         (
             1,
@@ -93,6 +93,7 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
             AsName::Invalid(reason) => {
                 let err = format!("PeerAs point to invalid AS name: {reason}.");
                 error!("{err}");
+                counts.peer_as_point += 1;
                 Filter::Invalid(err)
             }
         },
@@ -101,6 +102,7 @@ pub fn peer_as_filter(mp_peerings: &[PeeringAction]) -> Filter {
                 "Using PeerAs but mp-peerings {mp_peerings:?} are not a single AS expression"
             );
             error!("peer_as_filter: {err})");
+            counts.complex_peer_as += 1;
             Filter::Invalid(err)
         }
     }

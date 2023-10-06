@@ -7,8 +7,8 @@ use parse::*;
 use super::*;
 
 use {
-    as_regex::AsRegex, AsPathEntry::*, MatchProblem::*, OkTBad::*, Report::*, ReportItem::*,
-    SkipFBad::*, SkipReason::*, SpecialCase::*,
+    as_regex::AsRegex, AsPathEntry::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
+    SkipReason::*, SpecialCase::*,
 };
 
 pub mod as_regex;

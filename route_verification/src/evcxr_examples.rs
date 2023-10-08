@@ -8,6 +8,7 @@
 #![allow(unused_mut)]
 
 mod as_appeared_in_rules;
+mod as_compatible_w_bgpq3;
 mod as_route_stats;
 mod as_stats;
 mod filter_as;

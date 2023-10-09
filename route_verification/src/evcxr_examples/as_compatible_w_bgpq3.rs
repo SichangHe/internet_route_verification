@@ -5,12 +5,13 @@ use super::*;
 fn as_compatible_with_bgpq3(query: QueryIr) -> Result<()> {
     fn is_simple(filter: &Filter) -> bool {
         match filter {
-            Filter::Any | Filter::AsNum(_, _) | Filter::AsSet(_, _) | Filter::RouteSet(_, _) => {
-                true
-            }
-            Filter::FilterSet(_) => todo!(),
-            Filter::AddrPrefixSet(_) => todo!(),
-            Filter::AsPathRE(_)
+            Filter::Any
+            | Filter::AsNum(_, _)
+            | Filter::AsSet(_, _)
+            | Filter::RouteSet(_, _)
+            | Filter::AddrPrefixSet(_) => true,
+            Filter::FilterSet(_)
+            | Filter::AsPathRE(_)
             | Filter::And { left: _, right: _ }
             | Filter::Or { left: _, right: _ }
             | Filter::Not(_)
@@ -32,6 +33,12 @@ fn as_compatible_with_bgpq3(query: QueryIr) -> Result<()> {
         })
         .map(|(num, _)| *num)
         .collect();
+
+    let mut df = DataFrame::new(vec![Series::new("as_compatible_w_bgpq3", ans)])?;
+    println!("{df}");
+    println!("{}", df.describe(None)?);
+
+    CsvWriter::new(File::create("as_compatible_with_bgpq3.csv")?).finish(&mut df)?;
 
     Ok(())
 }

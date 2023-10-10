@@ -2,7 +2,7 @@ use dashmap::DashMap;
 use maplit::hashmap;
 use parse::*;
 
-use crate::{Report::*, ReportItem::*, SkipReason::*, *};
+use crate::{Report::*, ReportItem::*, *};
 
 use super::*;
 
@@ -69,24 +69,24 @@ fn expected_ok_skip_checks() -> [Vec<Report>; 1] {
             from: 2914,
             to: 1239,
             items: vec![
-                Skip(AsSetUnrecorded("AS-ANY".into())),
-                Skip(AsSetRouteUnrecorded("AS2914:AS-GLOBAL".into())),
+                SkipAsSetUnrecorded("AS-ANY".into()),
+                SkipAsSetRouteUnrecorded("AS2914:AS-GLOBAL".into()),
             ],
         },
         SkipImport {
             from: 2914,
             to: 1239,
-            items: vec![Skip(AutNumUnrecorded(1239))],
+            items: vec![SkipAutNumUnrecorded(1239)],
         },
         SkipExport {
             from: 1239,
             to: 3130,
-            items: vec![Skip(AutNumUnrecorded(1239))],
+            items: vec![SkipAutNumUnrecorded(1239)],
         },
         SkipImport {
             from: 1239,
             to: 3130,
-            items: vec![Skip(AutNumUnrecorded(3130))],
+            items: vec![SkipAutNumUnrecorded(3130)],
         },
     ]]
 }

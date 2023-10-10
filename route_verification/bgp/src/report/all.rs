@@ -21,8 +21,8 @@ impl ToAnyReport for AllReport {
     }
 }
 
-pub fn skip_all_report(reason: SkipReason) -> AllReport {
-    let skips = vec![Skip(reason)];
+pub fn skip_all_report(reason: ReportItem) -> AllReport {
+    let skips = vec![reason];
     Ok(SkipT(skips))
 }
 
@@ -30,18 +30,18 @@ pub const fn empty_skip_all_report() -> AllReport {
     Ok(SkipT(vec![]))
 }
 
-pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
-    let errors = vec![NoMatch(reason)];
+pub fn no_match_all_report(reason: ReportItem) -> AllReport {
+    let errors = vec![reason];
     Err(errors)
 }
 
-pub fn bad_rpsl_all_report(reason: RpslError) -> AllReport {
-    let errors = vec![BadRpsl(reason)];
+pub fn bad_rpsl_all_report(reason: ReportItem) -> AllReport {
+    let errors = vec![reason];
     Err(errors)
 }
 
-pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
-    let errors = vec![Recursion(reason)];
+pub fn recursion_all_report(reason: ReportItem) -> AllReport {
+    let errors = vec![reason];
     Err(errors)
 }
 

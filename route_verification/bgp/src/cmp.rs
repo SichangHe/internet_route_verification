@@ -6,10 +6,7 @@ use parse::*;
 
 use super::*;
 
-use {
-    as_regex::AsRegex, AsPathEntry::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
-    SkipReason::*, SpecialCase::*,
-};
+use {as_regex::AsRegex, AsPathEntry::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*};
 
 pub mod as_regex;
 mod compliance;
@@ -148,7 +145,7 @@ impl Compare {
     ) -> Option<Report> {
         if from_an.exports.is_default() {
             return self.verbosity.show_skips.then(|| {
-                let items = vec![Skip(ExportEmpty)];
+                let items = vec![SkipExportEmpty];
                 match to {
                     Some(to) => SkipExport { from, to, items },
                     None => SkipSingleExport { from, items },
@@ -202,7 +199,7 @@ impl Compare {
             return self.verbosity.show_skips.then(|| SkipImport {
                 from,
                 to,
-                items: vec![Skip(ImportEmpty)],
+                items: vec![SkipImportEmpty],
             });
         }
         let mut report = match (Compliance {
@@ -261,5 +258,5 @@ pub fn is_multicast(prefix: &IpNet) -> bool {
 }
 
 fn aut_num_unrecorded_items(aut_num: u64) -> Vec<ReportItem> {
-    vec![Skip(AutNumUnrecorded(aut_num))]
+    vec![SkipAutNumUnrecorded(aut_num)]
 }

@@ -18,7 +18,7 @@ impl<'a> AsRegex<'a> {
             Err(HasTilde) => {
                 return self
                     .c
-                    .skip_any_report(|| SkipReason::AsRegexWithTilde(self.expr.into()))
+                    .skip_any_report(|| SkipAsRegexWithTilde(self.expr.into()))
             }
             Err(_) => return self.invalid_err(),
         };
@@ -43,7 +43,7 @@ impl<'a> AsRegex<'a> {
         match mem::take(&mut self.report) {
             BadF(_) => self
                 .c
-                .no_match_any_report(|| MatchProblem::RegexMismatch(self.expr.into())),
+                .no_match_any_report(|| MatchRegexMismatch(self.expr.into())),
             non_bad => Some(non_bad),
         }
     }
@@ -77,6 +77,6 @@ impl<'a> AsRegex<'a> {
 
     fn invalid_err(&self) -> AnyReport {
         self.c
-            .bad_rpsl_any_report(|| RpslError::InvalidAsRegex(self.expr.into()))
+            .bad_rpsl_any_report(|| RpslInvalidAsRegex(self.expr.into()))
     }
 }

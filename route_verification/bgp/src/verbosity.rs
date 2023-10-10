@@ -1,8 +1,7 @@
 use super::*;
 
-use ReportItem::*;
 #[allow(unused)] // For the doc.
-use {Report::*, SkipReason::*};
+use Report::*;
 
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -109,35 +108,23 @@ impl Default for Verbosity {
 pub trait VerbosityReport {
     fn get_verbosity(&self) -> Verbosity;
 
-    fn meh_import(
-        &self,
-        from: u64,
-        to: u64,
-        mut items: ReportItems,
-        reason: SpecialCase,
-    ) -> Report {
+    fn meh_import(&self, from: u64, to: u64, mut items: ReportItems, reason: ReportItem) -> Report {
         if self.get_verbosity().show_meh {
-            items.push(Special(reason))
+            items.push(reason)
         }
         MehImport { from, to, items }
     }
 
-    fn meh_export(
-        &self,
-        from: u64,
-        to: u64,
-        mut items: ReportItems,
-        reason: SpecialCase,
-    ) -> Report {
+    fn meh_export(&self, from: u64, to: u64, mut items: ReportItems, reason: ReportItem) -> Report {
         if self.get_verbosity().show_meh {
-            items.push(Special(reason))
+            items.push(reason)
         }
         MehExport { from, to, items }
     }
 
     fn skip_any_report<F>(&self, reason: F) -> AnyReport
     where
-        F: Fn() -> SkipReason,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().show_skips {
             skip_any_report(reason())
@@ -146,10 +133,9 @@ pub trait VerbosityReport {
         }
     }
 
-    fn skip_any_reports<F, I>(&self, reasons: F) -> AnyReport
+    fn skip_any_reports<F>(&self, reasons: F) -> AnyReport
     where
-        F: Fn() -> I,
-        I: IntoIterator<Item = SkipReason>,
+        F: Fn() -> ReportItems,
     {
         if self.get_verbosity().show_skips {
             skip_any_reports(reasons())
@@ -160,7 +146,7 @@ pub trait VerbosityReport {
 
     fn special_any_report<F>(&self, reason: F) -> AnyReport
     where
-        F: Fn() -> SpecialCase,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().show_meh {
             special_any_report(reason())
@@ -171,7 +157,7 @@ pub trait VerbosityReport {
 
     fn no_match_any_report<F>(&self, reason: F) -> AnyReport
     where
-        F: Fn() -> MatchProblem,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().all_err {
             no_match_any_report(reason())
@@ -182,7 +168,7 @@ pub trait VerbosityReport {
 
     fn bad_rpsl_any_report<F>(&self, reason: F) -> AnyReport
     where
-        F: Fn() -> RpslError,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().all_err {
             bad_rpsl_any_report(reason())
@@ -193,7 +179,7 @@ pub trait VerbosityReport {
 
     fn skip_all_report<F>(&self, reason: F) -> AllReport
     where
-        F: Fn() -> SkipReason,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().show_skips {
             skip_all_report(reason())
@@ -204,7 +190,7 @@ pub trait VerbosityReport {
 
     fn no_match_all_report<F>(&self, reason: F) -> AllReport
     where
-        F: Fn() -> MatchProblem,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().all_err {
             no_match_all_report(reason())
@@ -215,7 +201,7 @@ pub trait VerbosityReport {
 
     fn bad_rpsl_all_report<F>(&self, reason: F) -> AllReport
     where
-        F: Fn() -> RpslError,
+        F: Fn() -> ReportItem,
     {
         if self.get_verbosity().all_err {
             bad_rpsl_all_report(reason())

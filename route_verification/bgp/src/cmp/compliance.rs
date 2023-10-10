@@ -41,7 +41,7 @@ impl<'a> Compliance<'a> {
             .to_all()
             .map_err(|mut report| {
                 if self.cmp.verbosity.per_entry_err {
-                    report.push(NoMatch(MatchProblem::Peering));
+                    report.push(MatchPeering);
                 }
                 report
             })?,
@@ -59,7 +59,7 @@ impl<'a> Compliance<'a> {
         .to_all()
         .map_err(|mut report| {
             if self.cmp.verbosity.per_entry_err {
-                report.push(NoMatch(MatchProblem::Filter));
+                report.push(MatchFilter);
             }
             report
         })?;

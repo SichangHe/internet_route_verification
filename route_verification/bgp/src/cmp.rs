@@ -258,5 +258,5 @@ pub fn is_multicast(prefix: &IpNet) -> bool {
 }
 
 fn aut_num_unrecorded_items(aut_num: u64) -> Vec<ReportItem> {
-    vec![SkipAutNumUnrecorded(aut_num)]
+    vec![UnrecordedAutNum(aut_num)]
 }

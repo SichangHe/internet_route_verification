@@ -100,21 +100,26 @@ impl Report {
 /// Single item in [`Report`] to signal some status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
-    // Skip.
-    SkipFilterSetUnrecorded(String),
-    SkipAsRoutesUnrecorded(u64),
-    SkipRouteSetUnrecorded(String),
-    SkipAsSetUnrecorded(String),
-    SkipAsSetRouteUnrecorded(String),
-    SkipAsSetRouteSomeUnrecorded(String),
+    // Skip unrecorded.
+    UnrecordedFilterSet(String),
+    UnrecordedAsRoutes(u64),
+    UnrecordedRouteSet(String),
+    UnrecordedAsSet(String),
+    UnrecordedAsSetRoute(String),
+    UnrecordedSomeAsSetRoute(String),
+    UnrecordedAutNum(u64),
+    UnrecordedPeeringSet(String),
+
+    // Skip unimplemented.
     SkipAsRegexWithTilde(String),
     SkipAsRegexPathWithSet,
-    SkipSkippedNotFilterResult,
     SkipCommunityCheckUnimplemented(Box<Call>),
-    SkipUnknownFilter(String),
-    SkipPeeringSetUnrecorded(String),
+
+    // Skip skipped.
+    SkipSkippedNotFilterResult,
     SkipSkippedExceptPeeringResult,
-    SkipAutNumUnrecorded(u64),
+
+    // Skip empty.
     SkipImportEmpty,
     SkipExportEmpty,
 
@@ -152,6 +157,7 @@ pub enum ReportItem {
     RpslInvalidAsName(String),
     RpslInvalidFilter(String),
     RpslInvalidAsRegex(String),
+    RpslUnknownFilter(String),
 
     // Recursion error.
     RecCheckFilter,

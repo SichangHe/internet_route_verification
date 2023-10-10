@@ -36,7 +36,7 @@ fn expected_reports_with_customers() -> Vec<Report> {
         SkipImport {
             from: 45891,
             to: 139609,
-            items: vec![SkipAutNumUnrecorded(139609)],
+            items: vec![UnrecordedAutNum(139609)],
         },
     ]
 }

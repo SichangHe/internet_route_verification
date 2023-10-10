@@ -69,24 +69,24 @@ fn expected_ok_skip_checks() -> [Vec<Report>; 1] {
             from: 2914,
             to: 1239,
             items: vec![
-                SkipAsSetUnrecorded("AS-ANY".into()),
-                SkipAsSetRouteUnrecorded("AS2914:AS-GLOBAL".into()),
+                UnrecordedAsSet("AS-ANY".into()),
+                UnrecordedAsSetRoute("AS2914:AS-GLOBAL".into()),
             ],
         },
         SkipImport {
             from: 2914,
             to: 1239,
-            items: vec![SkipAutNumUnrecorded(1239)],
+            items: vec![UnrecordedAutNum(1239)],
         },
         SkipExport {
             from: 1239,
             to: 3130,
-            items: vec![SkipAutNumUnrecorded(1239)],
+            items: vec![UnrecordedAutNum(1239)],
         },
         SkipImport {
             from: 1239,
             to: 3130,
-            items: vec![SkipAutNumUnrecorded(3130)],
+            items: vec![UnrecordedAutNum(3130)],
         },
     ]]
 }

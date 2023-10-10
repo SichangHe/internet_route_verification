@@ -280,7 +280,9 @@ impl<'a> CheckFilter<'a> {
     /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     fn filter_community(&self, community: &Call) -> AnyReport {
         if self.cmp.verbosity.record_community {
-            self.skip_any_report(|| SkipReason::CommunityCheckUnimplemented(community.clone()))
+            self.skip_any_report(|| {
+                SkipReason::CommunityCheckUnimplemented(Box::new(community.clone()))
+            })
         } else {
             empty_skip_any_report()
         }

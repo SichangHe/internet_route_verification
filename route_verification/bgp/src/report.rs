@@ -120,7 +120,7 @@ pub enum SkipReason {
     AsRegexWithTilde(String),
     AsRegexPathWithSet,
     SkippedNotFilterResult,
-    CommunityCheckUnimplemented(Call),
+    CommunityCheckUnimplemented(Box<Call>),
     UnknownFilter(String),
     PeeringSetUnrecorded(String),
     SkippedExceptPeeringResult,

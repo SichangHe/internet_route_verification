@@ -1,8 +1,6 @@
 use super::*;
 
 /// Useful if all of the reports need to succeed.
-/// - `Ok(Some(skips))` indicates skip.
-/// - `Ok(None)` indicates success.
 /// - `Err(errors)` indicates failure.
 pub type AllReport = Result<OkTBad, ReportItems>;
 

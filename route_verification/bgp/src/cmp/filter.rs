@@ -15,7 +15,7 @@ pub struct CheckFilter<'a> {
 impl<'a> CheckFilter<'a> {
     pub fn check_filter(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecCheckFilter);
+            return bad_any_report(RecCheckFilter);
         }
         match filter {
             FilterSet(name) => self.filter_set(name, depth),
@@ -65,7 +65,7 @@ impl<'a> CheckFilter<'a> {
         } else if self.maybe_filter_as_is_origin(num, op) {
             self.special_any_report(|| SpecAsIsOriginButNoRoute(num))
         } else {
-            self.no_match_any_report(|| MatchFilterAsNum(num, op))
+            self.bad_any_report(|| MatchFilterAsNum(num, op))
         }
     }
 
@@ -112,7 +112,7 @@ impl<'a> CheckFilter<'a> {
             .into_iter()
             .all(|prefix| !prefix.contains(&self.cmp.prefix))
         {
-            self.no_match_any_report(|| MatchFilterPrefixes)
+            self.bad_any_report(|| MatchFilterPrefixes)
         } else {
             None
         }
@@ -120,7 +120,7 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_route_set(&self, name: &str, op: RangeOperator, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecFilterRouteSet(name.into()));
+            return bad_any_report(RecFilterRouteSet(name.into()));
         }
         let route_set = match self.query.route_sets.get(name) {
             Some(r) => r,
@@ -131,7 +131,7 @@ impl<'a> CheckFilter<'a> {
             report |= self.filter_route_set_member(member, op, depth - 1)?;
         }
         if let BadF(_) = report {
-            self.no_match_any_report(|| MatchFilterRouteSet(name.into()))
+            self.bad_any_report(|| MatchFilterRouteSet(name.into()))
         } else {
             Some(report)
         }
@@ -144,7 +144,7 @@ impl<'a> CheckFilter<'a> {
         depth: isize,
     ) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecFilterRouteSetMember(Box::new(member.clone())));
+            return bad_any_report(RecFilterRouteSetMember(Box::new(member.clone())));
         }
         match member {
             RouteSetMember::RSRange(prefix) => match (prefix.range_operator, op) {
@@ -168,11 +168,11 @@ impl<'a> CheckFilter<'a> {
     ) -> AnyReport {
         let hash = visited.make_hash(&name);
         if visited.contains_with_hash(&name, hash) {
-            return failed_any_report();
+            return empty_bad_any_report();
         }
 
         if depth <= 0 {
-            return recursion_any_report(RecFilterAsSet(name.into()));
+            return bad_any_report(RecFilterAsSet(name.into()));
         }
         let as_set_route = match self.query.as_set_routes.get(name) {
             Some(r) => r,
@@ -209,7 +209,7 @@ impl<'a> CheckFilter<'a> {
         self.maybe_filter_as_set_is_origin(&mut report, as_set_route);
 
         if let BadF(_) = report {
-            self.no_match_any_report(|| MatchFilterAsSet(name.into(), op))
+            self.bad_any_report(|| MatchFilterAsSet(name.into(), op))
         } else {
             Some(report)
         }
@@ -250,7 +250,7 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
         if depth <= 0 {
-            return recursion_all_report(RecFilterAnd);
+            return bad_all_report(RecFilterAnd);
         }
         Ok(self.check_filter(left, depth - 1).to_all()?
             & self.check_filter(right, depth).to_all()?)
@@ -258,21 +258,21 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_or(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecFilterOr);
+            return bad_any_report(RecFilterOr);
         }
         Some(self.check_filter(left, depth - 1)? | self.check_filter(right, depth)?)
     }
 
     fn filter_not(&self, filter: &'a Filter, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecFilterNot);
+            return bad_any_report(RecFilterNot);
         }
         match self.check_filter(filter, depth) {
             Some(report @ SkipF(_)) | Some(report @ MehF(_)) => {
-                Some(report | self.no_match_any_report(|| MatchFilter)?)
+                Some(report | self.bad_any_report(|| MatchFilter)?)
             }
             Some(BadF(_)) => None,
-            None => self.no_match_any_report(|| MatchFilter),
+            None => self.bad_any_report(|| MatchFilter),
         }
     }
 
@@ -287,7 +287,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     fn invalid_filter(&self, reason: &str) -> AnyReport {
-        self.bad_rpsl_any_report(|| RpslInvalidFilter(reason.into()))
+        self.bad_any_report(|| RpslInvalidFilter(reason.into()))
     }
 
     /// `Err` contains all the skips.
@@ -299,11 +299,11 @@ impl<'a> CheckFilter<'a> {
         visited: &mut BloomHashSet<&'a str>,
     ) -> Result<bool, AnyReport> {
         if depth < 0 {
-            return Err(recursion_any_report(RecCheckSetMember(set.into())));
+            return Err(bad_any_report(RecCheckSetMember(set.into())));
         }
         let hash = visited.make_hash(&set);
         if visited.contains_with_hash(&set, hash) {
-            return Err(failed_any_report());
+            return Err(empty_bad_any_report());
         }
         let as_set = match self.query.as_sets.get(set) {
             Some(s) => s,

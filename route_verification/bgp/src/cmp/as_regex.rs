@@ -43,7 +43,7 @@ impl<'a> AsRegex<'a> {
         match mem::take(&mut self.report) {
             BadF(_) => self
                 .c
-                .no_match_any_report(|| MatchRegexMismatch(self.expr.into())),
+                .bad_any_report(|| MatchRegexMismatch(self.expr.into())),
             non_bad => Some(non_bad),
         }
     }
@@ -77,6 +77,6 @@ impl<'a> AsRegex<'a> {
 
     fn invalid_err(&self) -> AnyReport {
         self.c
-            .bad_rpsl_any_report(|| RpslInvalidAsRegex(self.expr.into()))
+            .bad_any_report(|| RpslInvalidAsRegex(self.expr.into()))
     }
 }

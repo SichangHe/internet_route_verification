@@ -155,25 +155,14 @@ pub trait VerbosityReport {
         }
     }
 
-    fn no_match_any_report<F>(&self, reason: F) -> AnyReport
+    fn bad_any_report<F>(&self, reason: F) -> AnyReport
     where
         F: Fn() -> ReportItem,
     {
         if self.get_verbosity().all_err {
-            no_match_any_report(reason())
+            bad_any_report(reason())
         } else {
-            failed_any_report()
-        }
-    }
-
-    fn bad_rpsl_any_report<F>(&self, reason: F) -> AnyReport
-    where
-        F: Fn() -> ReportItem,
-    {
-        if self.get_verbosity().all_err {
-            bad_rpsl_any_report(reason())
-        } else {
-            failed_any_report()
+            empty_bad_any_report()
         }
     }
 
@@ -188,25 +177,14 @@ pub trait VerbosityReport {
         }
     }
 
-    fn no_match_all_report<F>(&self, reason: F) -> AllReport
+    fn bad_all_report<F>(&self, reason: F) -> AllReport
     where
         F: Fn() -> ReportItem,
     {
         if self.get_verbosity().all_err {
-            no_match_all_report(reason())
+            bad_all_report(reason())
         } else {
-            failed_all_report()
-        }
-    }
-
-    fn bad_rpsl_all_report<F>(&self, reason: F) -> AllReport
-    where
-        F: Fn() -> ReportItem,
-    {
-        if self.get_verbosity().all_err {
-            bad_rpsl_all_report(reason())
-        } else {
-            failed_all_report()
+            empty_bad_all_report()
         }
     }
 }

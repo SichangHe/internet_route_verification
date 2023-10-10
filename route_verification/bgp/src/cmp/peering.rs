@@ -51,7 +51,7 @@ impl<'a> CheckPeering<'a> {
 
     fn check_remote_as(&self, remote_as: &AsExpr, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecCheckRemoteAs);
+            return bad_any_report(RecCheckRemoteAs);
         }
         match remote_as {
             AsExpr::Single(as_name) => self.check_remote_as_name(as_name, depth),
@@ -65,7 +65,7 @@ impl<'a> CheckPeering<'a> {
 
     fn check_remote_as_name(&self, as_name: &AsName, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecRemoteAsName(Box::new(as_name.clone())));
+            return bad_any_report(RecRemoteAsName(Box::new(as_name.clone())));
         }
         match as_name {
             AsName::Any => None,
@@ -73,9 +73,7 @@ impl<'a> CheckPeering<'a> {
             AsName::Set(name) => {
                 self.check_remote_as_set(name, depth, &mut BloomHashSet::with_capacity(2048, 32768))
             }
-            AsName::Invalid(reason) => {
-                self.bad_rpsl_any_report(|| RpslInvalidAsName(reason.into()))
-            }
+            AsName::Invalid(reason) => self.bad_any_report(|| RpslInvalidAsName(reason.into())),
         }
     }
 
@@ -83,7 +81,7 @@ impl<'a> CheckPeering<'a> {
         if self.accept_num == num {
             None
         } else {
-            self.no_match_any_report(|| MatchRemoteAsNum(num))
+            self.bad_any_report(|| MatchRemoteAsNum(num))
         }
     }
 
@@ -95,11 +93,11 @@ impl<'a> CheckPeering<'a> {
     ) -> AnyReport {
         let hash = visited.make_hash(&name);
         if visited.contains_with_hash(&name, hash) {
-            return failed_any_report();
+            return empty_bad_any_report();
         }
 
         if depth <= 0 {
-            return recursion_any_report(RecRemoteAsSet(name.into()));
+            return bad_any_report(RecRemoteAsSet(name.into()));
         }
         let as_set = match self.c.query.as_sets.get(name) {
             Some(r) => r,
@@ -128,14 +126,14 @@ impl<'a> CheckPeering<'a> {
             report |= self.check_remote_as_set(set, depth - 1, visited)?;
         }
         if let BadF(_) = report {
-            self.no_match_any_report(|| MatchRemoteAsSet(name.into()))
+            self.bad_any_report(|| MatchRemoteAsSet(name.into()))
         } else {
             Some(report)
         }
     }
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecRemotePeeringSet(name.into()));
+            return bad_any_report(RecRemotePeeringSet(name.into()));
         }
         let peering_set = match self.c.query.peering_sets.get(name) {
             Some(r) => r,
@@ -150,7 +148,7 @@ impl<'a> CheckPeering<'a> {
 
     fn check_and(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
-            return recursion_all_report(RecPeeringAnd);
+            return bad_all_report(RecPeeringAnd);
         }
         Ok(self.check_remote_as(left, depth - 1).to_all()?
             & self.check_remote_as(right, depth).to_all()?)
@@ -158,14 +156,14 @@ impl<'a> CheckPeering<'a> {
 
     fn check_or(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecPeeringOr);
+            return bad_any_report(RecPeeringOr);
         }
         Some(self.check_remote_as(left, depth - 1)? | self.check_remote_as(right, depth)?)
     }
 
     fn check_except(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
-            return recursion_all_report(RecPeeringExcept);
+            return bad_all_report(RecPeeringExcept);
         }
         Ok(self.check_remote_as(left, depth - 1).to_all()?
             & match self.check_remote_as(right, depth) {
@@ -173,7 +171,7 @@ impl<'a> CheckPeering<'a> {
                     report.to_all()? & self.skip_all_report(|| SkipSkippedExceptPeeringResult)?
                 }
                 Some(BadF(_)) => OkT,
-                None => self.no_match_all_report(|| MatchExceptPeeringRightMatch)?,
+                None => self.bad_all_report(|| MatchExceptPeeringRightMatch)?,
             })
     }
 }

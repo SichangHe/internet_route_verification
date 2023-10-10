@@ -41,23 +41,13 @@ pub const fn empty_meh_any_report() -> AnyReport {
     Some(MehF(vec![]))
 }
 
-pub fn no_match_any_report(reason: ReportItem) -> AnyReport {
-    let errors = vec![reason];
-    Some(BadF(errors))
-}
-
-pub fn bad_rpsl_any_report(reason: ReportItem) -> AnyReport {
-    let errors = vec![reason];
-    Some(BadF(errors))
-}
-
-pub fn recursion_any_report(reason: ReportItem) -> AnyReport {
+pub fn bad_any_report(reason: ReportItem) -> AnyReport {
     let errors = vec![reason];
     Some(BadF(errors))
 }
 
 /// Empty failed `AnyReport`.
-pub const fn failed_any_report() -> AnyReport {
+pub const fn empty_bad_any_report() -> AnyReport {
     Some(BadF(vec![]))
 }
 

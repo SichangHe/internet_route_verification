@@ -30,22 +30,12 @@ pub const fn empty_skip_all_report() -> AllReport {
     Ok(SkipT(vec![]))
 }
 
-pub fn no_match_all_report(reason: ReportItem) -> AllReport {
+pub fn bad_all_report(reason: ReportItem) -> AllReport {
     let errors = vec![reason];
     Err(errors)
 }
 
-pub fn bad_rpsl_all_report(reason: ReportItem) -> AllReport {
-    let errors = vec![reason];
-    Err(errors)
-}
-
-pub fn recursion_all_report(reason: ReportItem) -> AllReport {
-    let errors = vec![reason];
-    Err(errors)
-}
-
-pub const fn failed_all_report() -> AllReport {
+pub const fn empty_bad_all_report() -> AllReport {
     Err(vec![])
 }
 

@@ -171,7 +171,7 @@ impl<'a> CheckPeering<'a> {
                     report.to_all()? & self.skip_all_report(|| SkipSkippedExceptPeeringResult)?
                 }
                 Some(BadF(_)) => OkT,
-                None => self.bad_all_report(|| MatchExceptPeeringRightMatch)?,
+                None => self.bad_all_report(|| MatchExceptPeeringRight)?,
             })
     }
 }

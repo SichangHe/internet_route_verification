@@ -117,6 +117,7 @@ pub enum ReportItem {
     SkipAutNumUnrecorded(u64),
     SkipImportEmpty,
     SkipExportEmpty,
+
     // Special case.
     /// Route from customer to provider.
     SpecUphill,
@@ -134,6 +135,7 @@ pub enum ReportItem {
     /// Import route from customer while Only Imports From Providers are
     /// Specified (OIFPS).
     SpecImportCustomerOIFPS,
+
     // Match problem.
     MatchFilter,
     MatchFilterAsNum(u64, RangeOperator),
@@ -142,13 +144,15 @@ pub enum ReportItem {
     MatchFilterRouteSet(String),
     MatchRemoteAsNum(u64),
     MatchRemoteAsSet(String),
-    MatchExceptPeeringRightMatch,
+    MatchExceptPeeringRight,
     MatchPeering,
-    MatchRegexMismatch(String),
+    MatchRegex(String),
+
     // Invalid RPSL.
     RpslInvalidAsName(String),
     RpslInvalidFilter(String),
     RpslInvalidAsRegex(String),
+
     // Recursion error.
     RecCheckFilter,
     RecFilterRouteSet(String),

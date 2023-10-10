@@ -41,9 +41,7 @@ impl<'a> AsRegex<'a> {
             }
         }
         match mem::take(&mut self.report) {
-            BadF(_) => self
-                .c
-                .bad_any_report(|| MatchRegexMismatch(self.expr.into())),
+            BadF(_) => self.c.bad_any_report(|| MatchRegex(self.expr.into())),
             non_bad => Some(non_bad),
         }
     }

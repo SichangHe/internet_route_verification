@@ -15,6 +15,7 @@ impl ToAllReport for AnyReport {
     fn to_all(self) -> AllReport {
         match self {
             Some(SkipAnyReport(items)) => Ok(SkipAllReport(items)),
+            Some(UnrecAnyReport(items)) => Ok(UnrecAllReport(items)),
             Some(MehAnyReport(items)) => Ok(MehAllReport(items)),
             Some(BadAnyReport(items)) => Err(items),
             None => Ok(OkAllReport),
@@ -56,6 +57,7 @@ pub const fn empty_bad_any_report() -> AnyReport {
 
 pub enum AnyReportCase {
     SkipAnyReport(ReportItems),
+    UnrecAnyReport(ReportItems),
     MehAnyReport(ReportItems),
     BadAnyReport(ReportItems),
 }
@@ -67,9 +69,10 @@ impl AnyReportCase {
 
     pub fn shrink_to_fit(&mut self) {
         match self {
-            SkipAnyReport(items) => items.shrink_to_fit(),
-            MehAnyReport(items) => items.shrink_to_fit(),
-            BadAnyReport(items) => items.shrink_to_fit(),
+            SkipAnyReport(items)
+            | UnrecAnyReport(items)
+            | MehAnyReport(items)
+            | BadAnyReport(items) => items.shrink_to_fit(),
         }
     }
 }
@@ -84,13 +87,24 @@ impl BitOr for AnyReportCase {
     type Output = Self;
 
     /// Merge two `AnyReportCase`s based on the rule
-    /// bad → meh → skip.
+    /// bad → meh → unrec → skip.
     fn bitor(self, other: Self) -> Self::Output {
         match (self, other) {
-            (SkipAnyReport(mut items), SkipAnyReport(i) | MehAnyReport(i) | BadAnyReport(i))
-            | (MehAnyReport(mut items) | BadAnyReport(mut items), SkipAnyReport(i)) => {
+            (
+                SkipAnyReport(mut items),
+                SkipAnyReport(i) | UnrecAnyReport(i) | MehAnyReport(i) | BadAnyReport(i),
+            )
+            | (
+                UnrecAnyReport(mut items) | MehAnyReport(mut items) | BadAnyReport(mut items),
+                SkipAnyReport(i),
+            ) => {
                 items.extend(i);
                 SkipAnyReport(items)
+            }
+            (UnrecAnyReport(mut items), UnrecAnyReport(i) | MehAnyReport(i) | BadAnyReport(i))
+            | (MehAnyReport(mut items) | BadAnyReport(mut items), UnrecAnyReport(i)) => {
+                items.extend(i);
+                UnrecAnyReport(items)
             }
             (MehAnyReport(mut items), MehAnyReport(i) | BadAnyReport(i))
             | (BadAnyReport(mut items), MehAnyReport(i)) => {

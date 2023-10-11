@@ -10,6 +10,8 @@ pub struct Verbosity {
     pub stop_at_first: bool,
     /// Report meh, or special cases.
     pub show_meh: bool,
+    /// Report unrecorded.
+    pub show_unrec: bool,
     /// Report skips.
     pub show_skips: bool,
     /// Report success.
@@ -36,6 +38,7 @@ impl std::fmt::Debug for Verbosity {
         let Verbosity {
             stop_at_first,
             show_meh,
+            show_unrec,
             show_skips,
             show_success,
             per_entry_err,
@@ -49,6 +52,7 @@ impl std::fmt::Debug for Verbosity {
         for (is_true, tag) in [
             (stop_at_first, "stop_at_first"),
             (show_meh, "show_meh"),
+            (show_unrec, "show_unrec"),
             (show_skips, "show_skips"),
             (show_success, "show_success"),
             (per_entry_err, "per_entry_err"),
@@ -73,6 +77,7 @@ impl Verbosity {
         Self {
             stop_at_first: false,
             show_meh: true,
+            show_unrec: true,
             show_skips: true,
             show_success: true,
             special_uphill: true,
@@ -86,6 +91,7 @@ impl Verbosity {
         Self {
             stop_at_first: true,
             show_meh: false,
+            show_unrec: false,
             show_skips: false,
             show_success: false,
             per_entry_err: false,

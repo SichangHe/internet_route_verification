@@ -167,10 +167,8 @@ impl<'a> CheckPeering<'a> {
         }
         Ok(self.check_remote_as(left, depth - 1).to_all()?
             & match self.check_remote_as(right, depth) {
-                report @ Some(SkipAnyReport(_)) | report @ Some(MehAnyReport(_)) => {
-                    report.to_all()? & self.skip_all_report(|| SkipSkippedExceptPeeringResult)?
-                }
-                Some(BadAnyReport(_)) => OkAllReport,
+                report @ Some(SkipAnyReport(_) | UnrecAnyReport(_)) => report.to_all()?,
+                Some(MehAnyReport(_) | BadAnyReport(_)) => OkAllReport,
                 None => self.bad_all_report(|| MatchExceptPeeringRight)?,
             })
     }

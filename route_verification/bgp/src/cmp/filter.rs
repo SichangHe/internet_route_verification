@@ -272,10 +272,10 @@ impl<'a> CheckFilter<'a> {
             return bad_any_report(RecFilterNot);
         }
         match self.check_filter(filter, depth) {
-            Some(report @ SkipAnyReport(_)) | Some(report @ MehAnyReport(_)) => {
+            Some(report @ SkipAnyReport(_) | report @ UnrecAnyReport(_)) => {
                 Some(report | self.bad_any_report(|| MatchFilter)?)
             }
-            Some(BadAnyReport(_)) => None,
+            Some(MehAnyReport(_) | BadAnyReport(_)) => None,
             None => self.bad_any_report(|| MatchFilter),
         }
     }

@@ -178,6 +178,10 @@ impl Compare {
                 Some(to) => SkipExport { from, to, items },
                 None => SkipSingleExport { from, items },
             }),
+            UnrecAnyReport(items) => self.verbosity.show_unrec.then_some(match to {
+                Some(to) => UnrecExport { from, to, items },
+                None => UnrecSingleExport { from, items },
+            }),
             MehAnyReport(items) => self.verbosity.show_meh.then_some(match to {
                 Some(to) => MehExport { from, to, items },
                 None => MehSingleExport { from, items },
@@ -223,6 +227,11 @@ impl Compare {
                 self.verbosity
                     .show_skips
                     .then_some(SkipImport { from, to, items })
+            }
+            UnrecAnyReport(items) => {
+                self.verbosity
+                    .show_unrec
+                    .then_some(UnrecImport { from, to, items })
             }
             MehAnyReport(items) => self
                 .verbosity

@@ -114,16 +114,6 @@ impl Report {
 /// Single item in [`Report`] to signal some status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
-    // Skip unrecorded.
-    UnrecordedFilterSet(String),
-    UnrecordedAsRoutes(u64),
-    UnrecordedRouteSet(String),
-    UnrecordedAsSet(String),
-    UnrecordedAsSetRoute(String),
-    UnrecordedSomeAsSetRoute(String),
-    UnrecordedAutNum(u64),
-    UnrecordedPeeringSet(String),
-
     // Skip unimplemented.
     SkipAsRegexWithTilde(String),
     SkipAsRegexPathWithSet,
@@ -132,6 +122,16 @@ pub enum ReportItem {
     // Skip empty.
     SkipImportEmpty,
     SkipExportEmpty,
+
+    // Unrecorded.
+    UnrecordedFilterSet(String),
+    UnrecordedAsRoutes(u64),
+    UnrecordedRouteSet(String),
+    UnrecordedAsSet(String),
+    UnrecordedAsSetRoute(String),
+    UnrecordedSomeAsSetRoute(String),
+    UnrecordedAutNum(u64),
+    UnrecordedPeeringSet(String),
 
     // Special case.
     /// Route from customer to provider.

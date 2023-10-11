@@ -36,6 +36,15 @@ pub const fn empty_skip_any_report() -> AnyReport {
     Some(SkipAnyReport(vec![]))
 }
 
+pub fn unrec_any_report(reason: ReportItem) -> AnyReport {
+    let unrecordeds = vec![reason];
+    Some(UnrecAnyReport(unrecordeds))
+}
+
+pub const fn empty_unrec_any_report() -> AnyReport {
+    Some(UnrecAnyReport(vec![]))
+}
+
 pub fn special_any_report(reason: ReportItem) -> AnyReport {
     let specials = vec![reason];
     Some(MehAnyReport(specials))

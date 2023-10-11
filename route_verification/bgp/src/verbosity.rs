@@ -150,6 +150,17 @@ pub trait VerbosityReport {
         }
     }
 
+    fn unrec_any_report<F>(&self, reason: F) -> AnyReport
+    where
+        F: Fn() -> ReportItem,
+    {
+        if self.get_verbosity().show_skips {
+            unrec_any_report(reason())
+        } else {
+            empty_unrec_any_report()
+        }
+    }
+
     fn special_any_report<F>(&self, reason: F) -> AnyReport
     where
         F: Fn() -> ReportItem,

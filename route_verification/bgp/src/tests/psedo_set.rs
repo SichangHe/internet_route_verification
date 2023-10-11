@@ -22,7 +22,7 @@ fn export_customers() -> Result<()> {
         verbosity,
     };
     let actual = cmp.check(&query);
-    assert_eq!(actual, expected_reports_with_customers());
+    assert_eq!(expected_reports_with_customers(), actual);
     Ok(())
 }
 
@@ -33,7 +33,7 @@ fn expected_reports_with_customers() -> Vec<Report> {
             to: 139609,
             items: vec![SpecExportCustomers],
         },
-        SkipImport {
+        UnrecImport {
             from: 45891,
             to: 139609,
             items: vec![UnrecordedAutNum(139609)],

@@ -101,7 +101,7 @@ impl<'a> CheckPeering<'a> {
         }
         let as_set = match self.c.query.as_sets.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| UnrecordedAsSet(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedAsSet(name.into())),
         };
 
         if as_set.is_any || as_set.members.binary_search(&self.accept_num).is_ok() {
@@ -137,7 +137,7 @@ impl<'a> CheckPeering<'a> {
         }
         let peering_set = match self.c.query.peering_sets.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| UnrecordedPeeringSet(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedPeeringSet(name.into())),
         };
         let mut report = AnyReportCase::const_default();
         for peering in &peering_set.peerings {

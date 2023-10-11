@@ -38,7 +38,7 @@ impl<'a> CheckFilter<'a> {
     fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
         let filter_set = match self.query.filter_sets.get(name) {
             Some(f) => f,
-            None => return self.skip_any_report(|| UnrecordedFilterSet(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedFilterSet(name.into())),
         };
         let mut report = AnyReportCase::const_default();
         for filter in &filter_set.filters {
@@ -52,8 +52,8 @@ impl<'a> CheckFilter<'a> {
             Some(r) => r,
             None => {
                 return match self.cmp.goes_through_num(num) {
-                    true => self.skip_any_report(|| UnrecordedAsRoutes(num)),
-                    false => empty_skip_any_report(),
+                    true => self.unrec_any_report(|| UnrecordedAsRoutes(num)),
+                    false => empty_unrec_any_report(),
                 }
             }
         };
@@ -124,7 +124,7 @@ impl<'a> CheckFilter<'a> {
         }
         let route_set = match self.query.route_sets.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| UnrecordedRouteSet(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedRouteSet(name.into())),
         };
         let mut report = AnyReportCase::const_default();
         for member in &route_set.members {
@@ -176,7 +176,7 @@ impl<'a> CheckFilter<'a> {
         }
         let as_set_route = match self.query.as_set_routes.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| UnrecordedAsSetRoute(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedAsSetRoute(name.into())),
         };
 
         if match_ips(&self.cmp.prefix, &as_set_route.routes, op) {
@@ -203,7 +203,7 @@ impl<'a> CheckFilter<'a> {
         }
 
         if !as_set_route.unrecorded_nums.is_empty() {
-            report |= self.skip_any_report(|| UnrecordedSomeAsSetRoute(name.into()))?;
+            report |= self.unrec_any_report(|| UnrecordedSomeAsSetRoute(name.into()))?;
         }
 
         self.maybe_filter_as_set_is_origin(&mut report, as_set_route);
@@ -311,7 +311,7 @@ impl<'a> CheckFilter<'a> {
         }
         let as_set = match self.query.as_sets.get(set) {
             Some(s) => s,
-            None => return Err(self.skip_any_report(|| UnrecordedAsSet(set.into()))),
+            None => return Err(self.unrec_any_report(|| UnrecordedAsSet(set.into()))),
         };
         if as_set.is_any || as_set.members.contains(&asn) {
             return Ok(true);

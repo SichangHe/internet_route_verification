@@ -96,9 +96,9 @@ impl Compare {
         match self.as_path.last()? {
             Seq(from) => match query.aut_nums.get(from) {
                 Some(from_an) => self.check_export(query, from_an, *from, None, &[]),
-                None => self.verbosity.show_skips.then(|| {
+                None => self.verbosity.show_unrec.then(|| {
                     let items = aut_num_unrecorded_items(*from);
-                    SkipSingleExport { from: *from, items }
+                    UnrecSingleExport { from: *from, items }
                 }),
             },
             Set(from) => self
@@ -118,9 +118,9 @@ impl Compare {
     ) -> Vec<Report> {
         let from_report = match query.aut_nums.get(&from) {
             Some(from_an) => self.check_export(query, from_an, from, Some(to), prev_path),
-            None => self.verbosity.show_skips.then(|| {
+            None => self.verbosity.show_unrec.then(|| {
                 let items = aut_num_unrecorded_items(from);
-                SkipExport { from, to, items }
+                UnrecExport { from, to, items }
             }),
         };
         let from_report = match (from_report, self.verbosity.stop_at_first) {
@@ -129,9 +129,9 @@ impl Compare {
         };
         let to_report = match query.aut_nums.get(&to) {
             Some(to_an) => self.check_import(query, to_an, from, to, prev_path),
-            None => self.verbosity.show_skips.then(|| {
+            None => self.verbosity.show_unrec.then(|| {
                 let items = aut_num_unrecorded_items(to);
-                SkipImport { from, to, items }
+                UnrecImport { from, to, items }
             }),
         };
         [from_report, to_report].into_iter().flatten().collect()

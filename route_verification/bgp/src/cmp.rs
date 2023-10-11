@@ -184,7 +184,7 @@ impl Compare {
             }),
             BadAnyReport(items) => Some(match to {
                 Some(to) => BadExport { from, to, items },
-                None => BadSingeExport { from, items },
+                None => BadSingleExport { from, items },
             }),
         }
     }

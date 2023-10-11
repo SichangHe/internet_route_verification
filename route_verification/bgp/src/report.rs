@@ -43,6 +43,20 @@ pub enum Report {
         from: u64,
         items: ReportItems,
     },
+    UnrecImport {
+        from: u64,
+        to: u64,
+        items: ReportItems,
+    },
+    UnrecExport {
+        from: u64,
+        to: u64,
+        items: ReportItems,
+    },
+    UnrecSingleExport {
+        from: u64,
+        items: ReportItems,
+    },
     AsPathPairWithSet {
         from: AsPathEntry,
         to: AsPathEntry,
@@ -74,7 +88,7 @@ pub enum Report {
         to: u64,
         items: ReportItems,
     },
-    BadSingeExport {
+    BadSingleExport {
         from: u64,
         items: ReportItems,
     },

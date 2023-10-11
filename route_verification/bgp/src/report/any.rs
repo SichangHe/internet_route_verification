@@ -65,44 +65,6 @@ impl AnyReportCase {
         BadAnyReport(Vec::new())
     }
 
-    pub fn join(self, other: Self) -> Self {
-        match self {
-            SkipAnyReport(mut items) => {
-                let extra = match other {
-                    SkipAnyReport(i) => i,
-                    MehAnyReport(i) => i,
-                    BadAnyReport(i) => i,
-                };
-                items.extend(extra);
-                SkipAnyReport(items)
-            }
-            MehAnyReport(mut items) => match other {
-                SkipAnyReport(i) => {
-                    items.extend(i);
-                    SkipAnyReport(items)
-                }
-                MehAnyReport(i) | BadAnyReport(i) => {
-                    items.extend(i);
-                    MehAnyReport(items)
-                }
-            },
-            BadAnyReport(mut items) => match other {
-                SkipAnyReport(i) => {
-                    items.extend(i);
-                    SkipAnyReport(items)
-                }
-                MehAnyReport(i) => {
-                    items.extend(i);
-                    MehAnyReport(items)
-                }
-                BadAnyReport(i) => {
-                    items.extend(i);
-                    BadAnyReport(items)
-                }
-            },
-        }
-    }
-
     pub fn shrink_to_fit(&mut self) {
         match self {
             SkipAnyReport(items) => items.shrink_to_fit(),
@@ -121,9 +83,26 @@ impl Default for AnyReportCase {
 impl BitOr for AnyReportCase {
     type Output = Self;
 
-    /// Merge two `AnyReportCase`s.
-    fn bitor(self, rhs: Self) -> Self::Output {
-        self.join(rhs)
+    /// Merge two `AnyReportCase`s based on the rule
+    /// bad → meh → skip.
+    fn bitor(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (SkipAnyReport(mut items), SkipAnyReport(i) | MehAnyReport(i) | BadAnyReport(i))
+            | (MehAnyReport(mut items) | BadAnyReport(mut items), SkipAnyReport(i)) => {
+                items.extend(i);
+                SkipAnyReport(items)
+            }
+            (MehAnyReport(mut items), MehAnyReport(i) | BadAnyReport(i))
+            | (BadAnyReport(mut items), MehAnyReport(i)) => {
+                items.extend(i);
+                MehAnyReport(items)
+            }
+
+            (BadAnyReport(mut items), BadAnyReport(i)) => {
+                items.extend(i);
+                BadAnyReport(items)
+            }
+        }
     }
 }
 

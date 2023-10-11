@@ -43,36 +43,24 @@ pub enum AllReportCase {
     MehAllReport(ReportItems),
 }
 
-impl AllReportCase {
-    pub fn join(self, other: Self) -> Self {
-        match self {
-            OkAllReport => other,
-            SkipAllReport(mut items) => {
-                match other {
-                    OkAllReport => (),
-                    SkipAllReport(i) | MehAllReport(i) => items.extend(i),
-                };
-                SkipAllReport(items)
-            }
-            MehAllReport(mut items) => match other {
-                OkAllReport => MehAllReport(items),
-                SkipAllReport(i) => {
-                    items.extend(i);
-                    SkipAllReport(items)
-                }
-                MehAllReport(i) => {
-                    items.extend(i);
-                    MehAllReport(items)
-                }
-            },
-        }
-    }
-}
-
 impl BitAnd for AllReportCase {
     type Output = Self;
 
-    fn bitand(self, rhs: Self) -> Self::Output {
-        self.join(rhs)
+    /// Merge two `AllReportCase`s based on the rule
+    /// ok → skip → meh.
+    fn bitand(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (OkAllReport, other) => other,
+            (we, OkAllReport) => we,
+            (MehAllReport(mut items), SkipAllReport(i) | MehAllReport(i))
+            | (SkipAllReport(mut items), MehAllReport(i)) => {
+                items.extend(i);
+                MehAllReport(items)
+            }
+            (SkipAllReport(mut items), SkipAllReport(i)) => {
+                items.extend(i);
+                SkipAllReport(items)
+            }
+        }
     }
 }

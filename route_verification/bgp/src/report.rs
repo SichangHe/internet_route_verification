@@ -129,10 +129,6 @@ pub enum ReportItem {
     SkipAsRegexPathWithSet,
     SkipCommunityCheckUnimplemented(Box<Call>),
 
-    // Skip skipped.
-    SkipSkippedNotFilterResult,
-    SkipSkippedExceptPeeringResult,
-
     // Skip empty.
     SkipImportEmpty,
     SkipExportEmpty,

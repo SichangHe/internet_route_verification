@@ -10,7 +10,7 @@ mod any;
 
 pub use {all::*, any::*};
 
-use {OkTBad::*, Report::*, SkipFBad::*};
+use {AllReportCase::*, AnyReportCase::*, Report::*};
 
 /// Report about the validity of a route, according to the RPSL.
 /// Use this in an `Option`, and use `None` to indicate "ok."

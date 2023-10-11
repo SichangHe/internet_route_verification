@@ -8,7 +8,7 @@ pub struct AsRegex<'a> {
     pub c: &'a CheckFilter<'a>,
     pub interpreter: Interpreter,
     pub expr: &'a str,
-    pub report: SkipFBad,
+    pub report: AnyReportCase,
 }
 
 impl<'a> AsRegex<'a> {
@@ -41,7 +41,7 @@ impl<'a> AsRegex<'a> {
             }
         }
         match mem::take(&mut self.report) {
-            BadF(_) => self.c.bad_any_report(|| MatchRegex(self.expr.into())),
+            BadAnyReport(_) => self.c.bad_any_report(|| MatchRegex(self.expr.into())),
             non_bad => Some(non_bad),
         }
     }
@@ -61,7 +61,7 @@ impl<'a> AsRegex<'a> {
         }
         if let Some(filter) = filter {
             match self.c.check_filter(filter, depth) {
-                Some(skips @ SkipF(_)) => self.report |= skips,
+                Some(skips @ SkipAnyReport(_)) => self.report |= skips,
                 Some(_) => (),
                 None => result.push(self.interpreter.as_peering_char()),
             }

@@ -40,7 +40,7 @@ impl<'a> CheckFilter<'a> {
             Some(f) => f,
             None => return self.skip_any_report(|| UnrecordedFilterSet(name.into())),
         };
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for filter in &filter_set.filters {
             report |= self.check_filter(filter, depth - 1)?;
         }
@@ -126,11 +126,11 @@ impl<'a> CheckFilter<'a> {
             Some(r) => r,
             None => return self.skip_any_report(|| UnrecordedRouteSet(name.into())),
         };
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for member in &route_set.members {
             report |= self.filter_route_set_member(member, op, depth - 1)?;
         }
-        if let BadF(_) = report {
+        if let BadAnyReport(_) = report {
             self.bad_any_report(|| MatchFilterRouteSet(name.into()))
         } else {
             Some(report)
@@ -197,7 +197,7 @@ impl<'a> CheckFilter<'a> {
     ) -> AnyReport {
         visited.insert_with_hash(name, hash);
 
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for set in &as_set_route.set_members {
             report |= self.filter_as_set(set, op, depth - 1, visited)?;
         }
@@ -208,7 +208,7 @@ impl<'a> CheckFilter<'a> {
 
         self.maybe_filter_as_set_is_origin(&mut report, as_set_route);
 
-        if let BadF(_) = report {
+        if let BadAnyReport(_) = report {
             self.bad_any_report(|| MatchFilterAsSet(name.into(), op))
         } else {
             Some(report)
@@ -216,7 +216,11 @@ impl<'a> CheckFilter<'a> {
     }
 
     /// Same as `maybe_filter_as_is_origin` but for each member in `as_set_route`.
-    fn maybe_filter_as_set_is_origin(&self, report: &mut SkipFBad, as_set_route: &'a AsSetRoute) {
+    fn maybe_filter_as_set_is_origin(
+        &self,
+        report: &mut AnyReportCase,
+        as_set_route: &'a AsSetRoute,
+    ) {
         if let Some(last) = self.last_on_path() {
             if as_set_route.contains_member(last) {
                 *report |= self
@@ -243,7 +247,7 @@ impl<'a> CheckFilter<'a> {
             c: self,
             interpreter: Interpreter::new(),
             expr,
-            report: BadF(vec![]),
+            report: BadAnyReport(vec![]),
         }
         .check(path, depth)
     }
@@ -268,10 +272,10 @@ impl<'a> CheckFilter<'a> {
             return bad_any_report(RecFilterNot);
         }
         match self.check_filter(filter, depth) {
-            Some(report @ SkipF(_)) | Some(report @ MehF(_)) => {
+            Some(report @ SkipAnyReport(_)) | Some(report @ MehAnyReport(_)) => {
                 Some(report | self.bad_any_report(|| MatchFilter)?)
             }
-            Some(BadF(_)) => None,
+            Some(BadAnyReport(_)) => None,
             None => self.bad_any_report(|| MatchFilter),
         }
     }
@@ -312,7 +316,7 @@ impl<'a> CheckFilter<'a> {
         if as_set.is_any || as_set.members.contains(&asn) {
             return Ok(true);
         }
-        let mut report = SkipF(vec![]);
+        let mut report = SkipAnyReport(vec![]);
         visited.insert_with_hash(set, hash);
         for set in &as_set.set_members {
             match self.set_has_member(set, asn, depth - 1, visited) {
@@ -322,7 +326,7 @@ impl<'a> CheckFilter<'a> {
             }
         }
         match report {
-            SkipF(items) if items.is_empty() => Ok(false),
+            SkipAnyReport(items) if items.is_empty() => Ok(false),
             report => Err(Some(report)),
         }
     }

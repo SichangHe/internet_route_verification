@@ -6,7 +6,9 @@ use parse::*;
 
 use super::*;
 
-use {as_regex::AsRegex, AsPathEntry::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*};
+use {
+    as_regex::AsRegex, AllReportCase::*, AnyReportCase::*, AsPathEntry::*, Report::*, ReportItem::*,
+};
 
 pub mod as_regex;
 mod compliance;
@@ -172,15 +174,15 @@ impl Compare {
         };
         report.shrink_to_fit();
         match report {
-            SkipF(items) => self.verbosity.show_skips.then_some(match to {
+            SkipAnyReport(items) => self.verbosity.show_skips.then_some(match to {
                 Some(to) => SkipExport { from, to, items },
                 None => SkipSingleExport { from, items },
             }),
-            MehF(items) => self.verbosity.show_meh.then_some(match to {
+            MehAnyReport(items) => self.verbosity.show_meh.then_some(match to {
                 Some(to) => MehExport { from, to, items },
                 None => MehSingleExport { from, items },
             }),
-            BadF(items) => Some(match to {
+            BadAnyReport(items) => Some(match to {
                 Some(to) => BadExport { from, to, items },
                 None => BadSingeExport { from, items },
             }),
@@ -217,15 +219,16 @@ impl Compare {
         };
         report.shrink_to_fit();
         match report {
-            SkipF(items) => self
-                .verbosity
-                .show_skips
-                .then_some(SkipImport { from, to, items }),
-            MehF(items) => self
+            SkipAnyReport(items) => {
+                self.verbosity
+                    .show_skips
+                    .then_some(SkipImport { from, to, items })
+            }
+            MehAnyReport(items) => self
                 .verbosity
                 .show_meh
                 .then_some(MehImport { from, to, items }),
-            BadF(items) => Some(BadImport { from, to, items }),
+            BadAnyReport(items) => Some(BadImport { from, to, items }),
         }
     }
 

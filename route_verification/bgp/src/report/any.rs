@@ -1,8 +1,11 @@
 use super::*;
 
+/// Report generator for walking the policies of one import/export.
 /// Useful if any of the reports succeeding is enough.
-/// - `None` indicates success.
-pub type AnyReport = Option<SkipFBad>;
+///
+/// `None` indicates success.
+/// Use `?` to always return successes early correctly.
+pub type AnyReport = Option<AnyReportCase>;
 
 pub trait ToAllReport {
     fn to_all(self) -> AllReport;
@@ -11,90 +14,90 @@ pub trait ToAllReport {
 impl ToAllReport for AnyReport {
     fn to_all(self) -> AllReport {
         match self {
-            Some(SkipF(items)) => Ok(SkipT(items)),
-            Some(MehF(items)) => Ok(MehT(items)),
-            Some(BadF(items)) => Err(items),
-            None => Ok(OkT),
+            Some(SkipAnyReport(items)) => Ok(SkipAllReport(items)),
+            Some(MehAnyReport(items)) => Ok(MehAllReport(items)),
+            Some(BadAnyReport(items)) => Err(items),
+            None => Ok(OkAllReport),
         }
     }
 }
 
 pub fn skip_any_report(reason: ReportItem) -> AnyReport {
     let skips = vec![reason];
-    Some(SkipF(skips))
+    Some(SkipAnyReport(skips))
 }
 
 pub fn skip_any_reports(reasons: ReportItems) -> AnyReport {
-    Some(SkipF(reasons))
+    Some(SkipAnyReport(reasons))
 }
 
 pub const fn empty_skip_any_report() -> AnyReport {
-    Some(SkipF(vec![]))
+    Some(SkipAnyReport(vec![]))
 }
 
 pub fn special_any_report(reason: ReportItem) -> AnyReport {
     let specials = vec![reason];
-    Some(MehF(specials))
+    Some(MehAnyReport(specials))
 }
 
 pub const fn empty_meh_any_report() -> AnyReport {
-    Some(MehF(vec![]))
+    Some(MehAnyReport(vec![]))
 }
 
 pub fn bad_any_report(reason: ReportItem) -> AnyReport {
     let errors = vec![reason];
-    Some(BadF(errors))
+    Some(BadAnyReport(errors))
 }
 
 /// Empty failed `AnyReport`.
 pub const fn empty_bad_any_report() -> AnyReport {
-    Some(BadF(vec![]))
+    Some(BadAnyReport(vec![]))
 }
 
-pub enum SkipFBad {
-    SkipF(ReportItems),
-    MehF(ReportItems),
-    BadF(ReportItems),
+pub enum AnyReportCase {
+    SkipAnyReport(ReportItems),
+    MehAnyReport(ReportItems),
+    BadAnyReport(ReportItems),
 }
 
-impl SkipFBad {
+impl AnyReportCase {
     pub const fn const_default() -> Self {
-        BadF(Vec::new())
+        BadAnyReport(Vec::new())
     }
 
     pub fn join(self, other: Self) -> Self {
         match self {
-            SkipF(mut items) => {
+            SkipAnyReport(mut items) => {
                 let extra = match other {
-                    SkipF(i) => i,
-                    MehF(i) => i,
-                    BadF(i) => i,
+                    SkipAnyReport(i) => i,
+                    MehAnyReport(i) => i,
+                    BadAnyReport(i) => i,
                 };
                 items.extend(extra);
-                SkipF(items)
+                SkipAnyReport(items)
             }
-            MehF(mut items) => match other {
-                SkipF(i) => {
+            MehAnyReport(mut items) => match other {
+                SkipAnyReport(i) => {
                     items.extend(i);
-                    SkipF(items)
+                    SkipAnyReport(items)
                 }
-                MehF(i) | BadF(i) => {
+                MehAnyReport(i) | BadAnyReport(i) => {
                     items.extend(i);
-                    MehF(items)
+                    MehAnyReport(items)
                 }
             },
-            BadF(mut items) => match other {
-                SkipF(i) => {
+            BadAnyReport(mut items) => match other {
+                SkipAnyReport(i) => {
                     items.extend(i);
-                    SkipF(items)
+                    SkipAnyReport(items)
                 }
-                MehF(i) => {
+                MehAnyReport(i) => {
                     items.extend(i);
-                    MehF(items)
+                    MehAnyReport(items)
                 }
-                BadF(i) => {
+                BadAnyReport(i) => {
                     items.extend(i);
-                    BadF(items)
+                    BadAnyReport(items)
                 }
             },
         }
@@ -102,28 +105,29 @@ impl SkipFBad {
 
     pub fn shrink_to_fit(&mut self) {
         match self {
-            SkipF(items) => items.shrink_to_fit(),
-            MehF(items) => items.shrink_to_fit(),
-            BadF(items) => items.shrink_to_fit(),
+            SkipAnyReport(items) => items.shrink_to_fit(),
+            MehAnyReport(items) => items.shrink_to_fit(),
+            BadAnyReport(items) => items.shrink_to_fit(),
         }
     }
 }
 
-impl Default for SkipFBad {
+impl Default for AnyReportCase {
     fn default() -> Self {
         Self::const_default()
     }
 }
 
-impl BitOr for SkipFBad {
+impl BitOr for AnyReportCase {
     type Output = Self;
 
+    /// Merge two `AnyReportCase`s.
     fn bitor(self, rhs: Self) -> Self::Output {
         self.join(rhs)
     }
 }
 
-impl BitOrAssign for SkipFBad {
+impl BitOrAssign for AnyReportCase {
     fn bitor_assign(&mut self, rhs: Self) {
         *self = mem::take(self) | rhs;
     }

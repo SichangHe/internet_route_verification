@@ -12,7 +12,7 @@ impl<'a> CheckPeering<'a> {
     where
         I: IntoIterator<Item = &'b PeeringAction>,
     {
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for peering_actions in peerings.into_iter() {
             let new = self.check_peering_action(peering_actions);
             report |= new.to_any()?;
@@ -32,7 +32,7 @@ impl<'a> CheckPeering<'a> {
     /// We skip community checks, but this could be an enhancement.
     /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
-        Ok(OkT)
+        Ok(OkAllReport)
     }
 
     /// Do not check `remote_router` or `local_router` because we do not have
@@ -121,11 +121,11 @@ impl<'a> CheckPeering<'a> {
     ) -> AnyReport {
         visited.insert_with_hash(name, hash);
 
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for set in &as_set.set_members {
             report |= self.check_remote_as_set(set, depth - 1, visited)?;
         }
-        if let BadF(_) = report {
+        if let BadAnyReport(_) = report {
             self.bad_any_report(|| MatchRemoteAsSet(name.into()))
         } else {
             Some(report)
@@ -139,7 +139,7 @@ impl<'a> CheckPeering<'a> {
             Some(r) => r,
             None => return self.skip_any_report(|| UnrecordedPeeringSet(name.into())),
         };
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for peering in &peering_set.peerings {
             report |= self.check(peering, depth - 1).to_any()?;
         }
@@ -167,10 +167,10 @@ impl<'a> CheckPeering<'a> {
         }
         Ok(self.check_remote_as(left, depth - 1).to_all()?
             & match self.check_remote_as(right, depth) {
-                report @ Some(SkipF(_)) | report @ Some(MehF(_)) => {
+                report @ Some(SkipAnyReport(_)) | report @ Some(MehAnyReport(_)) => {
                     report.to_all()? & self.skip_all_report(|| SkipSkippedExceptPeeringResult)?
                 }
-                Some(BadF(_)) => OkT,
+                Some(BadAnyReport(_)) => OkAllReport,
                 None => self.bad_all_report(|| MatchExceptPeeringRight)?,
             })
     }

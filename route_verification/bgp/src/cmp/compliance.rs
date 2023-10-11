@@ -20,7 +20,7 @@ impl<'a> Compliance<'a> {
     }
 
     pub fn check_casts(&self, casts: &Casts) -> AnyReport {
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         let specific_cast = match is_multicast(&self.cmp.prefix) {
             true => &casts.multicast,
             false => &casts.unicast,
@@ -45,7 +45,7 @@ impl<'a> Compliance<'a> {
                 }
                 report
             })?,
-            None => OkT,
+            None => OkAllReport,
         };
         let filter_report = CheckFilter {
             cmp: self.cmp,

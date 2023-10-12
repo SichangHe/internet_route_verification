@@ -17,6 +17,17 @@ pub fn one(map: &DashMap<u64, AsStats>, report: Report) {
             items: _,
         }
         | SkipSingleExport { from, items: _ } => map.entry(from).or_default().export_skip += 1,
+        UnrecImport {
+            from: _,
+            to,
+            items: _,
+        } => map.entry(to).or_default().import_unrec += 1,
+        UnrecExport {
+            from,
+            to: _,
+            items: _,
+        }
+        | UnrecSingleExport { from, items: _ } => map.entry(from).or_default().export_unrec += 1,
         BadImport {
             from: _,
             to,
@@ -27,7 +38,7 @@ pub fn one(map: &DashMap<u64, AsStats>, report: Report) {
             to: _,
             items: _,
         }
-        | BadSingeExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
+        | BadSingleExport { from, items: _ } => map.entry(from).or_default().export_err += 1,
         MehImport {
             from: _,
             to,
@@ -50,6 +61,8 @@ pub struct AsStats {
     pub export_ok: u32,
     pub import_skip: u32,
     pub export_skip: u32,
+    pub import_unrec: u32,
+    pub export_unrec: u32,
     pub import_meh: u32,
     pub export_meh: u32,
     pub import_err: u32,

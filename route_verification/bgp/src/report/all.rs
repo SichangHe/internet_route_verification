@@ -1,10 +1,8 @@
 use super::*;
 
 /// Useful if all of the reports need to succeed.
-/// - `Ok(Some(skips))` indicates skip.
-/// - `Ok(None)` indicates success.
 /// - `Err(errors)` indicates failure.
-pub type AllReport = Result<OkTBad, ReportItems>;
+pub type AllReport = Result<AllReportCase, ReportItems>;
 
 pub trait ToAnyReport {
     fn to_any(self) -> AnyReport;
@@ -13,78 +11,63 @@ pub trait ToAnyReport {
 impl ToAnyReport for AllReport {
     fn to_any(self) -> AnyReport {
         match self {
-            Ok(OkT) => None,
-            Ok(SkipT(items)) => Some(SkipF(items)),
-            Ok(MehT(items)) => Some(MehF(items)),
-            Err(items) => Some(BadF(items)),
+            Ok(OkAllReport) => None,
+            Ok(SkipAllReport(items)) => Some(SkipAnyReport(items)),
+            Ok(UnrecAllReport(items)) => Some(UnrecAnyReport(items)),
+            Ok(MehAllReport(items)) => Some(MehAnyReport(items)),
+            Err(items) => Some(BadAnyReport(items)),
         }
     }
 }
 
-pub fn skip_all_report(reason: SkipReason) -> AllReport {
-    let skips = vec![Skip(reason)];
-    Ok(SkipT(skips))
+pub fn skip_all_report(reason: ReportItem) -> AllReport {
+    let skips = vec![reason];
+    Ok(SkipAllReport(skips))
 }
 
 pub const fn empty_skip_all_report() -> AllReport {
-    Ok(SkipT(vec![]))
+    Ok(SkipAllReport(vec![]))
 }
 
-pub fn no_match_all_report(reason: MatchProblem) -> AllReport {
-    let errors = vec![NoMatch(reason)];
+pub fn bad_all_report(reason: ReportItem) -> AllReport {
+    let errors = vec![reason];
     Err(errors)
 }
 
-pub fn bad_rpsl_all_report(reason: RpslError) -> AllReport {
-    let errors = vec![BadRpsl(reason)];
-    Err(errors)
-}
-
-pub fn recursion_all_report(reason: RecurSrc) -> AllReport {
-    let errors = vec![Recursion(reason)];
-    Err(errors)
-}
-
-pub const fn failed_all_report() -> AllReport {
+pub const fn empty_bad_all_report() -> AllReport {
     Err(vec![])
 }
 
-pub enum OkTBad {
-    OkT,
-    SkipT(ReportItems),
-    MehT(ReportItems),
+pub enum AllReportCase {
+    OkAllReport,
+    SkipAllReport(ReportItems),
+    UnrecAllReport(ReportItems),
+    MehAllReport(ReportItems),
 }
 
-impl OkTBad {
-    pub fn join(self, other: Self) -> Self {
-        match self {
-            OkT => other,
-            SkipT(mut items) => {
-                match other {
-                    OkT => (),
-                    SkipT(i) | MehT(i) => items.extend(i),
-                };
-                SkipT(items)
-            }
-            MehT(mut items) => match other {
-                OkT => MehT(items),
-                SkipT(i) => {
-                    items.extend(i);
-                    SkipT(items)
-                }
-                MehT(i) => {
-                    items.extend(i);
-                    MehT(items)
-                }
-            },
-        }
-    }
-}
-
-impl BitAnd for OkTBad {
+impl BitAnd for AllReportCase {
     type Output = Self;
 
-    fn bitand(self, rhs: Self) -> Self::Output {
-        self.join(rhs)
+    /// Merge two `AllReportCase`s based on the rule
+    /// ok → skip → unrec → meh.
+    fn bitand(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (OkAllReport, other) => other,
+            (we, OkAllReport) => we,
+            (MehAllReport(mut items), SkipAllReport(i) | UnrecAllReport(i) | MehAllReport(i))
+            | (SkipAllReport(mut items) | UnrecAllReport(mut items), MehAllReport(i)) => {
+                items.extend(i);
+                MehAllReport(items)
+            }
+            (UnrecAllReport(mut items), UnrecAllReport(i) | SkipAllReport(i))
+            | (SkipAllReport(mut items), UnrecAllReport(i)) => {
+                items.extend(i);
+                UnrecAllReport(items)
+            }
+            (SkipAllReport(mut items), SkipAllReport(i)) => {
+                items.extend(i);
+                SkipAllReport(items)
+            }
+        }
     }
 }

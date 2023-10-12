@@ -1,6 +1,6 @@
 use super::{cmp::query, *};
 
-use {Report::*, ReportItem::*, SpecialCase::*};
+use {Report::*, ReportItem::*};
 
 const NUM: u64 = 18106;
 
@@ -49,7 +49,7 @@ fn expected_reports() -> Vec<Report> {
         MehImport {
             from: 196844,
             to: 18106,
-            items: vec![Special(ImportPeerOIFPS)],
+            items: vec![SpecImportPeerOIFPS],
         },
     ]
 }

@@ -14,9 +14,10 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
         start.elapsed().as_millis()
     );
 
-    let (froms, tos, ioks, eoks, isps, esps, imhs, emhs, iers, eers, rels): (
-        Vec<u64>,
-        Vec<u64>,
+    let (from_tos, ioks, eoks, isps, esps, iurs, eurs, imhs, emhs, iers, eers, rels): (
+        Vec<(u64, u64)>,
+        Vec<u32>,
+        Vec<u32>,
         Vec<u32>,
         Vec<u32>,
         Vec<u32>,
@@ -34,6 +35,8 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
                 export_ok,
                 import_skip,
                 export_skip,
+                import_unrec,
+                export_unrec,
                 import_meh,
                 export_meh,
                 import_err,
@@ -42,12 +45,13 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
             },
         )| {
             (
-                from,
-                to,
+                (from, to),
                 import_ok,
                 export_ok,
                 import_skip,
                 export_skip,
+                import_unrec,
+                export_unrec,
                 import_meh,
                 export_meh,
                 import_err,
@@ -61,6 +65,7 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
             )
         },
     ));
+    let (froms, tos): (Vec<u64>, Vec<u64>) = multiunzip(from_tos);
 
     let mut df: DataFrame = DataFrame::new(vec![
         Series::new("from", froms),
@@ -69,6 +74,8 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
         Series::new("export_ok", eoks),
         Series::new("import_skip", isps),
         Series::new("export_skip", esps),
+        Series::new("import_unrec", iurs),
+        Series::new("export_unrec", eurs),
         Series::new("import_meh", imhs),
         Series::new("export_meh", emhs),
         Series::new("import_err", iers),
@@ -170,8 +177,10 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
         "Generated stats for {size} AS in {}ms.",
         start.elapsed().as_millis()
     );
-    let (ans, ioks, eoks, isps, esps, imhs, emhs, iers, eers): (
+    let (ans, ioks, eoks, isps, esps, iurs, eurs, imhs, emhs, iers, eers): (
         Vec<u64>,
+        Vec<u32>,
+        Vec<u32>,
         Vec<u32>,
         Vec<u32>,
         Vec<u32>,
@@ -188,6 +197,8 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
                 export_ok,
                 import_skip,
                 export_skip,
+                import_unrec,
+                export_unrec,
                 import_meh,
                 export_meh,
                 import_err,
@@ -200,6 +211,8 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
                 export_ok,
                 import_skip,
                 export_skip,
+                import_unrec,
+                export_unrec,
                 import_meh,
                 export_meh,
                 import_err,
@@ -214,6 +227,8 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
         Series::new("export_ok", eoks),
         Series::new("import_skip", isps),
         Series::new("export_skip", esps),
+        Series::new("import_unrec", iurs),
+        Series::new("export_unrec", eurs),
         Series::new("import_meh", imhs),
         Series::new("export_meh", emhs),
         Series::new("import_err", iers),

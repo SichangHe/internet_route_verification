@@ -12,7 +12,7 @@ impl<'a> CheckPeering<'a> {
     where
         I: IntoIterator<Item = &'b PeeringAction>,
     {
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for peering_actions in peerings.into_iter() {
             let new = self.check_peering_action(peering_actions);
             report |= new.to_any()?;
@@ -32,7 +32,7 @@ impl<'a> CheckPeering<'a> {
     /// We skip community checks, but this could be an enhancement.
     /// <https://github.com/SichangHe/parse_rpsl_policy/issues/16>.
     pub fn check_actions(&self, _actions: &Actions) -> AllReport {
-        Ok(OkT)
+        Ok(OkAllReport)
     }
 
     /// Do not check `remote_router` or `local_router` because we do not have
@@ -51,7 +51,7 @@ impl<'a> CheckPeering<'a> {
 
     fn check_remote_as(&self, remote_as: &AsExpr, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecurSrc::CheckRemoteAs);
+            return bad_any_report(RecCheckRemoteAs);
         }
         match remote_as {
             AsExpr::Single(as_name) => self.check_remote_as_name(as_name, depth),
@@ -65,7 +65,7 @@ impl<'a> CheckPeering<'a> {
 
     fn check_remote_as_name(&self, as_name: &AsName, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecurSrc::RemoteAsName(as_name.clone()));
+            return bad_any_report(RecRemoteAsName(Box::new(as_name.clone())));
         }
         match as_name {
             AsName::Any => None,
@@ -73,9 +73,7 @@ impl<'a> CheckPeering<'a> {
             AsName::Set(name) => {
                 self.check_remote_as_set(name, depth, &mut BloomHashSet::with_capacity(2048, 32768))
             }
-            AsName::Invalid(reason) => {
-                self.bad_rpsl_any_report(|| RpslError::InvalidAsName(reason.into()))
-            }
+            AsName::Invalid(reason) => self.bad_any_report(|| RpslInvalidAsName(reason.into())),
         }
     }
 
@@ -83,7 +81,7 @@ impl<'a> CheckPeering<'a> {
         if self.accept_num == num {
             None
         } else {
-            self.no_match_any_report(|| MatchProblem::RemoteAsNum(num))
+            self.bad_any_report(|| MatchRemoteAsNum(num))
         }
     }
 
@@ -95,15 +93,15 @@ impl<'a> CheckPeering<'a> {
     ) -> AnyReport {
         let hash = visited.make_hash(&name);
         if visited.contains_with_hash(&name, hash) {
-            return failed_any_report();
+            return empty_bad_any_report();
         }
 
         if depth <= 0 {
-            return recursion_any_report(RecurSrc::RemoteAsSet(name.into()));
+            return bad_any_report(RecRemoteAsSet(name.into()));
         }
         let as_set = match self.c.query.as_sets.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| SkipReason::AsSetUnrecorded(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedAsSet(name.into())),
         };
 
         if as_set.is_any || as_set.members.binary_search(&self.accept_num).is_ok() {
@@ -123,25 +121,25 @@ impl<'a> CheckPeering<'a> {
     ) -> AnyReport {
         visited.insert_with_hash(name, hash);
 
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for set in &as_set.set_members {
             report |= self.check_remote_as_set(set, depth - 1, visited)?;
         }
-        if let BadF(_) = report {
-            self.no_match_any_report(|| MatchProblem::RemoteAsSet(name.into()))
+        if let BadAnyReport(_) = report {
+            self.bad_any_report(|| MatchRemoteAsSet(name.into()))
         } else {
             Some(report)
         }
     }
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecurSrc::RemotePeeringSet(name.into()));
+            return bad_any_report(RecRemotePeeringSet(name.into()));
         }
         let peering_set = match self.c.query.peering_sets.get(name) {
             Some(r) => r,
-            None => return self.skip_any_report(|| SkipReason::PeeringSetUnrecorded(name.into())),
+            None => return self.unrec_any_report(|| UnrecordedPeeringSet(name.into())),
         };
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         for peering in &peering_set.peerings {
             report |= self.check(peering, depth - 1).to_any()?;
         }
@@ -150,7 +148,7 @@ impl<'a> CheckPeering<'a> {
 
     fn check_and(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
-            return recursion_all_report(RecurSrc::PeeringAnd);
+            return bad_all_report(RecPeeringAnd);
         }
         Ok(self.check_remote_as(left, depth - 1).to_all()?
             & self.check_remote_as(right, depth).to_all()?)
@@ -158,23 +156,20 @@ impl<'a> CheckPeering<'a> {
 
     fn check_or(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AnyReport {
         if depth <= 0 {
-            return recursion_any_report(RecurSrc::PeeringOr);
+            return bad_any_report(RecPeeringOr);
         }
         Some(self.check_remote_as(left, depth - 1)? | self.check_remote_as(right, depth)?)
     }
 
     fn check_except(&self, left: &AsExpr, right: &AsExpr, depth: isize) -> AllReport {
         if depth <= 0 {
-            return recursion_all_report(RecurSrc::PeeringExcept);
+            return bad_all_report(RecPeeringExcept);
         }
         Ok(self.check_remote_as(left, depth - 1).to_all()?
             & match self.check_remote_as(right, depth) {
-                report @ Some(SkipF(_)) | report @ Some(MehF(_)) => {
-                    report.to_all()?
-                        & self.skip_all_report(|| SkipReason::SkippedExceptPeeringResult)?
-                }
-                Some(BadF(_)) => OkT,
-                None => self.no_match_all_report(|| MatchProblem::ExceptPeeringRightMatch)?,
+                report @ Some(SkipAnyReport(_) | UnrecAnyReport(_)) => report.to_all()?,
+                Some(MehAnyReport(_) | BadAnyReport(_)) => OkAllReport,
+                None => self.bad_all_report(|| MatchExceptPeeringRight)?,
             })
     }
 }

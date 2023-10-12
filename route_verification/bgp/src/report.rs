@@ -1,7 +1,5 @@
 use std::ops::{BitAnd, BitOr, BitOrAssign};
 
-use ReportItem::*;
-
 use ::lex::Call;
 use parse::*;
 
@@ -12,7 +10,7 @@ mod any;
 
 pub use {all::*, any::*};
 
-use {OkTBad::*, Report::*, SkipFBad::*};
+use {AllReportCase::*, AnyReportCase::*, Report::*};
 
 /// Report about the validity of a route, according to the RPSL.
 /// Use this in an `Option`, and use `None` to indicate "ok."
@@ -42,6 +40,20 @@ pub enum Report {
         items: ReportItems,
     },
     SkipSingleExport {
+        from: u64,
+        items: ReportItems,
+    },
+    UnrecImport {
+        from: u64,
+        to: u64,
+        items: ReportItems,
+    },
+    UnrecExport {
+        from: u64,
+        to: u64,
+        items: ReportItems,
+    },
+    UnrecSingleExport {
         from: u64,
         items: ReportItems,
     },
@@ -76,7 +88,7 @@ pub enum Report {
         to: u64,
         items: ReportItems,
     },
-    BadSingeExport {
+    BadSingleExport {
         from: u64,
         items: ReportItems,
     },
@@ -102,92 +114,78 @@ impl Report {
 /// Single item in [`Report`] to signal some status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum ReportItem {
-    Skip(SkipReason),
-    Special(SpecialCase),
-    NoMatch(MatchProblem),
-    BadRpsl(RpslError),
-    Recursion(RecurSrc),
-}
+    // Skip unimplemented.
+    SkipAsRegexWithTilde(String),
+    SkipAsRegexPathWithSet,
+    SkipCommunityCheckUnimplemented(Box<Call>),
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum SkipReason {
-    FilterSetUnrecorded(String),
-    AsRoutesUnrecorded(u64),
-    RouteSetUnrecorded(String),
-    AsSetUnrecorded(String),
-    AsSetRouteUnrecorded(String),
-    AsSetRouteSomeUnrecorded(String),
-    AsRegexWithTilde(String),
-    AsRegexPathWithSet,
-    SkippedNotFilterResult,
-    CommunityCheckUnimplemented(Box<Call>),
-    UnknownFilter(String),
-    PeeringSetUnrecorded(String),
-    SkippedExceptPeeringResult,
-    AutNumUnrecorded(u64),
-    ImportEmpty,
-    ExportEmpty,
-}
+    // Skip empty.
+    SkipImportEmpty,
+    SkipExportEmpty,
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum SpecialCase {
+    // Unrecorded.
+    UnrecordedFilterSet(String),
+    UnrecordedAsRoutes(u64),
+    UnrecordedRouteSet(String),
+    UnrecordedAsSet(String),
+    UnrecordedAsSetRoute(String),
+    UnrecordedSomeAsSetRoute(String),
+    UnrecordedAutNum(u64),
+    UnrecordedPeeringSet(String),
+
+    // Special case.
     /// Route from customer to provider.
-    Uphill,
+    SpecUphill,
     /// Route from customer to provider that is tier-1.
-    UphillTier1,
+    SpecUphillTier1,
     /// Export customer routes while specifying the AS itself as `<filter>`.
-    ExportCustomers,
+    SpecExportCustomers,
     /// AS in `<filter>` is the origin on the path, but the route mismatches.
-    AsIsOriginButNoRoute(u64),
+    SpecAsIsOriginButNoRoute(u64),
     /// Route between Tier 1 ASes.
-    Tier1Pair,
+    SpecTier1Pair,
     /// Import route between peers while Only Imports From Providers are
     /// Specified (OIFPS).
-    ImportPeerOIFPS,
+    SpecImportPeerOIFPS,
     /// Import route from customer while Only Imports From Providers are
     /// Specified (OIFPS).
-    ImportCustomerOIFPS,
-}
+    SpecImportCustomerOIFPS,
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum MatchProblem {
-    Filter,
-    FilterAsNum(u64, RangeOperator),
-    FilterAsSet(String, RangeOperator),
-    FilterPrefixes,
-    FilterRouteSet(String),
-    RemoteAsNum(u64),
-    RemoteAsSet(String),
-    ExceptPeeringRightMatch,
-    Peering,
-    RegexMismatch(String),
-}
+    // Match problem.
+    MatchFilter,
+    MatchFilterAsNum(u64, RangeOperator),
+    MatchFilterAsSet(String, RangeOperator),
+    MatchFilterPrefixes,
+    MatchFilterRouteSet(String),
+    MatchRemoteAsNum(u64),
+    MatchRemoteAsSet(String),
+    MatchExceptPeeringRight,
+    MatchPeering,
+    MatchRegex(String),
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum RpslError {
-    InvalidAsName(String),
-    InvalidFilter(String),
-    InvalidAsRegex(String),
-}
+    // Invalid RPSL.
+    RpslInvalidAsName(String),
+    RpslInvalidFilter(String),
+    RpslInvalidAsRegex(String),
+    RpslUnknownFilter(String),
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub enum RecurSrc {
-    CheckFilter,
-    FilterRouteSet(String),
-    FilterRouteSetMember(RouteSetMember),
-    FilterAsSet(String),
-    FilterAsName(AsName),
-    FilterAnd,
-    FilterOr,
-    FilterNot,
-    CheckSetMember(String),
-    CheckRemoteAs,
-    RemoteAsName(AsName),
-    RemoteAsSet(String),
-    RemotePeeringSet(String),
-    PeeringAnd,
-    PeeringOr,
-    PeeringExcept,
+    // Recursion error.
+    RecCheckFilter,
+    RecFilterRouteSet(String),
+    RecFilterRouteSetMember(Box<RouteSetMember>),
+    RecFilterAsSet(String),
+    RecFilterAsName(Box<AsName>),
+    RecFilterAnd,
+    RecFilterOr,
+    RecFilterNot,
+    RecCheckSetMember(String),
+    RecCheckRemoteAs,
+    RecRemoteAsName(Box<AsName>),
+    RecRemoteAsSet(String),
+    RecRemotePeeringSet(String),
+    RecPeeringAnd,
+    RecPeeringOr,
+    RecPeeringExcept,
 }
 
 pub type ReportItems = Vec<ReportItem>;

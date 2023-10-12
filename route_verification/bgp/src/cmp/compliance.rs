@@ -20,7 +20,7 @@ impl<'a> Compliance<'a> {
     }
 
     pub fn check_casts(&self, casts: &Casts) -> AnyReport {
-        let mut report = SkipFBad::const_default();
+        let mut report = AnyReportCase::const_default();
         let specific_cast = match is_multicast(&self.cmp.prefix) {
             true => &casts.multicast,
             false => &casts.unicast,
@@ -41,11 +41,11 @@ impl<'a> Compliance<'a> {
             .to_all()
             .map_err(|mut report| {
                 if self.cmp.verbosity.per_entry_err {
-                    report.push(NoMatch(MatchProblem::Peering));
+                    report.push(MatchPeering);
                 }
                 report
             })?,
-            None => OkT,
+            None => OkAllReport,
         };
         let filter_report = CheckFilter {
             cmp: self.cmp,
@@ -59,7 +59,7 @@ impl<'a> Compliance<'a> {
         .to_all()
         .map_err(|mut report| {
             if self.cmp.verbosity.per_entry_err {
-                report.push(NoMatch(MatchProblem::Filter));
+                report.push(MatchFilter);
             }
             report
         })?;

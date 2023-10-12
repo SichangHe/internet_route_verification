@@ -17,15 +17,15 @@ impl Compare {
             BadImport { from, to, items } => match db.get(*to, *from) {
                 Some(P2C) if self.verbosity.special_uphill => {
                     let reason = match db.is_clique(to) {
-                        true => UphillTier1,
-                        false => Uphill,
+                        true => SpecUphillTier1,
+                        false => SpecUphill,
                     };
                     *report = self.meh_import(*from, *to, mem::take(items), reason);
                 }
                 Some(P2P) if self.verbosity.check_import_only_provider => {
                     if let Some(property) = query.as_properties.get(to) {
                         if property.import_only_provider {
-                            let reason = ImportPeerOIFPS;
+                            let reason = SpecImportPeerOIFPS;
                             *report = self.meh_import(*from, *to, mem::take(items), reason);
                         }
                     }
@@ -33,26 +33,26 @@ impl Compare {
                 Some(C2P) if self.verbosity.check_import_only_provider => {
                     if let Some(property) = query.as_properties.get(to) {
                         if property.import_only_provider {
-                            let reason = ImportCustomerOIFPS;
+                            let reason = SpecImportCustomerOIFPS;
                             *report = self.meh_import(*from, *to, mem::take(items), reason);
                         }
                     }
                 }
                 _ if db.is_clique(from) && db.is_clique(to) => {
-                    *report = self.meh_import(*from, *to, mem::take(items), Tier1Pair);
+                    *report = self.meh_import(*from, *to, mem::take(items), SpecTier1Pair);
                 }
                 _ => (),
             },
             BadExport { from, to, items } => match db.get(*to, *from) {
                 Some(P2C) if self.verbosity.special_uphill => {
                     let reason = match db.is_clique(to) {
-                        true => UphillTier1,
-                        false => Uphill,
+                        true => SpecUphillTier1,
+                        false => SpecUphill,
                     };
                     *report = self.meh_export(*from, *to, mem::take(items), reason);
                 }
                 _ if db.is_clique(from) && db.is_clique(to) => {
-                    *report = self.meh_export(*from, *to, mem::take(items), Tier1Pair);
+                    *report = self.meh_export(*from, *to, mem::take(items), SpecTier1Pair);
                 }
                 _ => (),
             },

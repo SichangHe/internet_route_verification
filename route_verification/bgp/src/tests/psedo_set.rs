@@ -1,6 +1,6 @@
 use super::*;
 
-use {AsPathEntry::Seq, Report::*, ReportItem::*, SkipReason::*, SpecialCase::*};
+use {AsPathEntry::Seq, Report::*, ReportItem::*};
 
 const IR: &str = r#"{"aut_nums":{"45891":{"body":"","imports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Set":"AS45891:AS-CUSTOMERS"}}}}],"mp_filter":"Any"}]}},"exports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":139609}}}}],"mp_filter":{"AsNum":[45891,"NoOp"]}},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":60725}}}}],"mp_filter":{"AsNum":[45891,"NoOp"]}}]}}}},"as_sets":{},"route_sets":{},"peering_sets":{},"filter_sets":{},"as_routes":{"134525":["103.2.88.0/24"],"45891":[]}}"#;
 
@@ -22,7 +22,7 @@ fn export_customers() -> Result<()> {
         verbosity,
     };
     let actual = cmp.check(&query);
-    assert_eq!(actual, expected_reports_with_customers());
+    assert_eq!(expected_reports_with_customers(), actual);
     Ok(())
 }
 
@@ -31,12 +31,12 @@ fn expected_reports_with_customers() -> Vec<Report> {
         MehExport {
             from: 45891,
             to: 139609,
-            items: vec![Special(ExportCustomers)],
+            items: vec![SpecExportCustomers],
         },
-        SkipImport {
+        UnrecImport {
             from: 45891,
             to: 139609,
-            items: vec![Skip(AutNumUnrecorded(139609))],
+            items: vec![UnrecordedAutNum(139609)],
         },
     ]
 }

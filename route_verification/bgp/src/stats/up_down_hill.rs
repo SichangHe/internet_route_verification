@@ -15,19 +15,25 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
             None => stats.ok_other_export += 1,
         },
         OkSingleExport { from: _ } => stats.ok_other_export += 1,
-        SkipImport { from, to, items: _ } => match db.get(*from, *to) {
-            Some(P2C) => stats.skip_down_import += 1,
-            Some(P2P) => stats.skip_peer_import += 1,
-            Some(C2P) => stats.skip_up_import += 1,
-            None => stats.skip_other_import += 1,
-        },
-        SkipExport { from, to, items: _ } => match db.get(*from, *to) {
-            Some(P2C) => stats.skip_down_export += 1,
-            Some(P2P) => stats.skip_peer_export += 1,
-            Some(C2P) => stats.skip_up_export += 1,
-            None => stats.skip_other_export += 1,
-        },
-        SkipSingleExport { from: _, items: _ } => stats.skip_other_export += 1,
+        SkipImport { from, to, items: _ } | UnrecImport { from, to, items: _ } => {
+            match db.get(*from, *to) {
+                Some(P2C) => stats.skip_down_import += 1,
+                Some(P2P) => stats.skip_peer_import += 1,
+                Some(C2P) => stats.skip_up_import += 1,
+                None => stats.skip_other_import += 1,
+            }
+        }
+        SkipExport { from, to, items: _ } | UnrecExport { from, to, items: _ } => {
+            match db.get(*from, *to) {
+                Some(P2C) => stats.skip_down_export += 1,
+                Some(P2P) => stats.skip_peer_export += 1,
+                Some(C2P) => stats.skip_up_export += 1,
+                None => stats.skip_other_export += 1,
+            }
+        }
+        SkipSingleExport { from: _, items: _ } | UnrecSingleExport { from: _, items: _ } => {
+            stats.skip_other_export += 1
+        }
         BadImport { from, to, items: _ } | MehImport { from, to, items: _ } => {
             match db.get(*from, *to) {
                 Some(P2C) => stats.bad_down_import += 1,
@@ -44,10 +50,10 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
                 None => stats.bad_other_export += 1,
             }
         }
-        BadSingeExport { from: _, items: _ } => stats.bad_other_export += 1,
-        AsPathPairWithSet { from: _, to: _ }
-        | SetSingleExport { from: _ }
-        | MehSingleExport { from: _, items: _ } => (),
+        BadSingleExport { from: _, items: _ } | MehSingleExport { from: _, items: _ } => {
+            stats.bad_other_export += 1
+        }
+        AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
     }
 }
 

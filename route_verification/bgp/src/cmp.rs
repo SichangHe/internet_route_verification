@@ -7,8 +7,7 @@ use parse::*;
 use super::*;
 
 use {
-    as_regex::AsRegex, AsPathEntry::*, OkTBad::*, Report::*, ReportItem::*, SkipFBad::*,
-    SkipReason::*, SpecialCase::*,
+    as_regex::AsRegex, AllReportCase::*, AnyReportCase::*, AsPathEntry::*, Report::*, ReportItem::*,
 };
 
 pub mod as_regex;
@@ -97,9 +96,9 @@ impl Compare {
         match self.as_path.last()? {
             Seq(from) => match query.aut_nums.get(from) {
                 Some(from_an) => self.check_export(query, from_an, *from, None, &[]),
-                None => self.verbosity.show_skips.then(|| {
+                None => self.verbosity.show_unrec.then(|| {
                     let items = aut_num_unrecorded_items(*from);
-                    SkipSingleExport { from: *from, items }
+                    UnrecSingleExport { from: *from, items }
                 }),
             },
             Set(from) => self
@@ -119,9 +118,9 @@ impl Compare {
     ) -> Vec<Report> {
         let from_report = match query.aut_nums.get(&from) {
             Some(from_an) => self.check_export(query, from_an, from, Some(to), prev_path),
-            None => self.verbosity.show_skips.then(|| {
+            None => self.verbosity.show_unrec.then(|| {
                 let items = aut_num_unrecorded_items(from);
-                SkipExport { from, to, items }
+                UnrecExport { from, to, items }
             }),
         };
         let from_report = match (from_report, self.verbosity.stop_at_first) {
@@ -130,9 +129,9 @@ impl Compare {
         };
         let to_report = match query.aut_nums.get(&to) {
             Some(to_an) => self.check_import(query, to_an, from, to, prev_path),
-            None => self.verbosity.show_skips.then(|| {
+            None => self.verbosity.show_unrec.then(|| {
                 let items = aut_num_unrecorded_items(to);
-                SkipImport { from, to, items }
+                UnrecImport { from, to, items }
             }),
         };
         [from_report, to_report].into_iter().flatten().collect()
@@ -148,7 +147,7 @@ impl Compare {
     ) -> Option<Report> {
         if from_an.exports.is_default() {
             return self.verbosity.show_skips.then(|| {
-                let items = vec![Skip(ExportEmpty)];
+                let items = vec![SkipExportEmpty];
                 match to {
                     Some(to) => SkipExport { from, to, items },
                     None => SkipSingleExport { from, items },
@@ -175,17 +174,21 @@ impl Compare {
         };
         report.shrink_to_fit();
         match report {
-            SkipF(items) => self.verbosity.show_skips.then_some(match to {
+            SkipAnyReport(items) => self.verbosity.show_skips.then_some(match to {
                 Some(to) => SkipExport { from, to, items },
                 None => SkipSingleExport { from, items },
             }),
-            MehF(items) => self.verbosity.show_meh.then_some(match to {
+            UnrecAnyReport(items) => self.verbosity.show_unrec.then_some(match to {
+                Some(to) => UnrecExport { from, to, items },
+                None => UnrecSingleExport { from, items },
+            }),
+            MehAnyReport(items) => self.verbosity.show_meh.then_some(match to {
                 Some(to) => MehExport { from, to, items },
                 None => MehSingleExport { from, items },
             }),
-            BadF(items) => Some(match to {
+            BadAnyReport(items) => Some(match to {
                 Some(to) => BadExport { from, to, items },
-                None => BadSingeExport { from, items },
+                None => BadSingleExport { from, items },
             }),
         }
     }
@@ -202,7 +205,7 @@ impl Compare {
             return self.verbosity.show_skips.then(|| SkipImport {
                 from,
                 to,
-                items: vec![Skip(ImportEmpty)],
+                items: vec![SkipImportEmpty],
             });
         }
         let mut report = match (Compliance {
@@ -220,15 +223,21 @@ impl Compare {
         };
         report.shrink_to_fit();
         match report {
-            SkipF(items) => self
-                .verbosity
-                .show_skips
-                .then_some(SkipImport { from, to, items }),
-            MehF(items) => self
+            SkipAnyReport(items) => {
+                self.verbosity
+                    .show_skips
+                    .then_some(SkipImport { from, to, items })
+            }
+            UnrecAnyReport(items) => {
+                self.verbosity
+                    .show_unrec
+                    .then_some(UnrecImport { from, to, items })
+            }
+            MehAnyReport(items) => self
                 .verbosity
                 .show_meh
                 .then_some(MehImport { from, to, items }),
-            BadF(items) => Some(BadImport { from, to, items }),
+            BadAnyReport(items) => Some(BadImport { from, to, items }),
         }
     }
 
@@ -261,5 +270,5 @@ pub fn is_multicast(prefix: &IpNet) -> bool {
 }
 
 fn aut_num_unrecorded_items(aut_num: u64) -> Vec<ReportItem> {
-    vec![Skip(AutNumUnrecorded(aut_num))]
+    vec![UnrecordedAutNum(aut_num)]
 }

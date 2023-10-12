@@ -11,6 +11,8 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
         OkExport { from, to } => entry(from, to).export_ok += 1,
         SkipImport { from, to, items: _ } => entry(from, to).import_skip += 1,
         SkipExport { from, to, items: _ } => entry(from, to).export_skip += 1,
+        UnrecImport { from, to, items: _ } => entry(from, to).import_unrec += 1,
+        UnrecExport { from, to, items: _ } => entry(from, to).export_unrec += 1,
         BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
         BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
         MehImport { from, to, items: _ } => entry(from, to).import_meh += 1,
@@ -19,8 +21,9 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: 
         | SetSingleExport { from: _ }
         | OkSingleExport { from: _ }
         | SkipSingleExport { from: _, items: _ }
+        | UnrecSingleExport { from: _, items: _ }
         | MehSingleExport { from: _, items: _ }
-        | BadSingeExport { from: _, items: _ } => (),
+        | BadSingleExport { from: _, items: _ } => (),
     }
 }
 
@@ -31,6 +34,8 @@ pub struct AsPairStats {
     pub export_ok: u32,
     pub import_skip: u32,
     pub export_skip: u32,
+    pub import_unrec: u32,
+    pub export_unrec: u32,
     pub import_meh: u32,
     pub export_meh: u32,
     pub import_err: u32,

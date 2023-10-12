@@ -21,7 +21,7 @@ pub use {
     bgpmap::{self as map, AsPathEntry},
     cmp::Compare,
     query::{customer_set, AsProperty, AsSetRoute, QueryIr},
-    report::{MatchProblem, Report, ReportItem, SkipReason},
+    report::{Report, ReportItem},
     stats::{AsPairStats, AsStats, UpDownHillStats},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},

@@ -4,21 +4,7 @@ use super::*;
 /// Copy this after running code from [`parse_bgp_lines`].
 fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     fn n_rules(versions: &Versions) -> u32 {
-        let Versions { any, ipv4, ipv6 } = versions;
-        [any, ipv4, ipv6]
-            .into_iter()
-            .map(|casts| {
-                let Casts {
-                    any,
-                    unicast,
-                    multicast,
-                } = casts;
-                [any, unicast, multicast]
-                    .into_iter()
-                    .map(Vec::len)
-                    .sum::<usize>()
-            })
-            .sum::<usize>() as u32
+        versions.entries_iter().count() as u32
     }
 
     let map: DashMap<u64, (i32, u32, u32)> = DashMap::new();

@@ -133,15 +133,12 @@ pub enum ReportItem {
     UnrecordedAutNum(u64),
     UnrecordedPeeringSet(String),
 
-    // Special case.
+    // Special case for the whole import/export.
+    // Unique for each import/export.
     /// Route from customer to provider.
     SpecUphill,
     /// Route from customer to provider that is tier-1.
     SpecUphillTier1,
-    /// Export customer routes while specifying the AS itself as `<filter>`.
-    SpecExportCustomers,
-    /// AS in `<filter>` is the origin on the path, but the route mismatches.
-    SpecAsIsOriginButNoRoute(u64),
     /// Route between Tier 1 ASes.
     SpecTier1Pair,
     /// Import route between peers while Only Imports From Providers are
@@ -150,6 +147,13 @@ pub enum ReportItem {
     /// Import route from customer while Only Imports From Providers are
     /// Specified (OIFPS).
     SpecImportCustomerOIFPS,
+
+    // Special cases for ASN filter.
+    // Can be repetitive for each import/export.
+    /// Export customer routes while specifying the AS itself as `<filter>`.
+    SpecExportCustomers,
+    /// AS in `<filter>` is the origin on the path, but the route mismatches.
+    SpecAsIsOriginButNoRoute(u64),
 
     // Match problem.
     MatchFilter,

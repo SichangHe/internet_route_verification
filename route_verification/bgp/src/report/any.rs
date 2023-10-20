@@ -1,3 +1,5 @@
+// Avoid creating vectors of size 1.
+#![allow(clippy::vec_init_then_push)]
 use super::*;
 
 /// Report generator for walking the policies of one import/export.
@@ -24,7 +26,8 @@ impl ToAllReport for AnyReport {
 }
 
 pub fn skip_any_report(reason: ReportItem) -> AnyReport {
-    let skips = vec![reason];
+    let mut skips = vec![];
+    skips.push(reason);
     Some(SkipAnyReport(skips))
 }
 
@@ -37,7 +40,8 @@ pub const fn empty_skip_any_report() -> AnyReport {
 }
 
 pub fn unrec_any_report(reason: ReportItem) -> AnyReport {
-    let unrecordeds = vec![reason];
+    let mut unrecordeds = vec![];
+    unrecordeds.push(reason);
     Some(UnrecAnyReport(unrecordeds))
 }
 
@@ -46,7 +50,8 @@ pub const fn empty_unrec_any_report() -> AnyReport {
 }
 
 pub fn special_any_report(reason: ReportItem) -> AnyReport {
-    let specials = vec![reason];
+    let mut specials = vec![];
+    specials.push(reason);
     Some(MehAnyReport(specials))
 }
 
@@ -55,7 +60,8 @@ pub const fn empty_meh_any_report() -> AnyReport {
 }
 
 pub fn bad_any_report(reason: ReportItem) -> AnyReport {
-    let errors = vec![reason];
+    let mut errors = vec![];
+    errors.push(reason);
     Some(BadAnyReport(errors))
 }
 

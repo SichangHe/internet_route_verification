@@ -6,10 +6,10 @@ use std::{
     mem::{self, MaybeUninit},
 };
 
-use ph::fmph::GOFunction;
+use ph::fmph::Function;
 
 pub struct PerfHashMap<K, V> {
-    hash_fn: GOFunction,
+    hash_fn: Function,
     pub raw: Vec<(K, V)>,
 }
 
@@ -30,7 +30,7 @@ where
     /// Assuming `keys` and `values` are of the same length.
     pub fn new(keys: Vec<K>, values: Vec<V>) -> Self {
         debug_assert_eq!(keys.len(), values.len());
-        let hash_fn = GOFunction::from(keys.as_slice());
+        let hash_fn = Function::from(keys.as_slice());
         let mut raw: Vec<MaybeUninit<(K, V)>> =
             (0..keys.len()).map(|_| MaybeUninit::uninit()).collect();
         for (key, value) in keys.into_iter().zip(values) {

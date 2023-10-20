@@ -1,8 +1,10 @@
-use std::{fs::*, io::*, path::Path};
+use std::{fs::*, io::*, mem, path::Path};
 
+use bgp::wrapper::read_mrt;
 use chardetng::EncodingDetector;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
+use io::cmd::OutputChild;
 use lex::Counts;
 use rayon::prelude::*;
 
@@ -111,10 +113,11 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     let query = QueryIr::from_ir(parsed);
     debug!("Converted Ir to QueryIr");
 
-    let mut bgp_lines = parse_mrt(mrt_dir)?;
+    let output_child = read_mrt(mrt_dir)?;
+    let mut bgp_lines = pack_n_lines(output_child, SIZE)?;
     debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
 
-    const SIZE: usize = 0x1000;
+    const SIZE: usize = 0x10000;
     bgp_lines[..SIZE].iter_mut().for_each(|line| {
         line.compare.verbosity = Verbosity::minimum_all();
         line.check(&query);
@@ -124,14 +127,38 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     let n_error: usize = bgp_lines[..SIZE]
         .par_iter()
         .map(|line| {
-            if line.report.as_ref().unwrap().is_empty() {
-                0
-            } else {
+            if line.report.as_ref().unwrap().iter().any(|report| {
+                matches!(
+                    report,
+                    Report::BadImport {
+                        from: _,
+                        to: _,
+                        items: _,
+                    } | Report::BadExport {
+                        from: _,
+                        to: _,
+                        items: _,
+                    } | Report::BadSingleExport { from: _, items: _ }
+                )
+            }) {
                 1
+            } else {
+                0
             }
         })
         .sum();
     println!("{n_error} errors reported in {SIZE} routes.");
 
     Ok(())
+}
+
+pub fn pack_n_lines(mut output_child: OutputChild, limit: usize) -> Result<Vec<Line>> {
+    let mut lines = Vec::new();
+    let mut line = String::new();
+
+    while lines.len() < limit && output_child.stdout.read_line(&mut line)? > 0 {
+        let raw = mem::take(&mut line);
+        lines.push(Line::from_raw(raw)?);
+    }
+    Ok(lines)
 }

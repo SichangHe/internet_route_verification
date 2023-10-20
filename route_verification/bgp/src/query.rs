@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use boomphf::hashmap::BoomHashMap;
 
 use super::*;
 
@@ -95,19 +95,19 @@ fn all_providers(versions: &Versions, num: u64, db: &AsRelDb) -> bool {
 }
 
 /// Cleaned RPSL intermediate representation ready for query.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct QueryIr {
-    pub aut_nums: HashMap<u64, AutNum>,
-    pub as_sets: HashMap<String, AsSet>,
-    pub route_sets: HashMap<String, RouteSet>,
-    pub peering_sets: HashMap<String, PeeringSet>,
-    pub filter_sets: HashMap<String, FilterSet>,
+    pub aut_nums: BoomHashMap<u64, AutNum>,
+    pub as_sets: BoomHashMap<String, AsSet>,
+    pub route_sets: BoomHashMap<String, RouteSet>,
+    pub peering_sets: BoomHashMap<String, PeeringSet>,
+    pub filter_sets: BoomHashMap<String, FilterSet>,
     /// Each value should always be sorted.
-    pub as_routes: HashMap<u64, Vec<IpNet>>,
+    pub as_routes: BoomHashMap<u64, Vec<IpNet>>,
     /// Each value should always be sorted.
-    pub as_set_routes: HashMap<String, AsSetRoute>,
+    pub as_set_routes: BoomHashMap<String, AsSetRoute>,
     /// Special properties for some ASes.
-    pub as_properties: HashMap<u64, AsProperty>,
+    pub as_properties: BoomHashMap<u64, AsProperty>,
 }
 
 impl QueryIr {
@@ -131,13 +131,13 @@ impl QueryIr {
             .map(|(name, set)| (name.clone(), AsSetRoute::from_as_set(set, &as_routes)))
             .collect();
         let as_set_routes = flatten_as_set_routes(&as_set_routes);
-        let as_set_routes = HashMap::from_iter(as_set_routes);
-        let aut_nums = HashMap::from_iter(aut_nums);
-        let as_sets = HashMap::from_iter(as_sets);
-        let route_sets = HashMap::from_iter(route_sets);
-        let peering_sets = HashMap::from_iter(peering_sets);
-        let filter_sets = HashMap::from_iter(filter_sets);
-        let as_routes = HashMap::from_iter(as_routes);
+        let as_set_routes = BoomHashMap::from_iter(as_set_routes);
+        let aut_nums = BoomHashMap::from_iter(aut_nums);
+        let as_sets = BoomHashMap::from_iter(as_sets);
+        let route_sets = BoomHashMap::from_iter(route_sets);
+        let peering_sets = BoomHashMap::from_iter(peering_sets);
+        let filter_sets = BoomHashMap::from_iter(filter_sets);
+        let as_routes = BoomHashMap::from_iter(as_routes);
         Self {
             aut_nums,
             as_sets,
@@ -146,7 +146,7 @@ impl QueryIr {
             filter_sets,
             as_routes,
             as_set_routes,
-            as_properties: HashMap::new(),
+            as_properties: BoomHashMap::new(vec![], vec![]),
         }
     }
 

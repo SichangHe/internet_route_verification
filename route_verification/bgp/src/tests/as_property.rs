@@ -31,7 +31,13 @@ fn report() -> Result<()> {
     let mut query = query()?;
     let db = relationship_db()?;
     let properties = as18106_property()?.context("Property is None")?;
-    query.as_properties.insert(NUM, properties);
+    let mut as_properties: Vec<_> = query
+        .as_properties
+        .into_iter()
+        .map(|(k, v)| (k.to_owned(), v.to_owned()))
+        .collect();
+    as_properties.push((NUM, properties));
+    query.as_properties = as_properties.into_iter().collect();
     let mut compare = Compare::with_line_dump(LINE)?;
     compare.verbosity = Verbosity::minimum_all();
     let actual = compare.check_with_relationship(&query, &db);

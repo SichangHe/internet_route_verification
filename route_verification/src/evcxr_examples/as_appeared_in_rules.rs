@@ -55,7 +55,7 @@ fn as_appeared_in_rules(query: QueryIr) -> Result<()> {
     }
     let mut appeared = Appeared::with_query(&query);
 
-    for an in query.aut_nums.values() {
+    for (_, an) in query.aut_nums.iter() {
         for entry in [&an.imports, &an.exports]
             .into_iter()
             .flat_map(|ports| ports.entries_iter())

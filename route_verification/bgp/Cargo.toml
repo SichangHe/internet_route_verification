@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
+boomphf.workspace = true
 dashmap.workspace = true
 hashbrown.workspace = true
 ipnet.workspace = true

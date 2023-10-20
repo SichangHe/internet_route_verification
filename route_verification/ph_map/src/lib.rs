@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{borrow::Borrow, hash::Hash};
 
 use hashbrown::raw::RawTable;

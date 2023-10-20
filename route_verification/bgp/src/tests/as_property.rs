@@ -33,6 +33,7 @@ fn report() -> Result<()> {
     let properties = as18106_property()?.context("Property is None")?;
     let mut as_properties: Vec<_> = query
         .as_properties
+        .raw
         .into_iter()
         .map(|(k, v)| (k.to_owned(), v.to_owned()))
         .collect();

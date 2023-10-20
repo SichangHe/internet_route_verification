@@ -13,7 +13,7 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         map.entry(*as2).or_insert((0, -1, -1)).0 += 1;
     });
 
-    query.aut_nums.par_iter().for_each(|(num, an)| {
+    query.aut_nums.raw.par_iter().for_each(|(num, an)| {
         let mut entry = map.entry(*num).or_insert((-1, 0, 0));
         entry.1 = n_rules(&an.imports) as i32;
         entry.2 = n_rules(&an.exports) as i32;

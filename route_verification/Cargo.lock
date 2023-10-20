@@ -1665,9 +1665,7 @@ dependencies = [
 name = "route_verification_ph_map"
 version = "0.1.0"
 dependencies = [
- "hashbrown",
  "ph",
- "rayon",
 ]
 
 [[package]]

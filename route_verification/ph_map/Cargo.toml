@@ -4,6 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-hashbrown = { workspace = true, features = ["raw"] }
 ph.workspace = true
-rayon.workspace = true

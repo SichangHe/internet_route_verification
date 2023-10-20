@@ -8,6 +8,7 @@ fn psedo_customer_set() -> Result<()> {
     let db = as_relationship_db()?;
     let mut actual: HashMap<_, _> = QueryIr::from_ir_and_as_relationship(ir, &db)
         .as_sets
+        .raw
         .into_iter()
         .map(|(k, v)| (k.to_owned(), v.to_owned()))
         .collect();

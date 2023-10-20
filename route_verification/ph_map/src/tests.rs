@@ -16,6 +16,10 @@ fn test_deterministic() {
         .map(|s| s.to_owned())
         .collect();
     for key in fake_keys.iter() {
-        assert!(map.get(key).is_none())
+        let result = map.get(key);
+        assert!(
+            result.is_none(),
+            "{key} should not be in the map but got {result:?}."
+        )
     }
 }

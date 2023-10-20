@@ -6,7 +6,11 @@ use super::{cmp::*, *};
 fn psedo_customer_set() -> Result<()> {
     let ir = ir()?;
     let db = as_relationship_db()?;
-    let mut actual = HashMap::from_iter(QueryIr::from_ir_and_as_relationship(ir, &db).as_sets);
+    let mut actual: HashMap<_, _> = QueryIr::from_ir_and_as_relationship(ir, &db)
+        .as_sets
+        .into_iter()
+        .map(|(k, v)| (k.to_owned(), v.to_owned()))
+        .collect();
     actual.iter_mut().for_each(|(_, v)| v.members.sort());
     assert_eq!(actual, expected_as_sets());
     Ok(())

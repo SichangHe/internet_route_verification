@@ -21,6 +21,7 @@ bgpmap.workspace = true
 io.workspace = true
 lex.workspace = true
 parse.workspace = true
+ph_map.workspace = true
 
 [dev-dependencies]
 maplit.workspace = true

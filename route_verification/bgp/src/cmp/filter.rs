@@ -35,7 +35,7 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_set(&self, name: &str, depth: isize) -> AnyReport {
+    fn filter_set(&self, name: &String, depth: isize) -> AnyReport {
         let filter_set = match self.query.filter_sets.get(name) {
             Some(f) => f,
             None => return self.unrec_any_report(|| UnrecordedFilterSet(name.into())),
@@ -118,7 +118,7 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_route_set(&self, name: &str, op: RangeOperator, depth: isize) -> AnyReport {
+    fn filter_route_set(&self, name: &String, op: RangeOperator, depth: isize) -> AnyReport {
         if depth <= 0 {
             return bad_any_report(RecFilterRouteSet(name.into()));
         }
@@ -161,13 +161,13 @@ impl<'a> CheckFilter<'a> {
 
     fn filter_as_set(
         &self,
-        name: &'a str,
+        name: &'a String,
         op: RangeOperator,
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
     ) -> AnyReport {
-        let hash = visited.make_hash(&name);
-        if visited.contains_with_hash(&name, hash) {
+        let hash = visited.make_hash(&name.as_str());
+        if visited.contains_with_hash(&name.as_str(), hash) {
             return empty_bad_any_report();
         }
 
@@ -297,7 +297,7 @@ impl<'a> CheckFilter<'a> {
     /// `Err` contains all the skips.
     pub fn set_has_member(
         &self,
-        set: &'a str,
+        set: &'a String,
         asn: u64,
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
@@ -305,8 +305,8 @@ impl<'a> CheckFilter<'a> {
         if depth < 0 {
             return Err(bad_any_report(RecCheckSetMember(set.into())));
         }
-        let hash = visited.make_hash(&set);
-        if visited.contains_with_hash(&set, hash) {
+        let hash = visited.make_hash(&set.as_str());
+        if visited.contains_with_hash(&set.as_str(), hash) {
             return Err(empty_bad_any_report());
         }
         let as_set = match self.query.as_sets.get(set) {

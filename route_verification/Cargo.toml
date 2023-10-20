@@ -46,6 +46,7 @@ io = { package = "route_verification_io", path = "./io" }
 irr = { package = "route_verification_irr", path = "./irr" }
 lex = { package = "route_verification_lex", path = "./lex" }
 parse = { package = "route_verification_parse", path = "./parse" }
+ph_map = { package = "route_verification_ph_map", path = "./ph_map" }
 
 [package]
 name = "route_verification"

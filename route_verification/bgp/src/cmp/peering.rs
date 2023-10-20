@@ -87,12 +87,12 @@ impl<'a> CheckPeering<'a> {
 
     fn check_remote_as_set(
         &self,
-        name: &'a str,
+        name: &'a String,
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
     ) -> AnyReport {
-        let hash = visited.make_hash(&name);
-        if visited.contains_with_hash(&name, hash) {
+        let hash = visited.make_hash(&name.as_str());
+        if visited.contains_with_hash(&name.as_str(), hash) {
             return empty_bad_any_report();
         }
 
@@ -131,7 +131,7 @@ impl<'a> CheckPeering<'a> {
             Some(report)
         }
     }
-    fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
+    fn check_remote_peering_set(&self, name: &String, depth: isize) -> AnyReport {
         if depth <= 0 {
             return bad_any_report(RecRemotePeeringSet(name.into()));
         }

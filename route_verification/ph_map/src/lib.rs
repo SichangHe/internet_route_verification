@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests;
 
-use std::{borrow::Borrow, hash::Hash};
+use std::{borrow::Borrow, hash::Hash, marker::PhantomData};
 
-use hashbrown::raw::RawTable;
+use hashbrown::raw::{rayon::RawParIter, RawIntoIter, RawIter, RawTable};
 use ph::fmph::GOFunction;
+use rayon::{iter::plumbing::UnindexedConsumer, prelude::*};
 
 pub struct PerfHashMap<K, V> {
     hash_fn: GOFunction,
@@ -59,6 +60,13 @@ where
         self.table.is_empty()
     }
 
+    pub fn iter(&self) -> Iter<K, V> {
+        Iter {
+            inner: unsafe { self.table.iter() },
+            marker: PhantomData,
+        }
+    }
+
     unsafe fn insert_unchecked(&mut self, key: K, value: V) {
         let hash = self.hash_fn.get(&key).unwrap_unchecked();
         self.table.insert(hash, (key, value), hasher);
@@ -75,5 +83,73 @@ where
     {
         let (keys, values) = iter.into_iter().unzip();
         Self::new(keys, values)
+    }
+}
+
+impl<K, V> IntoIterator for PerfHashMap<K, V> {
+    type Item = (K, V);
+
+    type IntoIter = RawIntoIter<(K, V)>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.table.into_iter()
+    }
+}
+
+impl<'a, K: Sync, V: Sync> IntoParallelIterator for &'a PerfHashMap<K, V> {
+    type Item = (&'a K, &'a V);
+    type Iter = ParIter<'a, K, V>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        ParIter {
+            inner: unsafe { self.table.par_iter() },
+            marker: PhantomData,
+        }
+    }
+}
+
+// Below are copied from hashbrown.
+pub struct Iter<'a, K, V> {
+    inner: RawIter<(K, V)>,
+    marker: PhantomData<(&'a K, &'a V)>,
+}
+
+impl<'a, K, V> Iterator for Iter<'a, K, V> {
+    type Item = (&'a K, &'a V);
+
+    fn next(&mut self) -> Option<(&'a K, &'a V)> {
+        // Avoid `Option::map` because it bloats LLVM IR.
+        match self.inner.next() {
+            Some(x) => unsafe {
+                let r = x.as_ref();
+                Some((&r.0, &r.1))
+            },
+            None => None,
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+pub struct ParIter<'a, K, V> {
+    inner: RawParIter<(K, V)>,
+    marker: PhantomData<(&'a K, &'a V)>,
+}
+
+impl<'a, K: Sync, V: Sync> ParallelIterator for ParIter<'a, K, V> {
+    type Item = (&'a K, &'a V);
+
+    fn drive_unindexed<C>(self, consumer: C) -> C::Result
+    where
+        C: UnindexedConsumer<Self::Item>,
+    {
+        self.inner
+            .map(|x| unsafe {
+                let r = x.as_ref();
+                (&r.0, &r.1)
+            })
+            .drive_unindexed(consumer)
     }
 }

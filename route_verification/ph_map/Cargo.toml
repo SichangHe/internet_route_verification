@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ph.workspace = true
+quickdiv.workspace = true
+quickphf.workspace = true
+quickphf_codegen.workspace = true

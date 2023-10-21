@@ -2,14 +2,23 @@
 mod tests;
 
 use std::{
+    borrow::Borrow,
     hash::Hash,
     mem::{self, MaybeUninit},
 };
 
-use ph::fmph::GOFunction;
+use quickdiv::DivisorU64;
+use quickphf::shared::{get_bucket, get_index, hash_key, hash_pilot_value};
+use quickphf_codegen::phf::{generate_phf, Phf};
 
 pub struct PerfHashMap<K, V> {
-    hash_fn: GOFunction,
+    codomain_len: DivisorU64,
+    buckets: DivisorU64,
+
+    seed: u64,
+    pilots_table: Vec<u16>,
+    free: Vec<u32>,
+
     pub raw: Vec<(K, V)>,
 }
 
@@ -17,32 +26,74 @@ impl<K, V> PerfHashMap<K, V>
 where
     K: Eq + Hash + Clone + Sync,
 {
-    pub fn get(&self, k: &K) -> Option<&V> {
-        let hash = self.hash_fn.get(k)? as usize;
-        // Safety: `hash < self.table.len()`.
-        let raw_kv = unsafe { self.raw.get_unchecked(hash) };
-        match raw_kv.0 == *k {
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+        Q: Eq + Hash + ?Sized,
+    {
+        if self.is_empty() {
+            return None;
+        }
+        let raw_kv = self.get_unchecked(key);
+        match raw_kv.0.borrow() == key {
             true => Some(&raw_kv.1),
             false => None,
+        }
+    }
+
+    // Adopted from quickphf.
+    /// # Panic
+    /// If length is 0.
+    pub fn get_unchecked<Q>(&self, key: &Q) -> &(K, V)
+    where
+        K: Borrow<Q>,
+        Q: Hash + ?Sized,
+    {
+        let key_hash = hash_key(key, self.seed);
+
+        let bucket = get_bucket(key_hash, self.buckets);
+        let pilot_hash = hash_pilot_value(self.pilots_table[bucket]);
+        let idx = get_index(key_hash, pilot_hash, self.codomain_len);
+
+        if idx < self.len() {
+            &self.raw[idx]
+        } else {
+            &self.raw[self.free[idx - self.len()] as usize]
         }
     }
 
     /// Assuming `keys` and `values` are of the same length.
     pub fn new(keys: Vec<K>, values: Vec<V>) -> Self {
         debug_assert_eq!(keys.len(), values.len());
-        let hash_fn = GOFunction::from(keys.as_slice());
-        let mut raw: Vec<MaybeUninit<(K, V)>> =
-            (0..keys.len()).map(|_| MaybeUninit::uninit()).collect();
-        for (key, value) in keys.into_iter().zip(values) {
-            // Safety: `hash_fn` returns `Some` because it has seen `key`.
-            let hash = unsafe { hash_fn.get(&key).unwrap_unchecked() } as usize;
-            // Safety: `hash < table.len()`.
-            let entry = unsafe { raw.get_unchecked_mut(hash) };
-            *entry = MaybeUninit::new((key, value));
+        let Phf {
+            seed,
+            pilots_table,
+            map,
+            free,
+        } = generate_phf(&keys);
+        let codomain_len = DivisorU64::new((values.len() + free.len()) as u64);
+        let buckets = DivisorU64::new(pilots_table.len() as u64);
+
+        let mut raw = Vec::with_capacity(keys.len());
+        // TODO: Document these unsafe.
+        let mut keys: Vec<MaybeUninit<K>> = unsafe { mem::transmute(keys) };
+        let mut values: Vec<MaybeUninit<V>> = unsafe { mem::transmute(values) };
+        for idx in map {
+            let index = idx as usize;
+            let mut key = MaybeUninit::uninit();
+            mem::swap(unsafe { keys.get_unchecked_mut(index) }, &mut key);
+            let mut value = MaybeUninit::uninit();
+            mem::swap(unsafe { values.get_unchecked_mut(index) }, &mut value);
+            raw.push(unsafe { (key.assume_init(), value.assume_init()) });
         }
-        // Safety: we filled in `raw` with `keys` and `values`.
-        let raw = unsafe { mem::transmute(raw) };
-        Self { hash_fn, raw }
+        Self {
+            codomain_len,
+            buckets,
+            seed,
+            pilots_table,
+            free,
+            raw,
+        }
     }
 
     /// Length of the hash table.

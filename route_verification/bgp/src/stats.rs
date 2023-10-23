@@ -9,10 +9,12 @@ use Report::*;
 
 mod as_;
 mod as_pair;
+mod route;
 mod up_down_hill;
 
 pub use as_::AsStats;
 pub use as_pair::AsPairStats;
+pub use route::RouteStats;
 pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
@@ -45,5 +47,15 @@ impl Compare {
         for report in reports {
             as_pair::one(db, map, report);
         }
+    }
+
+    pub fn route_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> RouteStats {
+        self.verbosity = Verbosity::minimum_all();
+        let reports = self.check_with_relationship(query, db);
+        let mut stats = RouteStats::default();
+        for report in reports {
+            route::one(&mut stats, report);
+        }
+        stats
     }
 }

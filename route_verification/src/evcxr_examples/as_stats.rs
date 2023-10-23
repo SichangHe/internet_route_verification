@@ -56,12 +56,12 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
                 export_meh,
                 import_err,
                 export_err,
-                match relationship {
-                    Some(Relationship::P2C) => "down".into(),
-                    Some(Relationship::P2P) => "peer".into(),
-                    Some(Relationship::C2P) => "up".into(),
-                    None => "other".into(),
-                },
+                String::from(match relationship {
+                    Some(Relationship::P2C) => "down",
+                    Some(Relationship::P2P) => "peer",
+                    Some(Relationship::C2P) => "up",
+                    None => "other",
+                }),
             )
         },
     ));

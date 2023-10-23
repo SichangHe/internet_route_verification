@@ -13,6 +13,7 @@ mod as_route_stats;
 mod as_stats;
 mod as_w_single_rs_export;
 mod filter_as;
+mod route_stats;
 mod specific_line;
 
 use crate as route_verification;

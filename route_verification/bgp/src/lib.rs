@@ -22,7 +22,6 @@ pub use {
     cmp::Compare,
     query::{customer_set, AsProperty, AsSetRoute, QueryIr},
     report::{Report, ReportItem},
-    stats::{AsPairStats, AsStats, UpDownHillStats},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},
 };

@@ -1,6 +1,10 @@
 use super::*;
 
 impl Compare {
+    /// Same as [`check`](#method.check), except that AS Relationship DB `db` is used to
+    /// convert suitable "bad" reports to "meh".
+    /// - If `self.verbosity.show_meh` is `false`,
+    /// then these "meh" reports are removed.
     pub fn check_with_relationship(&self, query: &QueryIr, db: &AsRelDb) -> Vec<Report> {
         let mut reports = self.check(query);
         for report in reports.iter_mut() {

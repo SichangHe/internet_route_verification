@@ -61,7 +61,7 @@ impl Compare {
     }
 
     /// Check `self` against RPSL policy `query` and generate reports.
-    /// Depending on which [`Verbosity`] `self.verbose` is set to,
+    /// Depending on which [`Verbosity`] `self.verbosity` is set to,
     /// the reports have different levels of details.
     /// If `verbosity.stop_at_first`, stops at the first report.
     pub fn check(&self, query: &QueryIr) -> Vec<Report> {

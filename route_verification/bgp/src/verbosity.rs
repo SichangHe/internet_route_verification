@@ -1,7 +1,7 @@
 use super::*;
 
 #[allow(unused)] // For the doc.
-use Report::*;
+use {Report::*, ReportItem::*};
 
 /// Verbosity level.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -22,7 +22,7 @@ pub struct Verbosity {
     pub all_err: bool,
     /// Record [`AsPathPairWithSet`], [`SetSingleExport`].
     pub record_set: bool,
-    /// Record [`CommunityCheckUnimplemented`].
+    /// Record [`SkipCommunityCheckUnimplemented`].
     pub record_community: bool,
     /// Mark routes from customer to provider as special.
     pub special_uphill: bool,

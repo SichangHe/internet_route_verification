@@ -50,7 +50,12 @@ impl Compare {
     }
 
     pub fn route_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> RouteStats {
-        self.verbosity = Verbosity::minimum_all();
+        self.verbosity = Verbosity {
+            per_entry_err: true,
+            all_err: true,
+            record_community: true,
+            ..Verbosity::minimum_all()
+        };
         let reports = self.check_with_relationship(query, db);
         let mut stats = RouteStats::default();
         for report in reports {

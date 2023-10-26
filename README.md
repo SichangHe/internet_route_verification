@@ -6,8 +6,13 @@ WIP
 
 - Put the database file at `data/ripe.db`.
 - Make sure `pypy3` is in the `PATH`.
-- Make sure you have `pyparsing` installed.
-- Prepend this directory to your `PYTHONPATH`.
+- Make sure you have `rpsl-lexer` installed and
+    it can be found by `pypy3` (e.g., in `PYTHONPATH`).
+
+    ```sh
+    python3 -m pip install rpsl-lexer
+    ```
+
 - Maybe you want to enable logging:
 
     ```sh

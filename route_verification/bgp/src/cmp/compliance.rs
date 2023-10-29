@@ -3,8 +3,8 @@ use super::*;
 pub struct Compliance<'a> {
     pub cmp: &'a Compare,
     pub query: &'a QueryIr,
-    pub accept_num: Option<u64>,
-    pub self_num: u64,
+    pub accept_num: Option<u32>,
+    pub self_num: u32,
     pub export: bool,
     pub prev_path: &'a [AsPathEntry],
 }

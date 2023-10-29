@@ -6,7 +6,7 @@ use super::*;
 pub struct CheckFilter<'a> {
     pub cmp: &'a Compare,
     pub query: &'a QueryIr,
-    pub self_num: u64,
+    pub self_num: u32,
     pub export: bool,
     pub prev_path: &'a [AsPathEntry],
     pub mp_peerings: &'a [PeeringAction],
@@ -47,7 +47,7 @@ impl<'a> CheckFilter<'a> {
         Some(report)
     }
 
-    fn filter_as_num(&self, num: u64, op: RangeOperator) -> AnyReport {
+    fn filter_as_num(&self, num: u32, op: RangeOperator) -> AnyReport {
         let routes = match self.query.as_routes.get(&num) {
             Some(r) => r,
             None => {
@@ -70,7 +70,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     /// Check if the AS number in the `<filter>` is the origin in the AS path.
-    pub fn maybe_filter_as_is_origin(&self, num: u64, op: RangeOperator) -> bool {
+    pub fn maybe_filter_as_is_origin(&self, num: u32, op: RangeOperator) -> bool {
         match (op, self.last_on_path()) {
             (RangeOperator::NoOp, Some(n)) => n == num,
             _ => false,
@@ -80,7 +80,7 @@ impl<'a> CheckFilter<'a> {
     /// Check for this case:
     /// - The AS number itself is the `<filter>`.
     /// - Exporting customers routes.
-    pub fn maybe_filter_customers(&self, num: u64, op: RangeOperator) -> bool {
+    pub fn maybe_filter_customers(&self, num: u32, op: RangeOperator) -> bool {
         if self.export && self.cmp.verbosity.check_customer && num == self.self_num {
             self.filter_as_set(
                 &customer_set(num),
@@ -96,7 +96,7 @@ impl<'a> CheckFilter<'a> {
 
     /// The last AS number on the AS path.
     /// `None` if it is a set.
-    pub fn last_on_path(&self) -> Option<u64> {
+    pub fn last_on_path(&self) -> Option<u32> {
         match self.prev_path.last() {
             Some(Seq(n)) => Some(*n),
             None => Some(self.self_num),
@@ -298,7 +298,7 @@ impl<'a> CheckFilter<'a> {
     pub fn set_has_member(
         &self,
         set: &'a str,
-        asn: u64,
+        asn: u32,
         depth: isize,
         visited: &mut BloomHashSet<&'a str>,
     ) -> Result<bool, AnyReport> {

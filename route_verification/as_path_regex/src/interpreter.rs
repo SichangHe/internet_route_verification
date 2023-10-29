@@ -3,13 +3,13 @@ use super::*;
 #[derive(Debug)]
 pub enum AsOrSet<'a> {
     AsSet(&'a String),
-    AsNum(u64),
+    AsNum(u32),
 }
 
 #[derive(Debug)]
 pub struct Interpreter {
     sets: CharMap<String>,
-    ans: CharMap<u64>,
+    ans: CharMap<u32>,
     peer_as_char: char,
     has_peer_as: bool,
     expr: String,
@@ -44,7 +44,7 @@ impl Interpreter {
     }
 
     /// char corresponding to `asn`.
-    pub fn get_asn(&self, asn: u64) -> Option<char> {
+    pub fn get_asn(&self, asn: u32) -> Option<char> {
         let index = self.ans.char_map.iter().position(|x| *x == asn);
         // SAFETY: We found the index, which itself is from a char.
         index.map(|i| unsafe { char::from_u32_unchecked(i as u32 + self.ans.start) })

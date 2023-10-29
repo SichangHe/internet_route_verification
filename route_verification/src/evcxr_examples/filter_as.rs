@@ -1,7 +1,7 @@
 use super::*;
 
 fn reports_for_paths_containing_certain_as(
-    an: u64,
+    an: u32,
     query: &QueryIr,
     bgp_lines: &[Line],
     db: &AsRelDb,

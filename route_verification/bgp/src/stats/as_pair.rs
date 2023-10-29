@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u64, u64), AsPairStats>, report: Report) {
+pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report) {
     let entry = |from, to| {
         map.entry((from, to))
             .or_insert_with(|| AsPairStats::default_with_pair(from, to, db))
@@ -44,7 +44,7 @@ pub struct AsPairStats {
 }
 
 impl AsPairStats {
-    pub fn default_with_pair(from: u64, to: u64, db: &AsRelDb) -> Self {
+    pub fn default_with_pair(from: u32, to: u32, db: &AsRelDb) -> Self {
         Self {
             relationship: db.get(from, to),
             ..Self::default()

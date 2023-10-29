@@ -2,7 +2,7 @@ use super::{cmp::query, *};
 
 use {Report::*, ReportItem::*};
 
-const NUM: u64 = 18106;
+const NUM: u32 = 18106;
 
 const AUT_NUM18106: &str = r#"{"body":"","imports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":6939}}},"actions":{"pref":"100"}}],"mp_filter":"Any"},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":174}}},"actions":{"pref":"100"}}],"mp_filter":"Any"},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":4657}}},"actions":{"pref":"100"}}],"mp_filter":"Any"},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":2914}}},"actions":{"pref":"100"}}],"mp_filter":"Any"}]}},"exports":{"any":{"any":[{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":6939}}}}],"mp_filter":{"Or":{"left":{"AsNum":[18106,"NoOp"]},"right":{"AsSet":["AS18106:AS-TRANSIT","NoOp"]}}}},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":174}}}}],"mp_filter":{"Or":{"left":{"AsNum":[18106,"NoOp"]},"right":{"AsSet":["AS18106:AS-TRANSIT","NoOp"]}}}},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":4657}}}}],"mp_filter":{"Or":{"left":{"AsNum":[18106,"NoOp"]},"right":{"AsSet":["AS18106:AS-TRANSIT","NoOp"]}}}},{"mp_peerings":[{"mp_peering":{"remote_as":{"Single":{"Num":2914}}}}],"mp_filter":{"Or":{"left":{"AsNum":[18106,"NoOp"]},"right":{"AsSet":["AS18106:AS-TRANSIT","NoOp"]}}}}]}}}"#;
 

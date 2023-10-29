@@ -33,6 +33,6 @@ pub fn make_customer_pseudo_set(db: &AsRelDb) -> BTreeMap<String, AsSet> {
 }
 
 /// Name of the customer pseudo set corresponding to `aut_num`.
-pub fn customer_set(aut_num: u64) -> String {
+pub fn customer_set(aut_num: u32) -> String {
     format!("c#{aut_num}")
 }

@@ -19,42 +19,42 @@ use {AllReportCase::*, AnyReportCase::*, Report::*};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum Report {
     OkImport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
     },
     OkExport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
     },
     OkSingleExport {
-        from: u64,
+        from: u32,
     },
     SkipImport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     SkipExport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     SkipSingleExport {
-        from: u64,
+        from: u32,
         items: ReportItems,
     },
     UnrecImport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     UnrecExport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     UnrecSingleExport {
-        from: u64,
+        from: u32,
         items: ReportItems,
     },
     AsPathPairWithSet {
@@ -62,34 +62,34 @@ pub enum Report {
         to: AsPathEntry,
     },
     SetSingleExport {
-        from: Vec<u64>,
+        from: Vec<u32>,
     },
     MehImport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     MehExport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     MehSingleExport {
-        from: u64,
+        from: u32,
         items: ReportItems,
     },
     BadImport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     BadExport {
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         items: ReportItems,
     },
     BadSingleExport {
-        from: u64,
+        from: u32,
         items: ReportItems,
     },
 }
@@ -125,12 +125,12 @@ pub enum ReportItem {
 
     // Unrecorded.
     UnrecordedFilterSet(String),
-    UnrecordedAsRoutes(u64),
+    UnrecordedAsRoutes(u32),
     UnrecordedRouteSet(String),
     UnrecordedAsSet(String),
     UnrecordedAsSetRoute(String),
     UnrecordedSomeAsSetRoute(String),
-    UnrecordedAutNum(u64),
+    UnrecordedAutNum(u32),
     UnrecordedPeeringSet(String),
 
     // Special case for the whole import/export.
@@ -153,15 +153,15 @@ pub enum ReportItem {
     /// Export customer routes while specifying the AS itself as `<filter>`.
     SpecExportCustomers,
     /// AS in `<filter>` is the origin on the path, but the route mismatches.
-    SpecAsIsOriginButNoRoute(u64),
+    SpecAsIsOriginButNoRoute(u32),
 
     // Match problem.
     MatchFilter,
-    MatchFilterAsNum(u64, RangeOperator),
+    MatchFilterAsNum(u32, RangeOperator),
     MatchFilterAsSet(String, RangeOperator),
     MatchFilterPrefixes,
     MatchFilterRouteSet(String),
-    MatchRemoteAsNum(u64),
+    MatchRemoteAsNum(u32),
     MatchRemoteAsSet(String),
     MatchExceptPeeringRight,
     MatchPeering,

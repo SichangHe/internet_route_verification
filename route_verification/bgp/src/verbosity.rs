@@ -114,14 +114,14 @@ impl Default for Verbosity {
 pub trait VerbosityReport {
     fn get_verbosity(&self) -> Verbosity;
 
-    fn meh_import(&self, from: u64, to: u64, mut items: ReportItems, reason: ReportItem) -> Report {
+    fn meh_import(&self, from: u32, to: u32, mut items: ReportItems, reason: ReportItem) -> Report {
         if self.get_verbosity().show_meh {
             items.push(reason)
         }
         MehImport { from, to, items }
     }
 
-    fn meh_export(&self, from: u64, to: u64, mut items: ReportItems, reason: ReportItem) -> Report {
+    fn meh_export(&self, from: u32, to: u32, mut items: ReportItems, reason: ReportItem) -> Report {
         if self.get_verbosity().show_meh {
             items.push(reason)
         }

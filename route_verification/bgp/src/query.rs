@@ -10,10 +10,10 @@ pub use pseudo_set::*;
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsSetRoute {
     /// Should always be sorted.
-    pub members: Vec<u64>,
+    pub members: Vec<u32>,
     /// Should always be sorted.
     pub routes: Vec<IpNet>,
-    pub unrecorded_nums: Vec<u64>,
+    pub unrecorded_nums: Vec<u32>,
     pub set_members: Vec<String>,
 }
 
@@ -27,13 +27,13 @@ impl AsSetRoute {
     }
 
     /// If contains AS as a member.
-    pub fn contains_member(&self, num: u64) -> bool {
+    pub fn contains_member(&self, num: u32) -> bool {
         self.members.binary_search(&num).is_ok()
     }
 
     /// Fill in routes for the AS with `as_set` with routes in `as_routes`.
     /// The process is done only once, and the result [`AsSetRoute`] is cleaned.
-    pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<u64, Vec<IpNet>>) -> Self {
+    pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<u32, Vec<IpNet>>) -> Self {
         let mut routes = Vec::with_capacity(as_set.members.len() << 2);
         let mut unrecorded_nums = Vec::new();
         for member in &as_set.members {
@@ -68,7 +68,7 @@ pub struct AsProperty {
 }
 
 impl AsProperty {
-    pub fn maybe_from_aut_num(num: u64, aut_num: &AutNum, db: &AsRelDb) -> Option<Self> {
+    pub fn maybe_from_aut_num(num: u32, aut_num: &AutNum, db: &AsRelDb) -> Option<Self> {
         let import_only_provider = all_providers(&aut_num.imports, num, db);
         let export_only_provider = all_providers(&aut_num.exports, num, db);
         (import_only_provider || export_only_provider).then_some(Self {
@@ -78,7 +78,7 @@ impl AsProperty {
     }
 }
 
-fn all_providers(versions: &Versions, num: u64, db: &AsRelDb) -> bool {
+fn all_providers(versions: &Versions, num: u32, db: &AsRelDb) -> bool {
     versions.entries_iter().all(|entry| {
         entry
             .mp_peerings
@@ -97,17 +97,17 @@ fn all_providers(versions: &Versions, num: u64, db: &AsRelDb) -> bool {
 /// Cleaned RPSL intermediate representation ready for query.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryIr {
-    pub aut_nums: HashMap<u64, AutNum>,
+    pub aut_nums: HashMap<u32, AutNum>,
     pub as_sets: HashMap<String, AsSet>,
     pub route_sets: HashMap<String, RouteSet>,
     pub peering_sets: HashMap<String, PeeringSet>,
     pub filter_sets: HashMap<String, FilterSet>,
     /// Each value should always be sorted.
-    pub as_routes: HashMap<u64, Vec<IpNet>>,
+    pub as_routes: HashMap<u32, Vec<IpNet>>,
     /// Each value should always be sorted.
     pub as_set_routes: HashMap<String, AsSetRoute>,
     /// Special properties for some ASes.
-    pub as_properties: HashMap<u64, AsProperty>,
+    pub as_properties: HashMap<u32, AsProperty>,
 }
 
 impl QueryIr {

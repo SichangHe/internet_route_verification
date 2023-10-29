@@ -4,7 +4,7 @@ use super::*;
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub enum AsName {
     Any,
-    Num(u64),
+    Num(u32),
     Set(String),
     Invalid(String),
 }

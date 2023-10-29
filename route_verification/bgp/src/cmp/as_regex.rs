@@ -12,7 +12,7 @@ pub struct AsRegex<'a> {
 }
 
 impl<'a> AsRegex<'a> {
-    pub fn check(&mut self, path: Vec<u64>, depth: isize) -> AnyReport {
+    pub fn check(&mut self, path: Vec<u32>, depth: isize) -> AnyReport {
         let converted = match self.interpreter.run(self.expr) {
             Ok(c) => c,
             Err(HasTilde) => {
@@ -48,7 +48,7 @@ impl<'a> AsRegex<'a> {
 
     /// chars corresponding to `asn`.
     /// Unrecorded ASNs are assigned `¿` to avoid being matched.
-    pub fn asn_chars(&mut self, asn: u64, filter: Option<&Filter>, depth: isize) -> Vec<char> {
+    pub fn asn_chars(&mut self, asn: u32, filter: Option<&Filter>, depth: isize) -> Vec<char> {
         let mut result: Vec<_> = self.interpreter.get_asn(asn).into_iter().collect();
         let limit = self.c.cmp.recursion_limit;
         let mut visited = visited();

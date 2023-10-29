@@ -5,7 +5,7 @@ use super::*;
 #[test]
 fn replace_as() -> Result<()> {
     for (s, expected, char_map) in AS_REGEXES {
-        let mut replacer = CharMap::<u64>::new_from_alpha();
+        let mut replacer = CharMap::<u32>::new_from_alpha();
         let replaced = as_replace_all(s, replacer.by_ref());
         assert_eq!(&replaced, expected);
         assert_eq!(replacer.next, char_map.len() as u32 + ALPHA_CODE);
@@ -14,7 +14,7 @@ fn replace_as() -> Result<()> {
     Ok(())
 }
 
-const AS_REGEXES: [(&str, &str, &[u64]); 3] = [
+const AS_REGEXES: [(&str, &str, &[u32]); 3] = [
     ("^AS20485 AS15774$", "^Α Β$", &[20485, 15774]),
     ("^AS611+AS6509.*$", "^Α+Β.*$", &[611, 6509]),
     (

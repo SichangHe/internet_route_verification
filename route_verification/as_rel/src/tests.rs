@@ -16,7 +16,7 @@ fn parse_lines() -> Result<()> {
     Ok(())
 }
 
-fn expected_as_rels() -> [((u64, u64), Relationship); 2] {
+fn expected_as_rels() -> [((u32, u32), Relationship); 2] {
     [((323, 56), P2C), ((509, 9205), P2P)]
 }
 

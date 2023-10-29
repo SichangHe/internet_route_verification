@@ -7,7 +7,7 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         versions.entries_iter().count() as u32
     }
 
-    let map: DashMap<u64, (i32, i32, i32)> = DashMap::new();
+    let map: DashMap<u32, (i32, i32, i32)> = DashMap::new();
     db.source2dest.par_iter().for_each(|((as1, as2), _)| {
         map.entry(*as1).or_insert((0, -1, -1)).0 += 1;
         map.entry(*as2).or_insert((0, -1, -1)).0 += 1;
@@ -19,7 +19,7 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         entry.2 = n_rules(&an.exports) as i32;
     });
 
-    let (ans, neighbors, imports, exports): (Vec<u64>, Vec<i32>, Vec<i32>, Vec<i32>) =
+    let (ans, neighbors, imports, exports): (Vec<u32>, Vec<i32>, Vec<i32>, Vec<i32>) =
         multiunzip(map.into_iter().map(|(an, (nei, im, ex))| (an, nei, im, ex)));
     let mut df = DataFrame::new(vec![
         Series::new("aut_num", ans),

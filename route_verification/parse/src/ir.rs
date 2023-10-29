@@ -13,7 +13,7 @@ use super::*;
 /// Parsed RPSL intermediate representation.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Ir {
-    pub aut_nums: BTreeMap<u64, AutNum>,
+    pub aut_nums: BTreeMap<u32, AutNum>,
     pub as_sets: BTreeMap<String, AsSet>,
     pub route_sets: BTreeMap<String, RouteSet>,
     pub peering_sets: BTreeMap<String, PeeringSet>,
@@ -21,7 +21,7 @@ pub struct Ir {
     /// The AS numbers with Vec of their routes.
     /// <https://www.rfc-editor.org/rfc/rfc2622#section-4>.
     /// Each value should always be sorted.
-    pub as_routes: BTreeMap<u64, Vec<IpNet>>,
+    pub as_routes: BTreeMap<u32, Vec<IpNet>>,
 }
 
 pub fn split_n_btreemap<K, V>(mut map: BTreeMap<K, V>, n: usize) -> Vec<BTreeMap<K, V>>

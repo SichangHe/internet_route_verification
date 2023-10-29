@@ -4,7 +4,7 @@ use super::*;
 /// Copy this after running code from [`parse_bgp_lines`].
 fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     let start = Instant::now();
-    let map: DashMap<(u64, u64), AsPairStats> = DashMap::new();
+    let map: DashMap<(u32, u32), AsPairStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
         l.compare.as_pair_stats(&query, &db, &map);
     });
@@ -15,7 +15,7 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
     );
 
     let (from_tos, ioks, eoks, isps, esps, iurs, eurs, imhs, emhs, iers, eers, rels): (
-        Vec<(u64, u64)>,
+        Vec<(u32, u32)>,
         Vec<u32>,
         Vec<u32>,
         Vec<u32>,
@@ -65,7 +65,7 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
             )
         },
     ));
-    let (froms, tos): (Vec<u64>, Vec<u64>) = multiunzip(from_tos);
+    let (froms, tos): (Vec<u32>, Vec<u32>) = multiunzip(from_tos);
 
     let mut df: DataFrame = DataFrame::new(vec![
         Series::new("from", froms),
@@ -168,7 +168,7 @@ fn gen_up_down_hill_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb)
 /// Copy this after running code from [`parse_bgp_lines`],
 fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     let start = Instant::now();
-    let map: DashMap<u64, AsStats> = DashMap::new();
+    let map: DashMap<u32, AsStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
         l.compare.as_stats(&query, &db, &map);
     });
@@ -178,7 +178,7 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
         start.elapsed().as_millis()
     );
     let (ans, ioks, eoks, isps, esps, iurs, eurs, imhs, emhs, iers, eers): (
-        Vec<u64>,
+        Vec<u32>,
         Vec<u32>,
         Vec<u32>,
         Vec<u32>,

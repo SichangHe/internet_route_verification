@@ -41,9 +41,9 @@ use Relationship::*;
 #[derive(Clone, Debug, Default)]
 pub struct AsRelDb {
     /// Tier 1 ASes.
-    pub clique: HashSet<u64>,
+    pub clique: HashSet<u32>,
     /// Relationships between AS pairs.
-    pub source2dest: HashMap<(u64, u64), Relationship>,
+    pub source2dest: HashMap<(u32, u32), Relationship>,
 }
 
 impl AsRelDb {
@@ -118,7 +118,7 @@ impl AsRelDb {
         Ok(Self::new(clique, source2dest))
     }
 
-    fn new(clique: HashSet<u64>, source2dest: HashMap<(u64, u64), Relationship>) -> Self {
+    fn new(clique: HashSet<u32>, source2dest: HashMap<(u32, u32), Relationship>) -> Self {
         debug!(
             "Loaded AS relationship database with {} cliques & {} links.",
             clique.len(),
@@ -131,22 +131,22 @@ impl AsRelDb {
     }
 
     /// Get [`Relationship`] between `as1` and `as2`, if recorded.
-    pub fn get(&self, as1: u64, as2: u64) -> Option<Relationship> {
+    pub fn get(&self, as1: u32, as2: u32) -> Option<Relationship> {
         match self.source2dest.get(&(as1, as2)) {
             Some(rel) => Some(*rel),
             None => self.source2dest.get(&(as2, as1)).map(|rel| rel.reversed()),
         }
     }
 
-    pub fn is_clique(&self, aut_num: &u64) -> bool {
+    pub fn is_clique(&self, aut_num: &u32) -> bool {
         self.clique.contains(aut_num)
     }
 }
 
 fn add_line(
     line: &str,
-    clique: &mut HashSet<u64>,
-    source2dest: &mut HashMap<(u64, u64), Relationship>,
+    clique: &mut HashSet<u32>,
+    source2dest: &mut HashMap<(u32, u32), Relationship>,
 ) -> Result<()> {
     if line.starts_with('#') {
         if clique.is_empty() && line[2..].starts_with("input clique: ") {
@@ -164,11 +164,11 @@ fn add_line(
 }
 
 /// Try parsing `line` as a non-comment line in a AS relationship file.
-pub fn try_parse_as_rel(line: &str) -> Result<((u64, u64), Relationship)> {
+pub fn try_parse_as_rel(line: &str) -> Result<((u32, u32), Relationship)> {
     do_try_parse_as_rel(line).with_context(|| format!("invalid AS relationship line `{line}`"))
 }
 
-fn do_try_parse_as_rel(line: &str) -> Result<((u64, u64), Relationship)> {
+fn do_try_parse_as_rel(line: &str) -> Result<((u32, u32), Relationship)> {
     let parts: Vec<_> = line.split('|').collect();
     let relationship = parts.get(2).context("wrong number of parts")?.parse()?;
     // SAFETY: The `get` above succeeded so `parts.len() >= 3`.

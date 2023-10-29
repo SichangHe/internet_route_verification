@@ -5,7 +5,7 @@ use super::*;
 fn as_appeared_in_rules(query: QueryIr) -> Result<()> {
     use std::collections::HashSet;
     struct Appeared {
-        an_list: HashSet<u64>,
+        an_list: HashSet<u32>,
         as_set_list: HashSet<String>,
         rs_list: HashSet<String>,
         ps_list: HashSet<String>,

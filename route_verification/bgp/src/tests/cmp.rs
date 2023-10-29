@@ -111,7 +111,7 @@ fn stats() -> Result<()> {
     Ok(())
 }
 
-fn expected_stats() -> [HashMap<u64, AsStats>; 1] {
+fn expected_stats() -> [HashMap<u32, AsStats>; 1] {
     [
         hashmap! {2914=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_unrec: 0, export_unrec: 1, import_meh: 1, export_meh: 0, import_err: 0, export_err: 0 }, 3130=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_unrec: 1, export_unrec: 0, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 1239=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_unrec: 1, export_unrec: 1, import_meh: 0, export_meh: 0, import_err: 0, export_err: 0 }, 9583=> AsStats { import_ok: 0, export_ok: 0, import_skip: 0, export_skip: 0, import_unrec: 0, export_unrec: 0, import_meh: 0, export_meh: 1, import_err: 0, export_err: 0 }},
     ]

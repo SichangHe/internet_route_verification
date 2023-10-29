@@ -112,8 +112,8 @@ impl Compare {
     pub fn check_pair(
         &self,
         query: &QueryIr,
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         prev_path: &[AsPathEntry],
     ) -> Vec<Report> {
         let from_report = match query.aut_nums.get(&from) {
@@ -141,8 +141,8 @@ impl Compare {
         &self,
         query: &QueryIr,
         from_an: &AutNum,
-        from: u64,
-        to: Option<u64>,
+        from: u32,
+        to: Option<u32>,
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if from_an.exports.is_default() {
@@ -197,8 +197,8 @@ impl Compare {
         &self,
         query: &QueryIr,
         to_an: &AutNum,
-        from: u64,
-        to: u64,
+        from: u32,
+        to: u32,
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if to_an.imports.is_default() {
@@ -241,7 +241,7 @@ impl Compare {
         }
     }
 
-    pub fn goes_through_num(&self, num: u64) -> bool {
+    pub fn goes_through_num(&self, num: u32) -> bool {
         self.as_path.iter().any(|p| p.contains_num(num))
     }
 }
@@ -269,6 +269,6 @@ pub fn is_multicast(prefix: &IpNet) -> bool {
     }
 }
 
-fn aut_num_unrecorded_items(aut_num: u64) -> Vec<ReportItem> {
+fn aut_num_unrecorded_items(aut_num: u32) -> Vec<ReportItem> {
     vec![UnrecordedAutNum(aut_num)]
 }

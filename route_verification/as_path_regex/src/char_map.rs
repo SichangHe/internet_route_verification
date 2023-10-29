@@ -93,9 +93,9 @@ impl Replacer for CharMap<String> {
     }
 }
 
-impl Replacer for CharMap<u64> {
+impl Replacer for CharMap<u32> {
     fn replace_append(&mut self, caps: &Captures<'_>, dst: &mut String) {
-        let capture: u64 = caps[0][2..]
+        let capture: u32 = caps[0][2..]
             .parse()
             .expect(r"expecting `caps[0]` to be `AS\d+`");
         let c = self.find_char_or_push(capture);

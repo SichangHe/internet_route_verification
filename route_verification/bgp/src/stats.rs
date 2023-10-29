@@ -18,7 +18,7 @@ pub use route::RouteStats;
 pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
-    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u64, AsStats>) {
+    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, AsStats>) {
         self.verbosity = Verbosity::minimum_all();
         let reports = self.check_with_relationship(query, db);
         for report in reports {
@@ -40,7 +40,7 @@ impl Compare {
         &mut self,
         query: &QueryIr,
         db: &AsRelDb,
-        map: &DashMap<(u64, u64), AsPairStats>,
+        map: &DashMap<(u32, u32), AsPairStats>,
     ) {
         self.verbosity = Verbosity::minimum_all();
         let reports = self.check_with_relationship(query, db);

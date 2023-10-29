@@ -1,6 +1,6 @@
 use super::*;
 
-pub fn one(map: &DashMap<u64, AsStats>, report: Report) {
+pub fn one(map: &DashMap<u32, AsStats>, report: Report) {
     match report {
         OkImport { from: _, to } => map.entry(to).or_default().import_ok += 1,
         OkExport { from, to: _ } | OkSingleExport { from } => {

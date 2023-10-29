@@ -178,7 +178,7 @@ pub enum Filter {
     /// > '^+'…
     RouteSet(String, RangeOperator),
     /// An AS number.
-    AsNum(u64, RangeOperator),
+    AsNum(u32, RangeOperator),
     /// A name of an as-set object.
     AsSet(String, RangeOperator),
     /// > AS Path Regular Expressions

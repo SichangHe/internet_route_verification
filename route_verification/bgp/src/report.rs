@@ -1,7 +1,6 @@
 use std::ops::{BitAnd, BitOr, BitOrAssign};
 
 use ::lex::Call;
-use parse::*;
 
 use super::*;
 
@@ -152,6 +151,8 @@ pub enum ReportItem {
     // Can be repetitive for each import/export.
     /// Export customer routes while specifying the AS itself as `<filter>`.
     SpecExportCustomers,
+    /// Import from neighbor customer while specifying them as `<filter>`.
+    SpecImportFromCustomers,
     /// AS in `<filter>` is the origin on the path, but the route mismatches.
     SpecAsIsOriginButNoRoute(u32),
 

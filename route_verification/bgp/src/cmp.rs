@@ -2,7 +2,6 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 
 use as_path_regex::interpreter::{InterpretErr::*, Interpreter};
 use ipnet::*;
-use parse::*;
 
 use super::*;
 

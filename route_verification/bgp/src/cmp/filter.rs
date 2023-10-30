@@ -60,8 +60,10 @@ impl<'a> CheckFilter<'a> {
         if match_ips(&self.cmp.prefix, routes, op) {
             return None;
         }
-        if self.maybe_filter_customers(num, op) {
+        if self.is_filter_export_customer(num, op) {
             self.special_any_report(|| SpecExportCustomers)
+        } else if self.is_filter_import_from_customer(num, op) {
+            self.special_any_report(|| SpecImportFromCustomers)
         } else if self.maybe_filter_as_is_origin(num, op) {
             self.special_any_report(|| SpecAsIsOriginButNoRoute(num))
         } else {
@@ -80,7 +82,8 @@ impl<'a> CheckFilter<'a> {
     /// Check for this case:
     /// - The AS number itself is the `<filter>`.
     /// - Exporting customers routes.
-    pub fn maybe_filter_customers(&self, num: u32, op: RangeOperator) -> bool {
+    #[inline]
+    pub fn is_filter_export_customer(&self, num: u32, op: RangeOperator) -> bool {
         if self.export && self.cmp.verbosity.check_customer && num == self.self_num {
             self.filter_as_set(
                 &customer_set(num),
@@ -89,6 +92,45 @@ impl<'a> CheckFilter<'a> {
                 &mut visited(),
             )
             .is_none()
+        } else {
+            false
+        }
+    }
+
+    /// Check for this case:
+    /// - Importing.
+    /// - The customer AS is the `<filter>`.
+    /// - The `<peering>` is just the customer AS.
+    /// - The prefix length matches the range operator, if any.
+    #[inline]
+    pub fn is_filter_import_from_customer(&self, num: u32, op: RangeOperator) -> bool {
+        if let (
+            false,
+            true,
+            1,
+            Some(PeeringAction {
+                mp_peering:
+                    Peering {
+                        remote_as: AsExpr::Single(AsName::Num(peering_num)),
+                        remote_router: _,
+                        local_router: _,
+                    },
+                actions: _,
+            }),
+        ) = (
+            self.export,
+            self.cmp.verbosity.check_customer,
+            self.mp_peerings.len(),
+            self.mp_peerings.first(),
+        ) {
+            num == *peering_num && {
+                let prefix_len = self.cmp.prefix.prefix_len();
+                match op {
+                    RangeOperator::NoOp | RangeOperator::Minus | RangeOperator::Plus => true,
+                    RangeOperator::Num(n) => n == prefix_len,
+                    RangeOperator::Range(n, m) => (n..=m).contains(&prefix_len),
+                }
+            }
         } else {
             false
         }

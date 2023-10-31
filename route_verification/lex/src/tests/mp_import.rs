@@ -1,12 +1,4 @@
-use crate::{
-    action::Action::*,
-    filter::Filter::*,
-    mp_import::{Casts, Entry, PeeringAction},
-    peering::AsExpr::*,
-    *,
-};
-
-use super::*;
+use super::{Action::*, AsExpr::*, Filter::*, *};
 
 const MP_IMPORT_EXAMPLE: &str = r#"{
     "ipv4": {

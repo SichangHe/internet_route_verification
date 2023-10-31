@@ -1,6 +1,5 @@
 use itertools::Itertools;
 use lazy_regex::Regex;
-use parse::filter::peer_as_filter;
 
 use super::*;
 

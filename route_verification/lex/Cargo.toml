@@ -10,6 +10,8 @@ maplit = { workspace = true, optional = true }
 rayon.workspace = true
 serde.workspace = true
 
+shared_struct.workspace = true
+
 [dev-dependencies]
 anyhow.workspace = true
 maplit.workspace = true

@@ -1,0 +1,7 @@
+[package]
+name = "route_verification_shared_struct"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde.workspace = true

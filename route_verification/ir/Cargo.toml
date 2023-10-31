@@ -1,26 +1,22 @@
 [package]
-name = "route_verification_bgp"
+name = "route_verification_ir"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 anyhow.workspace = true
-dashmap.workspace = true
-hashbrown.workspace = true
 ipnet.workspace = true
 itertools.workspace = true
 lazy-regex.workspace = true
+log.workspace = true
 rayon.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
-as_path_regex.workspace = true
-as_rel.workspace = true
-bloom.workspace = true
-bgpmap.workspace = true
+common_regex.workspace = true
 io.workspace = true
-ir.workspace = true
-lex.workspace = true
+shared_struct.workspace = true
 
 [dev-dependencies]
 maplit.workspace = true
+net-literals.workspace = true

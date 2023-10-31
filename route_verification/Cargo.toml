@@ -17,24 +17,24 @@ anyhow = { version = "1.0", features = ["backtrace"] }
 bit-vec = "0.6"
 bzip2 = "0.4.4"
 chardetng = "0.1"
-const_format = "0.2.31"
+const_format = "0.2"
 dashmap = "5.5"
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 env_logger = "0.10"
-hashbrown = { version = "0.14.0", features = ["rayon"] }
-ipnet = { version = "2.8", features = ["serde"] }
+hashbrown = { version = "0.14", features = ["rayon"] }
+ipnet = { version = "2.9", features = ["serde"] }
 itertools = "0.11"
 lazy-regex = "3.0"
 log = "0.4"
 maplit = "1.0"
 net-literals = "0.2"
 once_cell = "1.18.0"
-polars = { version = "0.32", features = ["describe"] }
-rayon = "1.7"
+polars = { version = "0.34", features = ["describe"] }
+rayon = "1.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["unbounded_depth"] }
-thiserror = "1.0.44"
+thiserror = "1.0"
 
 as_path_regex = { package = "route_verification_as_path_regex", path = "./as_path_regex" }
 as_rel = { package = "route_verification_as_rel", path = "./as_rel" }

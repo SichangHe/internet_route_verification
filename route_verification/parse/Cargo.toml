@@ -15,7 +15,9 @@ serde_json.workspace = true
 
 common_regex.workspace = true
 io.workspace = true
+ir.workspace = true
 lex.workspace = true
+shared_struct.workspace = true
 
 [dev-dependencies]
 maplit.workspace = true

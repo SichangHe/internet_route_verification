@@ -1497,6 +1497,7 @@ dependencies = [
  "route_verification_bloom",
  "route_verification_common_regex",
  "route_verification_io",
+ "route_verification_ir",
  "route_verification_irr",
  "route_verification_lex",
  "route_verification_parse",
@@ -1538,8 +1539,8 @@ dependencies = [
  "route_verification_bgpmap",
  "route_verification_bloom",
  "route_verification_io",
+ "route_verification_ir",
  "route_verification_lex",
- "route_verification_parse",
  "serde",
  "serde_json",
 ]
@@ -1582,6 +1583,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "route_verification_ir"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ipnet",
+ "itertools",
+ "lazy-regex",
+ "log",
+ "maplit",
+ "net-literals",
+ "rayon",
+ "route_verification_common_regex",
+ "route_verification_io",
+ "route_verification_shared_struct",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "route_verification_irr"
 version = "0.1.0"
 dependencies = [
@@ -1590,6 +1610,7 @@ dependencies = [
  "log",
  "rayon",
  "route_verification_io",
+ "route_verification_ir",
  "route_verification_lex",
  "route_verification_parse",
 ]
@@ -1603,6 +1624,7 @@ dependencies = [
  "log",
  "maplit",
  "rayon",
+ "route_verification_shared_struct",
  "serde",
  "serde_json",
 ]
@@ -1621,9 +1643,18 @@ dependencies = [
  "rayon",
  "route_verification_common_regex",
  "route_verification_io",
+ "route_verification_ir",
  "route_verification_lex",
+ "route_verification_shared_struct",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "route_verification_shared_struct"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

@@ -1,9 +1,9 @@
 use maplit::btreemap;
 
-use crate::{
-    action::Action::*,
+use super::{
     filter::Filter::*,
     mp_import::{Casts, Entry, PeeringAction},
+    Action::*,
     AsExpr::*,
     *,
 };

@@ -1,18 +1,17 @@
-use ::lex::{action::Action::*, test_util::expected_ast, Counts};
+use ::lex::test_util::expected_ast;
 use maplit::btreemap;
 use net_literals::ip;
 
-use crate::{
-    lex::parse_aut_num_name,
-    set::{AsSet, FilterSet, PeeringSet, RouteSet, RouteSetMember::*},
-    AsExpr::*,
+use super::*;
+use {
+    Action::Assigned,
+    AsExpr::Single,
     AsName::Num,
-    Filter::{Any, *},
+    Filter::{Any, AsNum},
     RangeOperator::*,
+    RouteSetMember::RSRange,
     RouterExpr::*,
 };
-
-use super::*;
 
 #[test]
 fn parse_name() {

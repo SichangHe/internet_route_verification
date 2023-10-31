@@ -11,4 +11,5 @@ rayon.workspace = true
 
 lex.workspace = true
 io.workspace = true
+ir.workspace = true
 parse.workspace = true

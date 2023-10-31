@@ -1,12 +1,7 @@
-use crate::{
-    action::{
-        Action::{self, *},
-        Actions,
-    },
-    *,
+use super::{
+    Action::{self, *},
+    Actions, *,
 };
-
-use super::*;
 
 const ACTION_EXAMPLE: &str = r#"{
     "pref": "65435",

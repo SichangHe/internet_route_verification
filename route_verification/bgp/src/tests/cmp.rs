@@ -1,8 +1,6 @@
+use crate::{Report::*, ReportItem::*, *};
 use dashmap::DashMap;
 use maplit::hashmap;
-use parse::*;
-
-use crate::{Report::*, ReportItem::*, *};
 
 use super::*;
 

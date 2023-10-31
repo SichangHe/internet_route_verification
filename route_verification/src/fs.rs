@@ -5,15 +5,11 @@ use chardetng::EncodingDetector;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use io::cmd::OutputChild;
+use ir::Ir;
 use lex::Counts;
 use rayon::prelude::*;
 
-use super::{
-    bgp::*,
-    irr::*,
-    parse::{parse_lexed, Ir},
-    Result, *,
-};
+use super::{bgp::*, irr::*, parse::parse_lexed, Result, *};
 
 pub fn parse(filename: &str, output_dir: &str) -> Result<()> {
     let encoding = detect_file_encoding(filename)?;

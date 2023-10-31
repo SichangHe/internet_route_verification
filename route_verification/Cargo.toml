@@ -1,5 +1,16 @@
 [workspace]
-members = ["as_rel", "bgp", "bgpmap", "bloom", "io", "irr", "lex", "parse"]
+members = [
+    "as_rel",
+    "bgp",
+    "bgpmap",
+    "bloom",
+    "io",
+    "ir",
+    "irr",
+    "lex",
+    "parse",
+    "shared_struct",
+]
 
 [workspace.dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }
@@ -32,9 +43,11 @@ bgpmap = { package = "route_verification_bgpmap", path = "./bgpmap" }
 bloom = { package = "route_verification_bloom", path = "./bloom" }
 common_regex = { package = "route_verification_common_regex", path = "./common_regex" }
 io = { package = "route_verification_io", path = "./io" }
+ir = { package = "route_verification_ir", path = "./ir" }
 irr = { package = "route_verification_irr", path = "./irr" }
 lex = { package = "route_verification_lex", path = "./lex" }
 parse = { package = "route_verification_parse", path = "./parse" }
+shared_struct = { package = "route_verification_shared_struct", path = "./shared_struct" }
 
 [package]
 name = "route_verification"
@@ -56,6 +69,7 @@ bgp.workspace = true
 bloom.workspace = true
 common_regex.workspace = true
 io.workspace = true
+ir.workspace = true
 irr.workspace = true
 lex.workspace = true
 parse.workspace = true

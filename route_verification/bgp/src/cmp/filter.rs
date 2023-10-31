@@ -1,5 +1,5 @@
 use ::lex::Call;
-use parse::{Filter::*, *};
+use ir::{Filter::*, *};
 
 use super::*;
 

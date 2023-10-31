@@ -6,10 +6,11 @@ use std::{
 };
 
 use anyhow::Result;
+use ir::{merge_irs, Ir};
 use lazy_regex::regex;
 use lex::*;
 use log::{debug, error, warn};
-use parse::{merge_irs, parse_lexed, Ir};
+use parse::parse_lexed;
 use rayon::prelude::*;
 
 pub mod mbrs;

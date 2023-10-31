@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use log::debug;
 
-pub use {as_rel, bgp, bloom, io, irr, lex, parse};
+pub use {as_rel, bgp, bloom, io, ir, irr, lex, parse};
 
 mod fs;
 

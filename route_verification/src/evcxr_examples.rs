@@ -41,7 +41,7 @@ use rayon::prelude::*;
 use route_verification::{
     as_rel::*,
     bgp::{stats::*, *},
-    parse::*,
+    ir::*,
 };
 use std::{
     env,

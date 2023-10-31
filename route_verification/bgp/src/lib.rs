@@ -4,7 +4,7 @@ use anyhow::Result;
 use as_rel::{AsRelDb, Relationship::*};
 use bloom::BloomHashSet;
 use ipnet::IpNet;
-use parse::*;
+use ir::*;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 

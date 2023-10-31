@@ -1,5 +1,5 @@
-use ::lex::{self, Counts};
-use lazy_regex::regex_captures;
+use ::lex;
+use ir::aut_sys::parse_aut_num_name;
 
 use super::*;
 
@@ -67,15 +67,6 @@ pub fn parse_lexed_aut_num(aut_num: lex::AutNum, counts: &mut Counts) -> Result<
             exports,
         },
     ))
-}
-
-pub fn parse_aut_num_name(name: &str) -> Result<u32> {
-    match regex_captures!(r"^AS(\d+)$"i, name) {
-        Some((_, num)) => num
-            .parse()
-            .map_err(|err| Error::new(err).context(format!("parsing {name}"))),
-        None => bail!("AS number name `{name}` does not match pattern"),
-    }
 }
 
 pub fn parse_lexed_as_sets(lexed: Vec<lex::AsOrRouteSet>) -> (BTreeMap<String, AsSet>, Counts) {
@@ -278,8 +269,4 @@ pub fn parse_lexed_as_route((name, routes): &(String, Vec<String>)) -> Result<(u
     let mut routes: Vec<_> = routes?;
     routes.sort_unstable();
     Ok((num, routes))
-}
-
-pub fn is_pseudo_set(s: &str) -> bool {
-    matches!(s.as_bytes().get(1), Some(&b'#'))
 }

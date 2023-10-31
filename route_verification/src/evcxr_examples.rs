@@ -38,11 +38,10 @@ use dashmap::DashMap;
 use itertools::multiunzip;
 use polars::prelude::*;
 use rayon::prelude::*;
-use route_verification::{
-    as_rel::*,
-    bgp::{stats::*, *},
-    ir::*,
-};
+use route_verification::as_rel::*;
+use route_verification::bgp::stats::*;
+use route_verification::bgp::*;
+use route_verification::ir::*;
 use std::{
     env,
     fs::File,

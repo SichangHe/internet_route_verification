@@ -1,5 +1,4 @@
 use ::lex;
-use ir::aut_sys::parse_aut_num_name;
 
 use super::*;
 

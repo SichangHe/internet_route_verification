@@ -1635,19 +1635,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ipnet",
- "itertools",
  "lazy-regex",
  "log",
  "maplit",
  "net-literals",
  "rayon",
- "route_verification_common_regex",
- "route_verification_io",
  "route_verification_ir",
  "route_verification_lex",
  "route_verification_shared_struct",
- "serde",
- "serde_json",
 ]
 
 [[package]]

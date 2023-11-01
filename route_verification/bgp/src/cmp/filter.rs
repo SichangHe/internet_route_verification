@@ -62,20 +62,21 @@ impl<'a> CheckFilter<'a> {
         }
         if self.is_filter_export_customer(num, op) {
             self.special_any_report(|| SpecExportCustomers)
-        } else if self.is_filter_import_from_customer(num, op) {
-            self.special_any_report(|| SpecImportFromCustomers)
-        } else if self.maybe_filter_as_is_origin(num, op) {
+        } else if self.is_filter_as_origin(num, op) {
             self.special_any_report(|| SpecAsIsOriginButNoRoute(num))
+        } else if self.is_filter_import_from_neighbor(num, op) {
+            self.special_any_report(|| SpecImportFromNeighbor)
         } else {
             self.bad_any_report(|| MatchFilterAsNum(num, op))
         }
     }
 
     /// Check if the AS number in the `<filter>` is the origin in the AS path.
-    pub fn maybe_filter_as_is_origin(&self, num: u32, op: RangeOperator) -> bool {
-        match (op, self.last_on_path()) {
-            (RangeOperator::NoOp, Some(n)) => n == num,
-            _ => false,
+    #[inline]
+    pub fn is_filter_as_origin(&self, num: u32, op: RangeOperator) -> bool {
+        match self.last_on_path() {
+            Some(n) => n == num && op.permits(&self.cmp.prefix),
+            None => false,
         }
     }
 
@@ -103,36 +104,28 @@ impl<'a> CheckFilter<'a> {
     /// - The `<peering>` is just the customer AS.
     /// - The prefix length matches the range operator, if any.
     #[inline]
-    pub fn is_filter_import_from_customer(&self, num: u32, op: RangeOperator) -> bool {
-        if let (
-            false,
-            true,
-            1,
-            Some(PeeringAction {
-                mp_peering:
-                    Peering {
-                        remote_as: AsExpr::Single(AsName::Num(peering_num)),
-                        remote_router: _,
-                        local_router: _,
-                    },
-                actions: _,
-            }),
-        ) = (
+    pub fn is_filter_import_from_neighbor(&self, num: u32, op: RangeOperator) -> bool {
+        match (
             self.export,
             self.cmp.verbosity.check_customer,
             self.mp_peerings.len(),
             self.mp_peerings.first(),
         ) {
-            num == *peering_num && {
-                let prefix_len = self.cmp.prefix.prefix_len();
-                match op {
-                    RangeOperator::NoOp | RangeOperator::Minus | RangeOperator::Plus => true,
-                    RangeOperator::Num(n) => n == prefix_len,
-                    RangeOperator::Range(n, m) => (n..=m).contains(&prefix_len),
-                }
-            }
-        } else {
-            false
+            (
+                false,
+                true,
+                1,
+                Some(PeeringAction {
+                    mp_peering:
+                        Peering {
+                            remote_as: AsExpr::Single(AsName::Num(peering_num)),
+                            remote_router: _,
+                            local_router: _,
+                        },
+                    actions: _,
+                }),
+            ) => num == *peering_num && op.permits(&self.cmp.prefix),
+            _ => false,
         }
     }
 
@@ -248,7 +241,7 @@ impl<'a> CheckFilter<'a> {
             report |= self.unrec_any_report(|| UnrecordedSomeAsSetRoute(name.into()))?;
         }
 
-        self.maybe_filter_as_set_is_origin(&mut report, as_set_route);
+        self.is_filter_as_set_origin(&mut report, as_set_route, op);
 
         if let BadAnyReport(_) = report {
             self.bad_any_report(|| MatchFilterAsSet(name.into(), op))
@@ -257,14 +250,16 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    /// Same as `maybe_filter_as_is_origin` but for each member in `as_set_route`.
-    fn maybe_filter_as_set_is_origin(
+    /// Same as `is_filter_as_origin` but for each member in `as_set_route`.
+    #[inline]
+    fn is_filter_as_set_origin(
         &self,
         report: &mut AnyReportCase,
         as_set_route: &'a AsSetRoute,
+        op: RangeOperator,
     ) {
         if let Some(last) = self.last_on_path() {
-            if as_set_route.contains_member(last) {
+            if op.permits(&self.cmp.prefix) && as_set_route.contains_member(last) {
                 *report |= self
                     .special_any_report(|| SpecAsIsOriginButNoRoute(last))
                     .expect("special_any_report never returns None");

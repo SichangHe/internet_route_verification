@@ -158,6 +158,18 @@ impl FromStr for RangeOperator {
     }
 }
 
+impl RangeOperator {
+    /// Without knowledge of the address prefix set.
+    pub fn permits(self, prefix: &IpNet) -> bool {
+        let prefix_len = prefix.prefix_len();
+        match self {
+            RangeOperator::NoOp | RangeOperator::Minus | RangeOperator::Plus => true,
+            RangeOperator::Num(n) => n == prefix_len,
+            RangeOperator::Range(n, m) => (n..=m).contains(&prefix_len),
+        }
+    }
+}
+
 pub fn get_range_operator_num(s: &str) -> Option<(&str, &str)> {
     regex_captures!(r"\^(\d{1,3})$", s)
 }

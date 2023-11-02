@@ -25,7 +25,7 @@ fn reports_for_paths_containing_certain_as(
             .filter_map(|line| {
                 let mut line = (*line).clone();
                 line.compare.verbosity = Verbosity {
-                    all_err: true,
+                    per_entry_err: true,
                     ..Verbosity::minimum_all()
                 };
                 line.report = Some(line.compare.check_with_relationship(query, db));
@@ -54,8 +54,6 @@ fn reports_for_paths_containing_certain_as(
         all_non_skip.push('\n');
         target.write_all(all_non_skip.as_bytes());
     }
-
-    let mut line = filtered_bgp_lines[0].clone();
 
     Ok(())
 }

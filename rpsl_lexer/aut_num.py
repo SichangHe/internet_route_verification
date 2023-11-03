@@ -14,9 +14,9 @@ def parse_aut_num():
             parse_mp_import(expr, imports)
         elif key == "mp-import":
             parse_mp_import(expr, imports, is_mp=True)
-        elif key == "export":
+        elif key in ("export", "default"):
             parse_mp_import(expr, exports)
-        elif key == "mp-export":
+        elif key in ("mp-export", "mp-default"):
             parse_mp_import(expr, exports, is_mp=True)
     return AutNum("", "", imports, exports).__dict__
 

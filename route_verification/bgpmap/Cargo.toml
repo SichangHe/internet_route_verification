@@ -3,6 +3,10 @@ name = "route_verification_bgpmap"
 version = "0.1.0"
 edition = "2021"
 
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+
 [dependencies]
 anyhow.workspace = true
 ipnet.workspace = true

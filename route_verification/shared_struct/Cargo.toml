@@ -3,5 +3,9 @@ name = "route_verification_shared_struct"
 version = "0.1.0"
 edition = "2021"
 
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+
 [dependencies]
 serde.workspace = true

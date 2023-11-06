@@ -36,23 +36,32 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", features = ["unbounded_depth"] }
 thiserror = "1.0"
 
-as_path_regex = { package = "route_verification_as_path_regex", path = "./as_path_regex" }
-as_rel = { package = "route_verification_as_rel", path = "./as_rel" }
-bgp = { package = "route_verification_bgp", path = "./bgp" }
-bgpmap = { package = "route_verification_bgpmap", path = "./bgpmap" }
-bloom = { package = "route_verification_bloom", path = "./bloom" }
-common_regex = { package = "route_verification_common_regex", path = "./common_regex" }
-io = { package = "route_verification_io", path = "./io" }
-ir = { package = "route_verification_ir", path = "./ir" }
-irr = { package = "route_verification_irr", path = "./irr" }
-lex = { package = "route_verification_lex", path = "./lex" }
-parse = { package = "route_verification_parse", path = "./parse" }
-shared_struct = { package = "route_verification_shared_struct", path = "./shared_struct" }
+as_path_regex = { package = "route_verification_as_path_regex", path = "./as_path_regex", version = "*" }
+as_rel = { package = "route_verification_as_rel", path = "./as_rel", version = "*" }
+bgp = { package = "route_verification_bgp", path = "./bgp", version = "*" }
+bgpmap = { package = "route_verification_bgpmap", path = "./bgpmap", version = "*" }
+bloom = { package = "route_verification_bloom", path = "./bloom", version = "*" }
+common_regex = { package = "route_verification_common_regex", path = "./common_regex", version = "*" }
+io = { package = "route_verification_io", path = "./io", version = "*" }
+ir = { package = "route_verification_ir", path = "./ir", version = "*" }
+irr = { package = "route_verification_irr", path = "./irr", version = "*" }
+lex = { package = "route_verification_lex", path = "./lex", version = "*" }
+parse = { package = "route_verification_parse", path = "./parse", version = "*" }
+shared_struct = { package = "route_verification_shared_struct", path = "./shared_struct", version = "*" }
+
+[workspace.package]
+description = "Parse RPSL in the IRR to verify observed BGP routes"
+license = "MIT"
+repository = "https://github.com/SichangHe/internet_route_verification"
 
 [package]
 name = "route_verification"
 version = "0.1.0"
 edition = "2021"
+
+description.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 anyhow.workspace = true

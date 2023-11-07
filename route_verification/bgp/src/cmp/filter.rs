@@ -241,7 +241,9 @@ impl<'a> CheckFilter<'a> {
             report |= self.unrec_any_report(|| UnrecordedSomeAsSetRoute(name.into()))?;
         }
 
-        self.is_filter_as_set_origin(&mut report, as_set_route, op);
+        if let Some(spec_report) = self.is_filter_as_set_origin(name, op) {
+            report |= spec_report;
+        }
 
         if let BadAnyReport(_) = report {
             self.bad_any_report(|| MatchFilterAsSet(name.into(), op))
@@ -250,20 +252,18 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    /// Same as `is_filter_as_origin` but for each member in `as_set_route`.
+    /// Same as `is_filter_as_origin` but for each member in `as_set` and
+    /// returns the special case [`AnyReport`].
     #[inline]
-    fn is_filter_as_set_origin(
-        &self,
-        report: &mut AnyReportCase,
-        as_set_route: &'a AsSetRoute,
-        op: RangeOperator,
-    ) {
-        if let Some(last) = self.last_on_path() {
-            if op.permits(&self.cmp.prefix) && as_set_route.contains_member(last) {
-                *report |= self
-                    .special_any_report(|| SpecAsIsOriginButNoRoute(last))
-                    .expect("special_any_report never returns None");
-            }
+    fn is_filter_as_set_origin(&self, as_set: &str, op: RangeOperator) -> AnyReport {
+        let last = self.last_on_path()?;
+        if let (true, Ok(true)) = (
+            op.permits(&self.cmp.prefix),
+            self.set_has_member(as_set, last, self.cmp.recursion_limit, &mut visited()),
+        ) {
+            self.special_any_report(|| SpecAsSetContainsOriginButNoRoute(as_set.into(), last))
+        } else {
+            None
         }
     }
 

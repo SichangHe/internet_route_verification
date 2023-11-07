@@ -26,11 +26,6 @@ impl AsSetRoute {
         clean_vec(&mut self.unrecorded_nums);
     }
 
-    /// If contains AS as a member.
-    pub fn contains_member(&self, num: u32) -> bool {
-        self.members.binary_search(&num).is_ok()
-    }
-
     /// Fill in routes for the AS with `as_set` with routes in `as_routes`.
     /// The process is done only once, and the result [`AsSetRoute`] is cleaned.
     pub fn from_as_set(as_set: &AsSet, as_routes: &BTreeMap<u32, Vec<IpNet>>) -> Self {

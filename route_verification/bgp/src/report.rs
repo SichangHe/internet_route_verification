@@ -155,6 +155,9 @@ pub enum ReportItem {
     SpecImportFromNeighbor,
     /// AS in `<filter>` is the origin on the path, but the route mismatches.
     SpecAsIsOriginButNoRoute(u32),
+    /// AS Set in `<filter>` contains the origin AS on the path,
+    /// but the route mismatches.
+    SpecAsSetContainsOriginButNoRoute(String, u32),
 
     // Match problem.
     MatchFilter,

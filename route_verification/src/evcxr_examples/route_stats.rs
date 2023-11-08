@@ -66,7 +66,8 @@ fn gen_route_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Res
 "
     .split_ascii_whitespace()
     .collect();
-    file.write_all(header.as_bytes());
+    file.write_all(header.trim_end_matches(",").as_bytes());
+    file.write_all(b"\n");
     let comma = b","[0];
     for s in stats {
         let RouteStats {

@@ -1,4 +1,5 @@
-use std::ops::Add;
+use std::fmt::Display;
+use std::ops::*;
 
 use as_rel::Relationship;
 use dashmap::DashMap;
@@ -13,11 +14,11 @@ pub mod route;
 mod up_down_hill;
 
 pub use as_pair::AsPairStats;
-pub use route::RouteStats;
+pub use route::{csv_header, RouteStats};
 pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
-    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats>) {
+    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats<u32>>) {
         self.verbosity = Verbosity {
             per_peering_err: true,
             all_err: true,
@@ -53,7 +54,7 @@ impl Compare {
         }
     }
 
-    pub fn route_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> RouteStats {
+    pub fn route_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> RouteStats<u16> {
         self.verbosity = Verbosity {
             per_peering_err: true,
             all_err: true,

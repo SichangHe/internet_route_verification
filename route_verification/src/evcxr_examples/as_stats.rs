@@ -168,7 +168,7 @@ fn gen_up_down_hill_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb)
 /// Copy this after running code from [`parse_bgp_lines`],
 fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     let start = Instant::now();
-    let map: DashMap<u32, RouteStats> = DashMap::new();
+    let map: DashMap<u32, RouteStats<u32>> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
         l.compare.as_stats(&query, &db, &map);
     });
@@ -179,7 +179,7 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
     );
 
     let mut file = BufWriter::new(File::create("as_stats.csv")?);
-    file.write_all(RouteStats::csv_header().trim_end_matches(',').as_bytes());
+    file.write_all(csv_header().trim_end_matches(',').as_bytes());
     file.write_all(b"\n");
     for (an, s) in map.into_iter() {
         file.write_all(an.to_string().as_bytes());

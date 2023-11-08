@@ -9,17 +9,21 @@ use Report::*;
 
 mod as_;
 mod as_pair;
-mod route;
+pub mod route;
 mod up_down_hill;
 
-pub use as_::AsStats;
 pub use as_pair::AsPairStats;
 pub use route::RouteStats;
 pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
-    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, AsStats>) {
-        self.verbosity = Verbosity::minimum_all();
+    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats>) {
+        self.verbosity = Verbosity {
+            per_peering_err: true,
+            all_err: true,
+            record_community: true,
+            ..Verbosity::minimum_all()
+        };
         let reports = self.check_with_relationship(query, db);
         for report in reports {
             as_::one(map, report);

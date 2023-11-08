@@ -168,7 +168,7 @@ fn gen_up_down_hill_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb)
 /// Copy this after running code from [`parse_bgp_lines`],
 fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
     let start = Instant::now();
-    let map: DashMap<u32, AsStats> = DashMap::new();
+    let map: DashMap<u32, RouteStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
         l.compare.as_stats(&query, &db, &map);
     });
@@ -177,67 +177,18 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
         "Generated stats for {size} AS in {}ms.",
         start.elapsed().as_millis()
     );
-    let (ans, ioks, eoks, isps, esps, iurs, eurs, imhs, emhs, iers, eers): (
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-    ) = multiunzip(map.into_iter().map(
-        |(
-            an,
-            AsStats {
-                import_ok,
-                export_ok,
-                import_skip,
-                export_skip,
-                import_unrec,
-                export_unrec,
-                import_meh,
-                export_meh,
-                import_err,
-                export_err,
-            },
-        )| {
-            (
-                an,
-                import_ok,
-                export_ok,
-                import_skip,
-                export_skip,
-                import_unrec,
-                export_unrec,
-                import_meh,
-                export_meh,
-                import_err,
-                export_err,
-            )
-        },
-    ));
 
-    let mut df = DataFrame::new(vec![
-        Series::new("aut_num", ans),
-        Series::new("import_ok", ioks),
-        Series::new("export_ok", eoks),
-        Series::new("import_skip", isps),
-        Series::new("export_skip", esps),
-        Series::new("import_unrec", iurs),
-        Series::new("export_unrec", eurs),
-        Series::new("import_meh", imhs),
-        Series::new("export_meh", emhs),
-        Series::new("import_err", iers),
-        Series::new("export_err", eers),
-    ])?;
-    println!("{df}");
-    println!("{}", df.describe(None)?);
-
-    CsvWriter::new(File::create("as_stats.csv")?).finish(&mut df)?;
+    let mut file = BufWriter::new(File::create("as_stats.csv")?);
+    file.write_all(RouteStats::csv_header().trim_end_matches(',').as_bytes());
+    file.write_all(b"\n");
+    for (an, s) in map.into_iter() {
+        file.write_all(an.to_string().as_bytes());
+        file.write_all(b",");
+        file.write_all(&s.as_csv_bytes());
+        file.write_all(b"\n");
+    }
+    file.flush()?;
+    drop(file);
 
     Ok(())
 }

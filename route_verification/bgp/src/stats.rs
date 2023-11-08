@@ -18,7 +18,7 @@ pub use route::{csv_header, RouteStats};
 pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
-    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats<u32>>) {
+    pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats<u64>>) {
         self.verbosity = Verbosity {
             per_peering_err: true,
             all_err: true,

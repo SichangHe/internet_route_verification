@@ -164,16 +164,19 @@ pub fn bad<T: Inc>(stats: &mut RouteStats<T>, items: ReportItems) {
 pub trait Inc: Add + AddAssign + Copy + Default + Display + Eq + Ord + PartialOrd + Sized {
     fn inc(&mut self);
 }
-impl Inc for u16 {
-    fn inc(&mut self) {
-        *self += 1;
-    }
+macro_rules! impl_inc {
+    ($type: ident) => {
+        impl Inc for $type {
+            fn inc(&mut self) {
+                *self += 1;
+            }
+        }
+    };
 }
-impl Inc for u32 {
-    fn inc(&mut self) {
-        *self += 1;
-    }
-}
+impl_inc!(u8);
+impl_inc!(u16);
+impl_inc!(u32);
+impl_inc!(u64);
 
 /// Customizable integer to save space.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]

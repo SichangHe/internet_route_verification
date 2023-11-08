@@ -122,7 +122,7 @@ pub enum ReportItem {
     UnrecImportEmpty,
     UnrecExportEmpty,
 
-    // Unrecorded.
+    // Unrecorded RPSL Objects.
     UnrecordedFilterSet(String),
     UnrecordedAsRoutes(u32),
     UnrecordedRouteSet(String),

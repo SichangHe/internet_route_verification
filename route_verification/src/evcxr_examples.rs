@@ -31,12 +31,10 @@ before running Evcxr is also needed.
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools
-:dep polars = { features = ["describe"] }
 // */
 use anyhow::Result;
 use dashmap::DashMap;
 use itertools::multiunzip;
-use polars::prelude::*;
 use rayon::prelude::*;
 use route_verification::as_rel::*;
 use route_verification::bgp::stats::*;
@@ -50,6 +48,12 @@ use std::{
     time::Instant,
 };
 
+// If Polars is needed:
+/*
+:dep polars = { features = ["describe"] }
+// */
+use polars::prelude::*;
+// */
 fn read_parsed_rpsl() -> Result<()> {
     let start = Instant::now();
     let parsed = Ir::pal_read("parsed_all")?;

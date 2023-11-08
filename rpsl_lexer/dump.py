@@ -35,13 +35,13 @@ def parse_aut_num(obj: RPSLObject):
     imports: dict[str, dict[str, list[dict]]] = {}
     exports: dict[str, dict[str, list[dict]]] = {}
     for key, expr in expressions(lines_continued(obj.body.splitlines())):
-        if key == "import":
+        if key in ("import", "default"):
             parse_mp_import(expr, imports)
-        elif key == "mp-import":
+        elif key in ("mp-import", "mp-default"):
             parse_mp_import(expr, imports, is_mp=True)
-        elif key in ("export", "default"):
+        elif key == "export":
             parse_mp_import(expr, exports)
-        elif key in ("mp-export", "mp-default"):
+        elif key == "mp-export":
             parse_mp_import(expr, exports, is_mp=True)
     aut_nums.append(AutNum(obj.name, obj.body, imports, exports).__dict__)
 

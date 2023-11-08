@@ -16,8 +16,10 @@ pub struct Verbosity {
     pub show_skips: bool,
     /// Report success.
     pub show_success: bool,
-    /// Report error information for each RPSL policy entry.
-    pub per_entry_err: bool,
+    /// Report error information for each checked peering.
+    pub per_peering_err: bool,
+    /// Report error information for each checked filter.
+    pub per_filter_err: bool,
     /// All errors.
     pub all_err: bool,
     /// Record [`AsPathPairWithSet`], [`SetSingleExport`].
@@ -41,7 +43,8 @@ impl std::fmt::Debug for Verbosity {
             show_unrec,
             show_skips,
             show_success,
-            per_entry_err,
+            per_peering_err,
+            per_filter_err,
             all_err,
             record_set,
             record_community,
@@ -55,7 +58,8 @@ impl std::fmt::Debug for Verbosity {
             (show_unrec, "show_unrec"),
             (show_skips, "show_skips"),
             (show_success, "show_success"),
-            (per_entry_err, "per_entry_err"),
+            (per_peering_err, "per_peering_err"),
+            (per_filter_err, "per_filter_err"),
             (all_err, "all_err"),
             (record_set, "record_set"),
             (record_community, "record_community"),
@@ -80,6 +84,7 @@ impl Verbosity {
             show_unrec: true,
             show_skips: true,
             show_success: true,
+            per_filter_err: true,
             special_uphill: true,
             check_customer: true,
             check_import_only_provider: true,
@@ -94,7 +99,8 @@ impl Verbosity {
             show_unrec: false,
             show_skips: false,
             show_success: false,
-            per_entry_err: false,
+            per_peering_err: false,
+            per_filter_err: false,
             all_err: false,
             record_set: false,
             record_community: false,

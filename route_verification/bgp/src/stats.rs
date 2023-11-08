@@ -51,7 +51,7 @@ impl Compare {
 
     pub fn route_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> RouteStats {
         self.verbosity = Verbosity {
-            per_entry_err: true,
+            per_peering_err: true,
             all_err: true,
             record_community: true,
             ..Verbosity::minimum_all()

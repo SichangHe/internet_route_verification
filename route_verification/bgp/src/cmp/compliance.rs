@@ -40,7 +40,7 @@ impl<'a> Compliance<'a> {
             .check_peering_actions(&entry.mp_peerings)
             .to_all()
             .map_err(|mut report| {
-                if self.cmp.verbosity.per_entry_err {
+                if self.cmp.verbosity.per_peering_err {
                     report.push(MatchPeering);
                 }
                 report
@@ -58,7 +58,7 @@ impl<'a> Compliance<'a> {
         .check_filter(&entry.mp_filter, self.cmp.recursion_limit)
         .to_all()
         .map_err(|mut report| {
-            if self.cmp.verbosity.per_entry_err {
+            if self.cmp.verbosity.per_filter_err {
                 report.push(MatchFilter);
             }
             report

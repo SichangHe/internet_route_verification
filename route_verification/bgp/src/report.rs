@@ -118,9 +118,9 @@ pub enum ReportItem {
     SkipAsRegexPathWithSet,
     SkipCommunityCheckUnimplemented(Box<Call>),
 
-    // Skip empty.
-    SkipImportEmpty,
-    SkipExportEmpty,
+    // No policies recorded.
+    UnrecImportEmpty,
+    UnrecExportEmpty,
 
     // Unrecorded.
     UnrecordedFilterSet(String),

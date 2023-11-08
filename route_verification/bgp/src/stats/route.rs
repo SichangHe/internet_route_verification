@@ -83,8 +83,6 @@ fn skip(stats: &mut RouteStats, items: ReportItems) {
             SkipAsRegexWithTilde(_) => stats.skip_regex_tilde += 1,
             SkipAsRegexPathWithSet => stats.skip_regex_with_set += 1,
             SkipCommunityCheckUnimplemented(_) => stats.skip_community += 1,
-            SkipImportEmpty => stats.skip_import_empty += 1,
-            SkipExportEmpty => stats.skip_export_empty += 1,
             _ => (),
         }
     }
@@ -93,6 +91,8 @@ fn skip(stats: &mut RouteStats, items: ReportItems) {
 fn unrec(stats: &mut RouteStats, items: ReportItems) {
     for item in items {
         match item {
+            UnrecImportEmpty => stats.unrec_import_empty += 1,
+            UnrecExportEmpty => stats.unrec_export_empty += 1,
             UnrecordedFilterSet(_) => stats.unrec_filter_set += 1,
             UnrecordedAsRoutes(_) => stats.unrec_as_routes += 1,
             UnrecordedRouteSet(_) => stats.unrec_route_set += 1,
@@ -177,8 +177,8 @@ pub struct RouteStats {
     pub skip_regex_tilde: u16,
     pub skip_regex_with_set: u16,
     pub skip_community: u16,
-    pub skip_import_empty: u16,
-    pub skip_export_empty: u16,
+    pub unrec_import_empty: u16,
+    pub unrec_export_empty: u16,
     pub unrec_filter_set: u16,
     pub unrec_as_routes: u16,
     pub unrec_route_set: u16,

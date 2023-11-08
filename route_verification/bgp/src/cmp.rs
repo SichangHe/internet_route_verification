@@ -145,11 +145,11 @@ impl Compare {
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if from_an.exports.is_default() {
-            return self.verbosity.show_skips.then(|| {
-                let items = vec![SkipExportEmpty];
+            return self.verbosity.show_unrec.then(|| {
+                let items = vec![UnrecExportEmpty];
                 match to {
-                    Some(to) => SkipExport { from, to, items },
-                    None => SkipSingleExport { from, items },
+                    Some(to) => UnrecExport { from, to, items },
+                    None => UnrecSingleExport { from, items },
                 }
             });
         }
@@ -201,10 +201,10 @@ impl Compare {
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if to_an.imports.is_default() {
-            return self.verbosity.show_skips.then(|| SkipImport {
+            return self.verbosity.show_unrec.then(|| UnrecImport {
                 from,
                 to,
-                items: vec![SkipImportEmpty],
+                items: vec![UnrecImportEmpty],
             });
         }
         let mut report = match (Compliance {

@@ -116,6 +116,9 @@ fn meh(stats: &mut RouteStats, items: ReportItems) {
             SpecExportCustomers => stats.spec_export_customers += 1,
             SpecImportFromNeighbor => stats.spec_import_from_neighbor += 1,
             SpecAsIsOriginButNoRoute(_) => stats.spec_as_is_origin_but_no_route += 1,
+            SpecAsSetContainsOriginButNoRoute(_, _) => {
+                stats.spec_as_set_contains_origin_but_no_route += 1
+            }
             _ => (),
         }
     }
@@ -192,6 +195,7 @@ pub struct RouteStats {
     pub spec_export_customers: u16,
     pub spec_import_from_neighbor: u16,
     pub spec_as_is_origin_but_no_route: u16,
+    pub spec_as_set_contains_origin_but_no_route: u16,
     pub err_filter: u16,
     pub err_filter_as_num: u16,
     pub err_filter_as_set: u16,

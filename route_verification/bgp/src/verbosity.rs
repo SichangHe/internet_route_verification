@@ -76,6 +76,17 @@ impl std::fmt::Debug for Verbosity {
 }
 
 impl Verbosity {
+    /// Report all statistics-related information.
+    /// Currently only exclude [`AsPathPairWithSet`].
+    pub const fn all_stats() -> Self {
+        Self {
+            per_peering_err: true,
+            all_err: true,
+            record_community: true,
+            ..Self::minimum_all()
+        }
+    }
+
     /// Report all errors, skips, and success but not the details.
     pub const fn minimum_all() -> Self {
         Self {

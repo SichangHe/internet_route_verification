@@ -1,22 +1,59 @@
-use super::*;
+use crate::stats::route::skip;
 
-pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report) {
+use super::{
+    route::{bad, meh, unrec},
+    *,
+};
+
+pub fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report) {
     let entry = |from, to| {
         map.entry((from, to))
             .or_insert_with(|| AsPairStats::default_with_pair(from, to, db))
     };
 
     match report {
-        OkImport { from, to } => entry(from, to).import_ok += 1,
-        OkExport { from, to } => entry(from, to).export_ok += 1,
-        SkipImport { from, to, items: _ } => entry(from, to).import_skip += 1,
-        SkipExport { from, to, items: _ } => entry(from, to).export_skip += 1,
-        UnrecImport { from, to, items: _ } => entry(from, to).import_unrec += 1,
-        UnrecExport { from, to, items: _ } => entry(from, to).export_unrec += 1,
-        BadImport { from, to, items: _ } => entry(from, to).import_err += 1,
-        BadExport { from, to, items: _ } => entry(from, to).export_err += 1,
-        MehImport { from, to, items: _ } => entry(from, to).import_meh += 1,
-        MehExport { from, to, items: _ } => entry(from, to).export_meh += 1,
+        OkImport { from, to } => entry(from, to).route_stats.import_ok += 1,
+        OkExport { from, to } => entry(from, to).route_stats.export_ok += 1,
+        SkipImport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.import_skip += 1;
+            skip(&mut entry.route_stats, items)
+        }
+        SkipExport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.export_skip += 1;
+            skip(&mut entry.route_stats, items)
+        }
+        UnrecImport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.import_unrec += 1;
+            unrec(&mut entry.route_stats, items)
+        }
+        UnrecExport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.export_unrec += 1;
+            unrec(&mut entry.route_stats, items)
+        }
+        BadImport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.import_err += 1;
+            bad(&mut entry.route_stats, items)
+        }
+        BadExport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.export_err += 1;
+            bad(&mut entry.route_stats, items)
+        }
+        MehImport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.import_meh += 1;
+            meh(&mut entry.route_stats, items)
+        }
+        MehExport { from, to, items } => {
+            let mut entry = entry(from, to);
+            entry.route_stats.export_meh += 1;
+            meh(&mut entry.route_stats, items)
+        }
         AsPathPairWithSet { from: _, to: _ }
         | SetSingleExport { from: _ }
         | OkSingleExport { from: _ }
@@ -30,16 +67,7 @@ pub(crate) fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: 
 /// Using [u32] so it is easy to put into a dataframe later.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsPairStats {
-    pub import_ok: u32,
-    pub export_ok: u32,
-    pub import_skip: u32,
-    pub export_skip: u32,
-    pub import_unrec: u32,
-    pub export_unrec: u32,
-    pub import_meh: u32,
-    pub export_meh: u32,
-    pub import_err: u32,
-    pub export_err: u32,
+    pub route_stats: RouteStats<u32>,
     pub relationship: Option<Relationship>,
 }
 

@@ -14,78 +14,31 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
         start.elapsed().as_millis()
     );
 
-    let (from_tos, ioks, eoks, isps, esps, iurs, eurs, imhs, emhs, iers, eers, rels): (
-        Vec<(u32, u32)>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<u32>,
-        Vec<String>,
-    ) = multiunzip(map.into_iter().map(
-        |(
-            (from, to),
-            AsPairStats {
-                import_ok,
-                export_ok,
-                import_skip,
-                export_skip,
-                import_unrec,
-                export_unrec,
-                import_meh,
-                export_meh,
-                import_err,
-                export_err,
-                relationship,
-            },
-        )| {
-            (
-                (from, to),
-                import_ok,
-                export_ok,
-                import_skip,
-                export_skip,
-                import_unrec,
-                export_unrec,
-                import_meh,
-                export_meh,
-                import_err,
-                export_err,
-                String::from(match relationship {
-                    Some(Relationship::P2C) => "down",
-                    Some(Relationship::P2P) => "peer",
-                    Some(Relationship::C2P) => "up",
-                    None => "other",
-                }),
-            )
+    let mut file = BufWriter::new(File::create("as_pair_stats.csv")?);
+    file.write_all(b"from,to,");
+    file.write_all(csv_header().as_bytes());
+    file.write_all(b"relationship\n");
+    for (
+        (from, to),
+        AsPairStats {
+            route_stats,
+            relationship,
         },
-    ));
-    let (froms, tos): (Vec<u32>, Vec<u32>) = multiunzip(from_tos);
-
-    let mut df: DataFrame = DataFrame::new(vec![
-        Series::new("from", froms),
-        Series::new("to", tos),
-        Series::new("import_ok", ioks),
-        Series::new("export_ok", eoks),
-        Series::new("import_skip", isps),
-        Series::new("export_skip", esps),
-        Series::new("import_unrec", iurs),
-        Series::new("export_unrec", eurs),
-        Series::new("import_meh", imhs),
-        Series::new("export_meh", emhs),
-        Series::new("import_err", iers),
-        Series::new("export_err", eers),
-        Series::new("relationship", rels),
-    ])?;
-    println!("{df}");
-    println!("{}", df.describe(None)?);
-
-    CsvWriter::new(File::create("as_pair_stats.csv")?).finish(&mut df)?;
+    ) in map.into_iter()
+    {
+        file.write_all(format!("{from},{to},").as_bytes());
+        file.write_all(&route_stats.as_csv_bytes());
+        file.write_all(b",");
+        file.write_all(match relationship {
+            Some(Relationship::P2C) => b"down",
+            Some(Relationship::P2P) => b"peer",
+            Some(Relationship::C2P) => b"up",
+            None => b"other",
+        });
+        file.write_all(b"\n");
+    }
+    file.flush()?;
+    drop(file);
 
     Ok(())
 }

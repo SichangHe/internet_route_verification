@@ -19,12 +19,7 @@ pub use up_down_hill::UpDownHillStats;
 
 impl Compare {
     pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats<u64>>) {
-        self.verbosity = Verbosity {
-            per_peering_err: true,
-            all_err: true,
-            record_community: true,
-            ..Verbosity::minimum_all()
-        };
+        self.verbosity = Verbosity::all_stats();
         let reports = self.check_with_relationship(query, db);
         for report in reports {
             as_::one(map, report);
@@ -47,7 +42,7 @@ impl Compare {
         db: &AsRelDb,
         map: &DashMap<(u32, u32), AsPairStats>,
     ) {
-        self.verbosity = Verbosity::minimum_all();
+        self.verbosity = Verbosity::all_stats();
         let reports = self.check_with_relationship(query, db);
         for report in reports {
             as_pair::one(db, map, report);
@@ -55,12 +50,7 @@ impl Compare {
     }
 
     pub fn route_stats(&mut self, query: &QueryIr, db: &AsRelDb) -> RouteStats<u16> {
-        self.verbosity = Verbosity {
-            per_peering_err: true,
-            all_err: true,
-            record_community: true,
-            ..Verbosity::minimum_all()
-        };
+        self.verbosity = Verbosity::all_stats();
         let reports = self.check_with_relationship(query, db);
         let mut stats = RouteStats::default();
         for report in reports {

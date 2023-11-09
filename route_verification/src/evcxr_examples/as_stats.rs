@@ -179,6 +179,7 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
     );
 
     let mut file = BufWriter::new(File::create("as_stats.csv")?);
+    file.write_all(b"aut_num,");
     file.write_all(csv_header().trim_end_matches(',').as_bytes());
     file.write_all(b"\n");
     for (an, s) in map.into_iter() {

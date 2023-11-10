@@ -1,7 +1,5 @@
-use crate::stats::route::skip;
-
 use super::{
-    route::{bad, meh, unrec},
+    route::{bad, meh, skip, unrec},
     *,
 };
 
@@ -67,7 +65,7 @@ pub fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report)
 /// Using [u32] so it is easy to put into a dataframe later.
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct AsPairStats {
-    pub route_stats: RouteStats<u32>,
+    pub route_stats: RouteStats<u64>,
     pub relationship: Option<Relationship>,
 }
 

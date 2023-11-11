@@ -6,12 +6,14 @@
 #![allow(unused_variables)]
 #![allow(clippy::type_complexity)]
 #![allow(unused_mut)]
+#![allow(clippy::ptr_arg)]
 
 mod as_appeared_in_rules;
 mod as_compatible_w_bgpq3;
 mod as_route_stats;
 mod as_stats;
 mod as_w_single_rs_export;
+mod collect_source;
 mod filter_as;
 mod route_stats;
 mod specific_line;
@@ -21,7 +23,7 @@ use crate as route_verification;
 /* Copy from the next line until the end of `use`.
 If polars is needed.
 ```fish
-set -gx RUSTFLAGS --cfg=fuzzing
+export RUSTFLAGS=--cfg=fuzzing
 ```
 before running Evcxr is also needed.
 
@@ -33,16 +35,17 @@ before running Evcxr is also needed.
 :dep itertools
 // */
 use anyhow::Result;
-use dashmap::DashMap;
+use dashmap::{DashMap, DashSet};
 use itertools::multiunzip;
 use rayon::prelude::*;
 use route_verification::as_rel::*;
 use route_verification::bgp::stats::*;
 use route_verification::bgp::*;
 use route_verification::ir::*;
+use route_verification::lex::{expressions, lines_continued, RpslExpr};
 use std::{
     env,
-    fs::File,
+    fs::{File, read_to_string},
     io::{prelude::*, BufReader, BufWriter},
     ops::Add,
     time::Instant,

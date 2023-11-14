@@ -7,30 +7,80 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         versions.entries_iter().count() as u32
     }
 
-    let map: DashMap<u32, (i32, i32, i32)> = DashMap::new();
-    db.source2dest.par_iter().for_each(|((as1, as2), _)| {
-        map.entry(*as1).or_insert((0, -1, -1)).0 += 1;
-        map.entry(*as2).or_insert((0, -1, -1)).0 += 1;
-    });
+    struct NeighborRuleStats {
+        provider: i32,
+        peer: i32,
+        customer: i32,
+        import: i32,
+        export: i32,
+    }
+
+    const fn init_neighbor_stats() -> NeighborRuleStats {
+        NeighborRuleStats {
+            provider: 0,
+            peer: 0,
+            customer: 0,
+            import: -1,
+            export: -1,
+        }
+    }
+
+    let map: DashMap<u32, NeighborRuleStats> = DashMap::new();
+    db.source2dest
+        .par_iter()
+        .for_each(|((as1, as2), relationship)| {
+            let (provider, customer) = match relationship {
+                Relationship::P2P => {
+                    map.entry(*as1).or_insert(init_neighbor_stats()).peer += 1;
+                    map.entry(*as2).or_insert(init_neighbor_stats()).peer += 1;
+                    return;
+                }
+                Relationship::P2C => (as1, as2),
+                Relationship::C2P => (as2, as1),
+            };
+            map.entry(*provider)
+                .or_insert(init_neighbor_stats())
+                .customer += 1;
+            map.entry(*customer)
+                .or_insert(init_neighbor_stats())
+                .provider += 1;
+        });
+
+    const fn init_rule_stats() -> NeighborRuleStats {
+        NeighborRuleStats {
+            provider: -1,
+            peer: -1,
+            customer: -1,
+            import: 0,
+            export: 0,
+        }
+    }
 
     query.aut_nums.par_iter().for_each(|(num, an)| {
-        let mut entry = map.entry(*num).or_insert((-1, 0, 0));
-        entry.1 = n_rules(&an.imports) as i32;
-        entry.2 = n_rules(&an.exports) as i32;
+        let mut entry = map.entry(*num).or_insert(init_rule_stats());
+        entry.import = n_rules(&an.imports) as i32;
+        entry.export = n_rules(&an.exports) as i32;
     });
 
-    let (ans, neighbors, imports, exports): (Vec<u32>, Vec<i32>, Vec<i32>, Vec<i32>) =
-        multiunzip(map.into_iter().map(|(an, (nei, im, ex))| (an, nei, im, ex)));
-    let mut df = DataFrame::new(vec![
-        Series::new("aut_num", ans),
-        Series::new("neighbor", neighbors),
-        Series::new("import", imports),
-        Series::new("export", exports),
-    ])?;
-    println!("{df}");
-    println!("{}", df.describe(None)?);
-
-    CsvWriter::new(File::create("as_neighbors_vs_rules.csv")?).finish(&mut df)?;
+    let mut file = BufWriter::new(File::create("as_neighbors_vs_rules.csv")?);
+    file.write_all(b"aut_num,provider,peer,customer,import,export\n")?;
+    for (
+        an,
+        NeighborRuleStats {
+            provider,
+            peer,
+            customer,
+            import,
+            export,
+        },
+    ) in map.into_iter()
+    {
+        file.write_all(
+            format!("{an},{provider},{peer},{customer},{import},{export}\n").as_bytes(),
+        )?;
+    }
+    file.flush()?;
+    drop(file);
 
     Ok(())
 }

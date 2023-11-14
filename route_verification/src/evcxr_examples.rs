@@ -45,7 +45,7 @@ use route_verification::ir::*;
 use route_verification::lex::{expressions, lines_continued, RpslExpr};
 use std::{
     env,
-    fs::{File, read_to_string},
+    fs::{read_to_string, File},
     io::{prelude::*, BufReader, BufWriter},
     ops::Add,
     time::Instant,

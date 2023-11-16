@@ -10,9 +10,9 @@ def parse_aut_num():
     imports: dict[str, dict[str, list[dict]]] = {}
     exports: dict[str, dict[str, list[dict]]] = {}
     for key, expr in expressions(stdin_lines()):
-        if key in ("import", "default"):
+        if key == "import":
             parse_mp_import(expr, imports)
-        elif key in ("mp-import", "mp-default"):
+        elif key == "mp-import":
             parse_mp_import(expr, imports, is_mp=True)
         elif key == "export":
             parse_mp_import(expr, exports)

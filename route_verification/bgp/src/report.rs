@@ -25,9 +25,6 @@ pub enum Report {
         from: u32,
         to: u32,
     },
-    OkSingleExport {
-        from: u32,
-    },
     SkipImport {
         from: u32,
         to: u32,
@@ -36,10 +33,6 @@ pub enum Report {
     SkipExport {
         from: u32,
         to: u32,
-        items: ReportItems,
-    },
-    SkipSingleExport {
-        from: u32,
         items: ReportItems,
     },
     UnrecImport {
@@ -52,16 +45,9 @@ pub enum Report {
         to: u32,
         items: ReportItems,
     },
-    UnrecSingleExport {
-        from: u32,
-        items: ReportItems,
-    },
     AsPathPairWithSet {
         from: AsPathEntry,
         to: AsPathEntry,
-    },
-    SetSingleExport {
-        from: Vec<u32>,
     },
     MehImport {
         from: u32,
@@ -73,10 +59,6 @@ pub enum Report {
         to: u32,
         items: ReportItems,
     },
-    MehSingleExport {
-        from: u32,
-        items: ReportItems,
-    },
     BadImport {
         from: u32,
         to: u32,
@@ -85,10 +67,6 @@ pub enum Report {
     BadExport {
         from: u32,
         to: u32,
-        items: ReportItems,
-    },
-    BadSingleExport {
-        from: u32,
         items: ReportItems,
     },
 }
@@ -105,7 +83,7 @@ impl Report {
                 from: _,
                 to: _,
                 items: _
-            } | MehSingleExport { from: _, items: _ }
+            }
         )
     }
 }

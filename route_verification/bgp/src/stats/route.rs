@@ -4,7 +4,7 @@ use ReportItem::*;
 pub fn one(stats: &mut RouteStats<u16>, report: Report) {
     match report {
         OkImport { from: _, to: _ } => stats.import_ok.inc(),
-        OkExport { from: _, to: _ } | OkSingleExport { from: _ } => stats.export_ok.inc(),
+        OkExport { from: _, to: _ } => stats.export_ok.inc(),
         SkipImport {
             from: _,
             to: _,
@@ -17,8 +17,7 @@ pub fn one(stats: &mut RouteStats<u16>, report: Report) {
             from: _,
             to: _,
             items,
-        }
-        | SkipSingleExport { from: _, items } => {
+        } => {
             stats.export_skip.inc();
             skip(stats, items);
         }
@@ -34,8 +33,7 @@ pub fn one(stats: &mut RouteStats<u16>, report: Report) {
             from: _,
             to: _,
             items,
-        }
-        | UnrecSingleExport { from: _, items } => {
+        } => {
             stats.export_unrec.inc();
             unrec(stats, items);
         }
@@ -51,8 +49,7 @@ pub fn one(stats: &mut RouteStats<u16>, report: Report) {
             from: _,
             to: _,
             items,
-        }
-        | BadSingleExport { from: _, items } => {
+        } => {
             stats.export_err.inc();
             bad(stats, items);
         }
@@ -68,12 +65,11 @@ pub fn one(stats: &mut RouteStats<u16>, report: Report) {
             from: _,
             to: _,
             items,
-        }
-        | MehSingleExport { from: _, items } => {
+        } => {
             stats.export_meh.inc();
             meh(stats, items);
         }
-        AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
+        AsPathPairWithSet { from: _, to: _ } => (),
     }
 }
 

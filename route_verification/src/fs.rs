@@ -134,7 +134,7 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
                         from: _,
                         to: _,
                         items: _,
-                    } | Report::BadSingleExport { from: _, items: _ }
+                    }
                 )
             }) {
                 1

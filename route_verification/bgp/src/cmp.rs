@@ -62,10 +62,11 @@ impl Compare {
     /// Check `self` against RPSL policy `query` and generate reports.
     /// Depending on which [`Verbosity`] `self.verbosity` is set to,
     /// the reports have different levels of details.
-    /// If `verbosity.stop_at_first`, stops at the first report.
+    /// - If `verbosity.stop_at_first`, stops at the first report.
+    /// - Skip generating reports if the AS Path has only one entry.
     pub fn check(&self, query: &QueryIr) -> Vec<Report> {
-        if self.as_path.len() == 1 {
-            return self.check_last_export(query).into_iter().collect();
+        if self.as_path.len() <= 1 {
+            return vec![];
         }
 
         let mut reports = Vec::with_capacity(self.as_path.len() << 1);
@@ -91,22 +92,6 @@ impl Compare {
         reports
     }
 
-    pub fn check_last_export(&self, query: &QueryIr) -> Option<Report> {
-        match self.as_path.last()? {
-            Seq(from) => match query.aut_nums.get(from) {
-                Some(from_an) => self.check_export(query, from_an, *from, None, &[]),
-                None => self.verbosity.show_unrec.then(|| {
-                    let items = aut_num_unrecorded_items(*from);
-                    UnrecSingleExport { from: *from, items }
-                }),
-            },
-            Set(from) => self
-                .verbosity
-                .record_set
-                .then(|| SetSingleExport { from: from.clone() }),
-        }
-    }
-
     /// `prev_path` is previous path for `to`.
     pub fn check_pair(
         &self,
@@ -116,7 +101,7 @@ impl Compare {
         prev_path: &[AsPathEntry],
     ) -> Vec<Report> {
         let from_report = match query.aut_nums.get(&from) {
-            Some(from_an) => self.check_export(query, from_an, from, Some(to), prev_path),
+            Some(from_an) => self.check_export(query, from_an, from, to, prev_path),
             None => self.verbosity.show_unrec.then(|| {
                 let items = aut_num_unrecorded_items(from);
                 UnrecExport { from, to, items }
@@ -141,16 +126,13 @@ impl Compare {
         query: &QueryIr,
         from_an: &AutNum,
         from: u32,
-        to: Option<u32>,
+        to: u32,
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
         if from_an.exports.is_default() {
             return self.verbosity.show_unrec.then(|| {
                 let items = vec![UnrecExportEmpty];
-                match to {
-                    Some(to) => UnrecExport { from, to, items },
-                    None => UnrecSingleExport { from, items },
-                }
+                UnrecExport { from, to, items }
             });
         }
         let mut report = match (Compliance {
@@ -163,32 +145,26 @@ impl Compare {
         })
         .check(&from_an.exports)
         {
-            None => {
-                return self.verbosity.show_success.then_some(match to {
-                    Some(to) => OkExport { from, to },
-                    None => OkSingleExport { from },
-                })
-            }
+            None => return self.verbosity.show_success.then_some(OkExport { from, to }),
             Some(report) => report,
         };
         report.shrink_to_fit();
         match report {
-            SkipAnyReport(items) => self.verbosity.show_skips.then_some(match to {
-                Some(to) => SkipExport { from, to, items },
-                None => SkipSingleExport { from, items },
-            }),
-            UnrecAnyReport(items) => self.verbosity.show_unrec.then_some(match to {
-                Some(to) => UnrecExport { from, to, items },
-                None => UnrecSingleExport { from, items },
-            }),
-            MehAnyReport(items) => self.verbosity.show_meh.then_some(match to {
-                Some(to) => MehExport { from, to, items },
-                None => MehSingleExport { from, items },
-            }),
-            BadAnyReport(items) => Some(match to {
-                Some(to) => BadExport { from, to, items },
-                None => BadSingleExport { from, items },
-            }),
+            SkipAnyReport(items) => {
+                self.verbosity
+                    .show_skips
+                    .then_some(SkipExport { from, to, items })
+            }
+            UnrecAnyReport(items) => {
+                self.verbosity
+                    .show_unrec
+                    .then_some(UnrecExport { from, to, items })
+            }
+            MehAnyReport(items) => self
+                .verbosity
+                .show_meh
+                .then_some(MehExport { from, to, items }),
+            BadAnyReport(items) => Some(BadExport { from, to, items }),
         }
     }
 
@@ -210,7 +186,7 @@ impl Compare {
         let mut report = match (Compliance {
             cmp: self,
             query,
-            accept_num: Some(from),
+            accept_num: from,
             self_num: to,
             export: false,
             prev_path,

@@ -52,13 +52,7 @@ pub fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report)
             entry.route_stats.export_meh += 1;
             meh(&mut entry.route_stats, items)
         }
-        AsPathPairWithSet { from: _, to: _ }
-        | SetSingleExport { from: _ }
-        | OkSingleExport { from: _ }
-        | SkipSingleExport { from: _, items: _ }
-        | UnrecSingleExport { from: _, items: _ }
-        | MehSingleExport { from: _, items: _ }
-        | BadSingleExport { from: _, items: _ } => (),
+        AsPathPairWithSet { from: _, to: _ } => (),
     }
 }
 

@@ -41,7 +41,7 @@ fn reports_for_paths_containing_certain_as(
                                 from: _,
                                 to: _,
                                 items: _,
-                            } | Report::SkipSingleExport { from: _, items: _ }
+                            }
                         )
                     })
                     .then(|| line.display_str())

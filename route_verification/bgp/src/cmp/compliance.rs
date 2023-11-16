@@ -3,7 +3,7 @@ use super::*;
 pub struct Compliance<'a> {
     pub cmp: &'a Compare,
     pub query: &'a QueryIr,
-    pub accept_num: Option<u32>,
+    pub accept_num: u32,
     pub self_num: u32,
     pub export: bool,
     pub prev_path: &'a [AsPathEntry],
@@ -32,21 +32,18 @@ impl<'a> Compliance<'a> {
     }
 
     pub fn check_entry(&self, entry: &Entry) -> AllReport {
-        let peering_report = match self.accept_num {
-            Some(accept_num) => CheckPeering {
-                c: self,
-                accept_num,
+        let peering_report = CheckPeering {
+            c: self,
+            accept_num: self.accept_num,
+        }
+        .check_peering_actions(&entry.mp_peerings)
+        .to_all()
+        .map_err(|mut report| {
+            if self.cmp.verbosity.per_peering_err {
+                report.push(MatchPeering);
             }
-            .check_peering_actions(&entry.mp_peerings)
-            .to_all()
-            .map_err(|mut report| {
-                if self.cmp.verbosity.per_peering_err {
-                    report.push(MatchPeering);
-                }
-                report
-            })?,
-            None => OkAllReport,
-        };
+            report
+        })?;
         let filter_report = CheckFilter {
             cmp: self.cmp,
             query: self.query,

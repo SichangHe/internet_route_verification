@@ -14,7 +14,6 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
             Some(C2P) => stats.ok_up_export += 1,
             None => stats.ok_other_export += 1,
         },
-        OkSingleExport { from: _ } => stats.ok_other_export += 1,
         SkipImport { from, to, items: _ } | UnrecImport { from, to, items: _ } => {
             match db.get(*from, *to) {
                 Some(P2C) => stats.skip_down_import += 1,
@@ -30,9 +29,6 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
                 Some(C2P) => stats.skip_up_export += 1,
                 None => stats.skip_other_export += 1,
             }
-        }
-        SkipSingleExport { from: _, items: _ } | UnrecSingleExport { from: _, items: _ } => {
-            stats.skip_other_export += 1
         }
         BadImport { from, to, items: _ } | MehImport { from, to, items: _ } => {
             match db.get(*from, *to) {
@@ -50,10 +46,7 @@ pub fn one(stats: &mut UpDownHillStats, report: &Report, db: &AsRelDb) {
                 None => stats.bad_other_export += 1,
             }
         }
-        BadSingleExport { from: _, items: _ } | MehSingleExport { from: _, items: _ } => {
-            stats.bad_other_export += 1
-        }
-        AsPathPairWithSet { from: _, to: _ } | SetSingleExport { from: _ } => (),
+        AsPathPairWithSet { from: _, to: _ } => (),
     }
 }
 

@@ -1,6 +1,7 @@
 use std::{
     collections::BTreeMap,
     io::{BufReader, Read},
+    path::Path,
     process::ChildStdout,
     sync::mpsc::Sender,
 };
@@ -178,19 +179,27 @@ pub struct PreAst {
 }
 
 /// When some DBs have the same keys, any value could be used.
-pub fn parse_dbs<I, R>(dbs: I) -> Result<(Ir, Counts)>
+pub fn parse_dbs<I, P, R>(dbs: I) -> Result<(Ir, Counts)>
 where
-    I: IntoParallelIterator<Item = BufReader<R>>,
+    I: IntoParallelIterator<Item = (P, BufReader<R>)>,
+    P: AsRef<Path>,
     R: Read,
 {
     let (irs, counts) = dbs
         .into_par_iter()
         .fold(
             || Ok((Vec::new(), Counts::default())),
-            |acc: Result<_>, db| {
+            |acc: Result<_>, (path, db)| {
                 let (mut irs, counts) = acc?;
                 let (parsed, l_counts) = read_db(db)?;
                 let (ir, p_counts) = parse_lexed(parsed);
+                let (n_import, n_export) = ir.aut_nums.values().fold((0, 0), |(i, e), an| {
+                    (i + an.imports.len(), e + an.exports.len())
+                });
+                debug!(
+                    "Read {}: {ir}; {n_import} imports, {n_export} exports. Lexing: {l_counts}. Parsing: {p_counts}.",
+                    path.as_ref().to_string_lossy()
+                );
                 irs.push(ir);
                 Ok((irs, counts + l_counts + p_counts))
             },

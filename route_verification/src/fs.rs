@@ -43,13 +43,13 @@ pub fn parse_all(input_dir: &str) -> Result<(Ir, Counts)> {
             let encoding = detect_file_encoding(&path)?;
             let decoder = DecodeReaderBytesBuilder::new()
                 .encoding(Some(encoding))
-                .build(File::open(path)?);
+                .build(File::open(&path)?);
             let reader = BufReader::new(decoder);
-            Ok(reader)
+            Ok((path, reader))
         })
         .collect::<Result<Vec<_>>>()?;
 
-    debug!("Starting to read and parse.");
+    debug!("Starting to read and parse {input_dir}.");
     parse_dbs(readers)
 }
 pub fn parse_priority(priority_dir: &str, backup_dir: &str, output_dir: &str) -> Result<()> {

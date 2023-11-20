@@ -148,8 +148,9 @@ impl std::fmt::Display for Ir {
             filter_sets,
             as_routes,
         } = self;
+        let n_route: usize = as_routes.values().map(Vec::len).sum();
         f.write_fmt(format_args!(
-            "{} aut_nums, {} as_sets, {} route_sets, {} peering_sets, {} filter_sets, {} as_routes",
+            "{} aut_nums, {} as_sets, {} route_sets, {} peering_sets, {} filter_sets, {} as_routes ({n_route} routes)",
             aut_nums.len(),
             as_sets.len(),
             route_sets.len(),

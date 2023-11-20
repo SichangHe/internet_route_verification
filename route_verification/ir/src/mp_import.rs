@@ -5,11 +5,11 @@ use super::*;
 #[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(default)]
 pub struct Versions {
-    #[serde(skip_serializing_if = "Casts::is_default")]
+    #[serde(skip_serializing_if = "Casts::is_empty")]
     pub any: Casts,
-    #[serde(skip_serializing_if = "Casts::is_default")]
+    #[serde(skip_serializing_if = "Casts::is_empty")]
     pub ipv4: Casts,
-    #[serde(skip_serializing_if = "Casts::is_default")]
+    #[serde(skip_serializing_if = "Casts::is_empty")]
     pub ipv6: Casts,
 }
 
@@ -23,7 +23,11 @@ impl Versions {
         )
     }
 
-    pub fn is_default(&self) -> bool {
+    pub fn len(&self) -> usize {
+        self.any.len() + self.ipv4.len() + self.ipv6.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
         *self == Self::default()
     }
 }
@@ -36,7 +40,7 @@ impl std::fmt::Debug for Versions {
             ("ipv4", &self.ipv4),
             ("ipv6", &self.ipv6),
         ] {
-            if !field.is_default() {
+            if !field.is_empty() {
                 r.field(name, field);
             }
         }
@@ -77,7 +81,11 @@ impl Casts {
         chain!(self.any.iter(), self.unicast.iter(), self.multicast.iter())
     }
 
-    pub fn is_default(&self) -> bool {
+    pub fn len(&self) -> usize {
+        self.any.len() + self.unicast.len() + self.multicast.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
         *self == Self::default()
     }
 }

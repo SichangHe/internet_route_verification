@@ -12,7 +12,7 @@ impl std::fmt::Debug for AutNum {
         let mut r = f.debug_struct("AutNum");
         r.field("body", &self.body);
         for (name, field) in [("imports", &self.imports), ("exports", &self.exports)] {
-            if !field.is_default() {
+            if !field.is_empty() {
                 r.field(name, field);
             }
         }

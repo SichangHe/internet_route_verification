@@ -25,7 +25,7 @@ fn as_compatible_with_bgpq3(query: QueryIr) -> Result<()> {
     let ans: Vec<_> = query
         .aut_nums
         .iter()
-        .filter(|(_, an)| !an.imports.is_default() || !an.exports.is_default())
+        .filter(|(_, an)| !an.imports.is_empty() || !an.exports.is_empty())
         .filter(|(_, an)| {
             [&an.imports, &an.exports]
                 .into_iter()

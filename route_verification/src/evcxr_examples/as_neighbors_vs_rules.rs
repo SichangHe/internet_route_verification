@@ -3,10 +3,6 @@ use super::*;
 /// Generate statistics for AS neighbors vs rules.
 /// Copy this after running code from [`parse_bgp_lines`].
 fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
-    fn n_rules(versions: &Versions) -> u32 {
-        versions.entries_iter().count() as u32
-    }
-
     struct NeighborRuleStats {
         provider: i32,
         peer: i32,
@@ -58,8 +54,8 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
 
     query.aut_nums.par_iter().for_each(|(num, an)| {
         let mut entry = map.entry(*num).or_insert(init_rule_stats());
-        entry.import = n_rules(&an.imports) as i32;
-        entry.export = n_rules(&an.exports) as i32;
+        entry.import = an.imports.len() as i32;
+        entry.export = an.exports.len() as i32;
     });
 
     let mut file = BufWriter::new(File::create("as_neighbors_vs_rules.csv")?);

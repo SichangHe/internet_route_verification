@@ -10,7 +10,7 @@
 
 mod as_appeared_in_rules;
 mod as_compatible_w_bgpq3;
-mod as_route_stats;
+mod as_neighbors_vs_rules;
 mod as_stats;
 mod as_w_single_rs_export;
 mod collect_source;

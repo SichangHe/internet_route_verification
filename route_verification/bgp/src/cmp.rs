@@ -129,7 +129,7 @@ impl Compare {
         to: u32,
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
-        if from_an.exports.is_default() {
+        if from_an.exports.is_empty() {
             return self.verbosity.show_unrec.then(|| {
                 let items = vec![UnrecExportEmpty];
                 UnrecExport { from, to, items }
@@ -176,7 +176,7 @@ impl Compare {
         to: u32,
         prev_path: &[AsPathEntry],
     ) -> Option<Report> {
-        if to_an.imports.is_default() {
+        if to_an.imports.is_empty() {
             return self.verbosity.show_unrec.then(|| UnrecImport {
                 from,
                 to,

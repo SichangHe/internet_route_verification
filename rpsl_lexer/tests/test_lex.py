@@ -974,6 +974,7 @@ MP_FILTER_EXAMPLES = [
     "AS26415 {2001:503:c27::/48, 2001:503:231d::/48}",
     "ANY ANY NOT AS39326:FLTR-FILTERLIST",
     "{0.0.0.0/0} AND {::/0}",
+    "{2a04:2c00::/29}^+",
 ]
 
 LEXED_MP_FILTER_EXAMPLES = [
@@ -1059,6 +1060,13 @@ LEXED_MP_FILTER_EXAMPLES = [
         "and": {
             "left": {"address-prefix-set": ["0.0.0.0/0"]},
             "right": {"address-prefix-set": ["::/0"]},
+        }
+    },
+    # FIXME: Technically wrong. Used to test for behavior
+    {
+        "or": {
+            "left": {"address-prefix-set": ["2a04:2c00::/29"]},
+            "right": {"filter": "^+"},
         }
     },
 ]

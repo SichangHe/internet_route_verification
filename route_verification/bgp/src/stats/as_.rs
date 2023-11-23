@@ -1,7 +1,4 @@
-use super::{
-    route::{bad, meh, skip, unrec},
-    *,
-};
+use super::*;
 
 pub fn one(map: &DashMap<u32, RouteStats<u64>>, report: Report) {
     match report {
@@ -10,42 +7,42 @@ pub fn one(map: &DashMap<u32, RouteStats<u64>>, report: Report) {
         SkipImport { from: _, to, items } => {
             let mut entry = map.entry(to).or_default();
             entry.import_skip += 1;
-            skip(&mut entry, items);
+            entry.skip(items);
         }
         SkipExport { from, to: _, items } => {
             let mut entry = map.entry(from).or_default();
             entry.export_skip += 1;
-            skip(&mut entry, items);
+            entry.skip(items);
         }
         UnrecImport { from: _, to, items } => {
             let mut entry = map.entry(to).or_default();
             entry.import_unrec += 1;
-            unrec(&mut entry, items);
+            entry.unrec(items);
         }
         UnrecExport { from, to: _, items } => {
             let mut entry = map.entry(from).or_default();
             entry.export_unrec += 1;
-            unrec(&mut entry, items);
+            entry.unrec(items);
         }
         BadImport { from: _, to, items } => {
             let mut entry = map.entry(to).or_default();
             entry.import_err += 1;
-            bad(&mut entry, items);
+            entry.bad(items);
         }
         BadExport { from, to: _, items } => {
             let mut entry = map.entry(from).or_default();
             entry.export_err += 1;
-            bad(&mut entry, items);
+            entry.bad(items);
         }
         MehImport { from: _, to, items } => {
             let mut entry = map.entry(to).or_default();
             entry.import_meh += 1;
-            meh(&mut entry, items);
+            entry.meh(items);
         }
         MehExport { from, to: _, items } => {
             let mut entry = map.entry(from).or_default();
             entry.export_meh += 1;
-            meh(&mut entry, items);
+            entry.meh(items);
         }
         AsPathPairWithSet { from: _, to: _ } => (),
     }

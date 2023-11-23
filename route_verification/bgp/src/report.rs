@@ -97,25 +97,33 @@ pub enum ReportItem {
     SkipCommunityCheckUnimplemented(Box<Call>),
 
     // No policies recorded.
+    UnrecordedAutNum(u32),
     UnrecImportEmpty,
     UnrecExportEmpty,
 
     // Unrecorded RPSL Objects.
-    UnrecordedFilterSet(String),
-    UnrecordedAsRoutes(u32),
-    UnrecordedRouteSet(String),
     UnrecordedAsSet(String),
+    UnrecordedAsRoutes(u32),
     UnrecordedAsSetRoute(String),
     UnrecordedSomeAsSetRoute(String),
-    UnrecordedAutNum(u32),
+    UnrecordedRouteSet(String),
     UnrecordedPeeringSet(String),
+    UnrecordedFilterSet(String),
+
+    // Special cases for ASN filter.
+    // Can be repetitive for each import/export.
+    /// AS in `<filter>` is the origin on the path, but the route mismatches.
+    SpecAsIsOriginButNoRoute(u32),
+    /// AS Set in `<filter>` contains the origin AS on the path,
+    /// but the route mismatches.
+    SpecAsSetContainsOriginButNoRoute(String, u32),
+    /// Export customer routes while specifying the AS itself as `<filter>`.
+    SpecExportCustomers,
+    /// Import from neighbor while specifying them as `<filter>`.
+    SpecImportFromNeighbor,
 
     // Special case for the whole import/export.
     // Unique for each import/export.
-    /// Route from customer to provider.
-    SpecUphill,
-    /// Route from customer to provider that is tier-1.
-    SpecUphillTier1,
     /// Route between Tier 1 ASes.
     SpecTier1Pair,
     /// Import route between peers while Only Imports From Providers are
@@ -124,18 +132,10 @@ pub enum ReportItem {
     /// Import route from customer while Only Imports From Providers are
     /// Specified (OIFPS).
     SpecImportCustomerOIFPS,
-
-    // Special cases for ASN filter.
-    // Can be repetitive for each import/export.
-    /// Export customer routes while specifying the AS itself as `<filter>`.
-    SpecExportCustomers,
-    /// Import from neighbor while specifying them as `<filter>`.
-    SpecImportFromNeighbor,
-    /// AS in `<filter>` is the origin on the path, but the route mismatches.
-    SpecAsIsOriginButNoRoute(u32),
-    /// AS Set in `<filter>` contains the origin AS on the path,
-    /// but the route mismatches.
-    SpecAsSetContainsOriginButNoRoute(String, u32),
+    /// Route from customer to provider that is tier-1.
+    SpecUphillTier1,
+    /// Route from customer to provider.
+    SpecUphill,
 
     // Match problem.
     MatchFilter,

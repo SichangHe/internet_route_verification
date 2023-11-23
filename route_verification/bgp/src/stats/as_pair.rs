@@ -1,7 +1,4 @@
-use super::{
-    route::{bad, meh, skip, unrec},
-    *,
-};
+use super::*;
 
 pub fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report) {
     let entry = |from, to| {
@@ -15,42 +12,42 @@ pub fn one(db: &AsRelDb, map: &DashMap<(u32, u32), AsPairStats>, report: Report)
         SkipImport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.import_skip += 1;
-            skip(&mut entry.route_stats, items)
+            entry.route_stats.skip(items)
         }
         SkipExport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.export_skip += 1;
-            skip(&mut entry.route_stats, items)
+            entry.route_stats.skip(items)
         }
         UnrecImport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.import_unrec += 1;
-            unrec(&mut entry.route_stats, items)
+            entry.route_stats.unrec(items)
         }
         UnrecExport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.export_unrec += 1;
-            unrec(&mut entry.route_stats, items)
+            entry.route_stats.unrec(items)
         }
         BadImport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.import_err += 1;
-            bad(&mut entry.route_stats, items)
+            entry.route_stats.bad(items)
         }
         BadExport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.export_err += 1;
-            bad(&mut entry.route_stats, items)
+            entry.route_stats.bad(items)
         }
         MehImport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.import_meh += 1;
-            meh(&mut entry.route_stats, items)
+            entry.route_stats.meh(items);
         }
         MehExport { from, to, items } => {
             let mut entry = entry(from, to);
             entry.route_stats.export_meh += 1;
-            meh(&mut entry.route_stats, items)
+            entry.route_stats.meh(items);
         }
         AsPathPairWithSet { from: _, to: _ } => (),
     }

@@ -43,7 +43,7 @@ bgpmap = { package = "route_verification_bgpmap", path = "./bgpmap", version = "
 bloom = { package = "route_verification_bloom", path = "./bloom", version = "0.1.0" }
 common_regex = { package = "route_verification_common_regex", path = "./common_regex", version = "0.1.0" }
 io = { package = "route_verification_io", path = "./io", version = "0.1.0" }
-ir = { package = "route_verification_ir", path = "./ir", version = "0.1.0" }
+ir = { package = "route_verification_ir", path = "./ir", version = "0.1.1" }
 irr = { package = "route_verification_irr", path = "./irr", version = "0.1.1" }
 lex = { package = "route_verification_lex", path = "./lex", version = "0.1.0" }
 parse = { package = "route_verification_parse", path = "./parse", version = "0.1.0" }

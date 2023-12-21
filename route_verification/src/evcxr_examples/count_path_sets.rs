@@ -2,7 +2,7 @@ use super::*;
 
 /// Count how many sets are in AS-paths of `bgp_lines`.
 /// Copy this after running code from [`parse_bgp_lines`].
-fn gen_route_stats(bgp_lines: Vec<Line>) -> Result<()> {
+fn count_set_in_as_paths(bgp_lines: Vec<Line>) -> Result<()> {
     let start = Instant::now();
     let count: usize = bgp_lines
         .par_iter()

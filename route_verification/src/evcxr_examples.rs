@@ -16,6 +16,7 @@ mod as_w_single_rs_export;
 mod collect_source;
 mod count_asn_in_peering;
 mod count_path_sets;
+mod count_router_info;
 mod filter_as;
 mod route_stats;
 mod specific_line;

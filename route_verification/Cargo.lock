@@ -513,6 +513,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "human-duration"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37a429277d8afba0e1a2cf784b43f938dff72ce33e6aba477c3021997171c87b"
+
+[[package]]
 name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1270,6 +1276,11 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 name = "rib_stats"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "dashmap",
+ "env_logger",
+ "human-duration",
+ "log",
  "rayon",
  "route_verification",
 ]

@@ -8,8 +8,8 @@ use super::*;
 
 use Report::*;
 
-mod as_;
-mod as_pair;
+pub mod as_;
+pub mod as_pair;
 pub mod route;
 mod up_down_hill;
 
@@ -21,7 +21,7 @@ impl Compare {
     pub fn as_stats(&mut self, query: &QueryIr, db: &AsRelDb, map: &DashMap<u32, RouteStats<u64>>) {
         self.verbosity = Verbosity::all_stats();
         let reports = self.check_with_relationship(query, db);
-        for report in reports {
+        for report in &reports {
             as_::one(map, report);
         }
     }
@@ -44,7 +44,7 @@ impl Compare {
     ) {
         self.verbosity = Verbosity::all_stats();
         let reports = self.check_with_relationship(query, db);
-        for report in reports {
+        for report in &reports {
             as_pair::one(db, map, report);
         }
     }
@@ -53,7 +53,7 @@ impl Compare {
         self.verbosity = Verbosity::all_stats();
         let reports = self.check_with_relationship(query, db);
         let mut stats = RouteStats::default();
-        for report in reports {
+        for report in &reports {
             route::one(&mut stats, report);
         }
         stats

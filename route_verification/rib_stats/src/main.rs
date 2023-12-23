@@ -2,6 +2,8 @@ use std::{
     fs::{read_dir, File},
     io::{BufWriter, Write},
     path::Path,
+    sync::mpsc::channel,
+    thread::spawn,
     time::Instant,
 };
 
@@ -14,8 +16,8 @@ use route_verification::{
     as_rel::{AsRelDb, Relationship},
     bgp::{
         parse_mrt,
-        stats::{csv_header, AsPairStats, RouteStats},
-        QueryIr,
+        stats::{as_, as_pair, csv_header, route, AsPairStats, RouteStats},
+        QueryIr, Verbosity,
     },
     ir::Ir,
 };
@@ -66,32 +68,50 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
     as_pair_stats_file.write_all(csv_header().as_bytes())?;
     as_pair_stats_file.write_all(b"relationship\n")?;
 
-    let mut file = BufWriter::new(File::create(format!("{collector}--route_stats.csv"))?);
+    let mut route_stats_file =
+        BufWriter::new(File::create(format!("{collector}--route_stats.csv"))?);
+    route_stats_file.write_all(csv_header().trim_end_matches(',').as_bytes())?;
+    route_stats_file.write_all(b"\n")?;
 
     let start = Instant::now();
-    // TODO: Inline stats generation.
     let as_stats_map: DashMap<u32, RouteStats<u64>> = DashMap::new();
     let as_pair_map: DashMap<(u32, u32), AsPairStats> = DashMap::new();
+    let n_route_stats = bgp_lines.len();
 
-    bgp_lines.par_iter_mut().for_each(|l| {
-        l.compare.as_stats(query, db, &as_stats_map);
-    });
-    bgp_lines.par_iter_mut().for_each(|l| {
-        l.compare.as_pair_stats(query, db, &as_pair_map);
-    });
-    let stats: Vec<RouteStats<u16>> = bgp_lines
-        .par_iter_mut()
-        .map(|line| line.compare.route_stats(&query, &db))
-        .collect();
+    let (route_stats_sender, route_stats_receiver) = channel::<RouteStats<_>>();
+    let route_stats_writer = spawn(move || -> Result<_> {
+        while let Ok(stats) = route_stats_receiver.recv() {
+            route_stats_file.write_all(&stats.as_csv_bytes())?;
+            route_stats_file.write_all(b"\n")?;
+        }
+        route_stats_file.flush()?;
 
-    file.write_all(csv_header().trim_end_matches(',').as_bytes())?;
-    file.write_all(b"\n")?;
+        Ok(())
+    });
+
+    bgp_lines.into_par_iter().for_each(|line| {
+        let compare = line.compare.verbosity(Verbosity {
+            record_community: true,
+            ..Verbosity::minimum_all()
+        });
+        let reports = compare.check_with_relationship(query, db);
+
+        let mut stats = RouteStats::default();
+        for report in &reports {
+            as_::one(&as_stats_map, report);
+            as_pair::one(db, &as_pair_map, report);
+            route::one(&mut stats, report);
+        }
+
+        route_stats_sender.send(stats).unwrap();
+    });
+    drop(route_stats_sender); // Close channel.
 
     println!(
         "Generated stats for {} ASes, {} AS pairs, {} routes in {}.",
         as_stats_map.len(),
         as_pair_map.len(),
-        stats.len(),
+        n_route_stats,
         human_duration(&start.elapsed())
     );
 
@@ -126,11 +146,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
     as_pair_stats_file.flush()?;
     debug!("Wrote AS pair stats for `{collector}`.");
 
-    for s in stats {
-        file.write_all(&s.as_csv_bytes())?;
-        file.write_all(b"\n")?;
-    }
-    file.flush()?;
+    route_stats_writer.join().unwrap()?;
     debug!("Wrote route stats for `{collector}`.");
 
     Ok(())

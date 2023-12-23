@@ -37,7 +37,12 @@ fn main() {
     let rib_files = read_dir("../../data/ribs")
         .unwrap()
         .map(|maybe_entry| maybe_entry.unwrap().path())
-        .filter(|path| path.is_file() && (path.ends_with(".gz") || path.ends_with(".bz2")))
+        .filter(|path| {
+            path.is_file() && {
+                let extension = path.extension().unwrap();
+                extension == "gz" || extension == "bz2"
+            }
+        })
         .collect::<Vec<_>>();
 
     let mut failed = vec![];
@@ -68,7 +73,10 @@ fn main() {
 }
 
 fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()> {
-    let rib_file_name = rib_file.to_string_lossy();
+    let rib_file_name = rib_file
+        .file_name()
+        .expect("RIB file should have a name.")
+        .to_string_lossy();
     let collector = rib_file_name
         .split("--")
         .next()

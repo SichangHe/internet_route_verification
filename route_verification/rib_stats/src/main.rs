@@ -29,12 +29,12 @@ fn main() {
     );
     info!("Starting...");
 
-    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2").unwrap();
-    let parsed = Ir::pal_read("parsed_all").unwrap();
+    let db = AsRelDb::load_bz("../../data/20230701.as-rel.bz2").unwrap();
+    let parsed = Ir::pal_read("../../parsed_all").unwrap();
     let query = QueryIr::from_ir_and_as_relationship(parsed, &db);
     debug!("Loaded AS Relationship DB and IR for query");
 
-    let rib_files = read_dir("data/ribs")
+    let rib_files = read_dir("../../data/ribs")
         .unwrap()
         .map(|maybe_entry| maybe_entry.unwrap().path())
         .filter(|path| path.is_file() && (path.ends_with(".gz") || path.ends_with(".bz2")))

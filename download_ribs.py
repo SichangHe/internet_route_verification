@@ -119,7 +119,7 @@ def route_view_download_tasks():
     return [
         (
             f"{url_path}/{YYYY}.{mm:02d}/RIBS/rib.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.bz2",
-            f"{DIR}/{collector}-rib.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.bz2",
+            f"{DIR}/{collector}--rib.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.bz2",
         )
         for collector, url_path in route_view_collector2path.items()
         for YYYY in years
@@ -129,7 +129,7 @@ def route_view_download_tasks():
     ] + [
         (
             f"{url_path}/{YYYY}.{mm:02d}/oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
-            f"{DIR}/{collector}-oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
+            f"{DIR}/{collector}--oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
         )
         for collector, url_path in oix_route_view_collector2path.items()
         for YYYY in years
@@ -143,7 +143,7 @@ def ripe_ris_download_tasks():
     return [
         (
             f"https://data.ris.ripe.net/{collector}/{YYYY}.{mm:02d}/bview.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.gz",
-            f"{DIR}/{collector}-bview.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.gz",
+            f"{DIR}/{collector}--bview.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.gz",
         )
         for collector in ris_collectors
         for YYYY in years

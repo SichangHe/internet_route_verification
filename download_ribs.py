@@ -51,23 +51,19 @@ route_view_collector2path = {
     "route-views.gorex": "https://archive.routeviews.org/route-views.gorex/bgpdata",
     "route-views.isc": "https://archive.routeviews.org/route-views.isc/bgpdata",
     "route-views.kixp": "https://archive.routeviews.org/route-views.kixp/bgpdata",
-    "route-views.jinx": "https://archive.routeviews.org/route-views.jinx/bgpdata",
     "route-views.linx": "https://archive.routeviews.org/route-views.linx/bgpdata",
     "route-views.napafrica": "https://archive.routeviews.org/route-views.napafrica/bgpdata",
     "route-views.nwax": "https://archive.routeviews.org/route-views.nwax/bgpdata",
     "pacwave.lax": "https://archive.routeviews.org/pacwave.lax/bgpdata",
-    "pit.scl": "https://archive.routeviews.org/pit.scl/bgpdata",
     "route-views.phoix": "https://archive.routeviews.org/route-views.phoix/bgpdata",
     "route-views.telxatl": "https://archive.routeviews.org/route-views.telxatl/bgpdata",
     "route-views.wide": "https://archive.routeviews.org/route-views.wide/bgpdata",
     "route-views.sydney": "https://archive.routeviews.org/route-views.sydney/bgpdata",
-    "route-views.saopaulo": "https://archive.routeviews.org/route-views.saopaulo/bgpdata",
     "route-views2.saopaulo": "https://archive.routeviews.org/route-views2.saopaulo/bgpdata",
     "route-views.sg": "https://archive.routeviews.org/route-views.sg/bgpdata",
     "route-views.perth": "https://archive.routeviews.org/route-views.perth/bgpdata",
     "route-views.peru": "https://archive.routeviews.org/route-views.peru/bgpdata",
     "route-views.sfmix": "https://archive.routeviews.org/route-views.sfmix/bgpdata",
-    "route-views.siex": "https://archive.routeviews.org/route-views.siex/bgpdata",
     "route-views.soxrs": "https://archive.routeviews.org/route-views.soxrs/bgpdata",
     "route-views.mwix": "https://archive.routeviews.org/route-views.mwix/bgpdata",
     "route-views.rio": "https://archive.routeviews.org/route-views.rio/bgpdata",
@@ -77,11 +73,17 @@ route_view_collector2path = {
     "route-views.bknix": "https://archive.routeviews.org/route-views.bknix/bgpdata",
     "route-views.uaeix": "https://archive.routeviews.org/route-views.uaeix/bgpdata",
     "route-views.ny": "https://archive.routeviews.org/route-views.ny/bgpdata",
-    "route-views.ipv6": "https://archive.routeviews.org/ipv6",
+    # "route-views.jinx": "https://archive.routeviews.org/route-views.jinx/bgpdata", # Old
+    # "pit.scl": "https://archive.routeviews.org/pit.scl/bgpdata", # New after Aug 2023
+    # "route-views.saopaulo": "https://archive.routeviews.org/route-views.saopaulo/bgpdata", # Old
+    # "route-views.siex": "https://archive.routeviews.org/route-views.siex/bgpdata", # Old
+    # "route-views.ipv6": "https://archive.routeviews.org/ipv6", # Old
+    # "route-views3-damp": "https://archive.routeviews.org/route-views3-damp", # Old
+    # "oix-route-views-damp": "https://archive.routeviews.org/oix-route-views-damp", # Old
+}
+
+oix_route_view_collector2path = {
     "oix-route-views": "https://archive.routeviews.org/oix-route-views",
-    "oix-route-views-damp": "https://archive.routeviews.org/oix-route-views-damp",
-    "route-views3": "https://archive.routeviews.org/route-views3",
-    "route-views3-damp": "https://archive.routeviews.org/route-views3-damp",
 }
 
 ris_collectors = [
@@ -120,6 +122,16 @@ def route_view_download_tasks():
             f"{DIR}/{collector}-rib.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.bz2",
         )
         for collector, url_path in route_view_collector2path.items()
+        for YYYY in years
+        for mm in months
+        for dd in days
+        for HH in hours
+    ] + [
+        (
+            f"{url_path}/{YYYY}.{mm:02d}/oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
+            f"{DIR}/{collector}-oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
+        )
+        for collector, url_path in oix_route_view_collector2path.items()
         for YYYY in years
         for mm in months
         for dd in days

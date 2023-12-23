@@ -1267,6 +1267,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
+name = "rib_stats"
+version = "0.1.0"
+dependencies = [
+ "route_verification",
+]
+
+[[package]]
 name = "route_verification"
 version = "0.2.0"
 dependencies = [

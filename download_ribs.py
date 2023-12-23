@@ -79,11 +79,8 @@ route_view_collector2path = {
     # "route-views.siex": "https://archive.routeviews.org/route-views.siex/bgpdata", # Old
     # "route-views.ipv6": "https://archive.routeviews.org/ipv6", # Old
     # "route-views3-damp": "https://archive.routeviews.org/route-views3-damp", # Old
+    # "oix-route-views": "https://archive.routeviews.org/oix-route-views", # Empty
     # "oix-route-views-damp": "https://archive.routeviews.org/oix-route-views-damp", # Old
-}
-
-oix_route_view_collector2path = {
-    "oix-route-views": "https://archive.routeviews.org/oix-route-views",
 }
 
 ris_collectors = [
@@ -122,16 +119,6 @@ def route_view_download_tasks():
             f"{DIR}/{collector}--rib.{YYYY}{mm:02d}{dd:02d}.{HH:02d}00.bz2",
         )
         for collector, url_path in route_view_collector2path.items()
-        for YYYY in years
-        for mm in months
-        for dd in days
-        for HH in hours
-    ] + [
-        (
-            f"{url_path}/{YYYY}.{mm:02d}/oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
-            f"{DIR}/{collector}--oix-full-snapshot-{YYYY}-{mm:02d}-{dd:02d}-{HH:02d}00.bz2",
-        )
-        for collector, url_path in oix_route_view_collector2path.items()
         for YYYY in years
         for mm in months
         for dd in days

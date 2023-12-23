@@ -10,7 +10,7 @@ use std::{
 use anyhow::Result;
 use dashmap::DashMap;
 use human_duration::human_duration;
-use log::{debug, info};
+use log::{debug, error, info};
 use rayon::prelude::*;
 use route_verification::{
     as_rel::{AsRelDb, Relationship},
@@ -40,38 +40,66 @@ fn main() {
         .filter(|path| path.is_file() && (path.ends_with(".gz") || path.ends_with(".bz2")))
         .collect::<Vec<_>>();
 
-    for rib_file in rib_files {
-        process_rib_file(&query, &db, &rib_file).unwrap();
+    let mut failed = vec![];
+    for rib_file in &rib_files {
+        match process_rib_file(&query, &db, rib_file) {
+            Ok(_) => (),
+            Err(why) => {
+                error!("Failed to process {}: {why:?}", rib_file.display());
+                failed.push(rib_file);
+            }
+        }
+    }
+
+    if failed.is_empty() {
+        println!(
+            "Successfully generated stats for {} RIB files.",
+            rib_files.len()
+        );
+    } else {
+        println!(
+            "Summary:
+\tSuccessfully generated stats for {} RIB files.
+\tFailed to generate stats for {} RIB files: {failed:?}.",
+            rib_files.len() - failed.len(),
+            failed.len()
+        );
     }
 }
 
 fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()> {
     let rib_file_name = rib_file.to_string_lossy();
-    let collector = rib_file_name.split("--").next().unwrap();
+    let collector = rib_file_name
+        .split("--")
+        .next()
+        .expect("First split always succeeds.");
     debug!("Starting to process rib file `{rib_file_name}` for collector `{collector}`.");
 
     let start = Instant::now();
-    let mut bgp_lines = parse_mrt(rib_file).unwrap();
+    let bgp_lines = parse_mrt(rib_file)?;
     debug!(
         "Parsed {rib_file_name} in {}.",
         human_duration(&start.elapsed())
     );
 
+    //# Create stats files and write headers {
+    let csv_header = csv_header();
     let mut as_stats_file = BufWriter::new(File::create(format!("{collector}--as_stats.csv"))?);
     as_stats_file.write_all(b"aut_num,")?;
-    as_stats_file.write_all(csv_header().trim_end_matches(',').as_bytes())?;
+    as_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
     as_stats_file.write_all(b"\n")?;
 
     let mut as_pair_stats_file =
         BufWriter::new(File::create(format!("{collector}--as_pair_stats.csv"))?);
     as_pair_stats_file.write_all(b"from,to,")?;
-    as_pair_stats_file.write_all(csv_header().as_bytes())?;
+    as_pair_stats_file.write_all(csv_header.as_bytes())?;
     as_pair_stats_file.write_all(b"relationship\n")?;
 
     let mut route_stats_file =
         BufWriter::new(File::create(format!("{collector}--route_stats.csv"))?);
-    route_stats_file.write_all(csv_header().trim_end_matches(',').as_bytes())?;
+    route_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
     route_stats_file.write_all(b"\n")?;
+    //# }
 
     let start = Instant::now();
     let as_stats_map: DashMap<u32, RouteStats<u64>> = DashMap::new();
@@ -103,15 +131,16 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
             route::one(&mut stats, report);
         }
 
-        route_stats_sender.send(stats).unwrap();
+        route_stats_sender
+            .send(stats)
+            .expect("`route_stats_sender` should not have been closed.");
     });
     drop(route_stats_sender); // Close channel.
 
     println!(
-        "Generated stats for {} ASes, {} AS pairs, {} routes in {}.",
+        "Generated stats for {} ASes, {} AS pairs, {n_route_stats} routes for {collector} in {}.",
         as_stats_map.len(),
         as_pair_map.len(),
-        n_route_stats,
         human_duration(&start.elapsed())
     );
 
@@ -146,7 +175,9 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
     as_pair_stats_file.flush()?;
     debug!("Wrote AS pair stats for `{collector}`.");
 
-    route_stats_writer.join().unwrap()?;
+    route_stats_writer
+        .join()
+        .expect("Route stats writer thread should not panic.")?;
     debug!("Wrote route stats for `{collector}`.");
 
     Ok(())

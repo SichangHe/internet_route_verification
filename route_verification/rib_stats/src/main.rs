@@ -81,49 +81,55 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         .split("--")
         .next()
         .expect("First split always succeeds.");
-    debug!("Starting to process rib file `{rib_file_name}` for collector `{collector}`.");
 
-    let start = Instant::now();
-    let bgp_lines = parse_mrt(rib_file)?;
-    debug!(
-        "Parsed {rib_file_name} in {}.",
-        human_duration(&start.elapsed())
-    );
+    let route_stats_filename = format!("{collector}--route_stats.csv");
+    let as_stats_filename = format!("{collector}--as_stats.csv");
+    let as_pair_stats_filename = format!("{collector}--as_pair_stats.csv");
+    if [
+        &route_stats_filename,
+        &as_stats_filename,
+        &as_pair_stats_filename,
+    ]
+    .into_iter()
+    .all(|name| Path::new(name).exists())
+    {
+        debug!("Skipping processed RIB file `{rib_file_name}` for collector `{collector}`.");
+        return Ok(());
+    }
 
-    //# Create stats files and write headers {
-    let csv_header = csv_header();
-    let mut as_stats_file = BufWriter::new(File::create(format!("{collector}--as_stats.csv"))?);
-    as_stats_file.write_all(b"aut_num,")?;
-    as_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
-    as_stats_file.write_all(b"\n")?;
-
-    let mut as_pair_stats_file =
-        BufWriter::new(File::create(format!("{collector}--as_pair_stats.csv"))?);
-    as_pair_stats_file.write_all(b"from,to,")?;
-    as_pair_stats_file.write_all(csv_header.as_bytes())?;
-    as_pair_stats_file.write_all(b"relationship\n")?;
-
-    let mut route_stats_file =
-        BufWriter::new(File::create(format!("{collector}--route_stats.csv"))?);
-    route_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
-    route_stats_file.write_all(b"\n")?;
-    //# }
+    let bgp_lines = {
+        debug!("Starting to process RIB file `{rib_file_name}` for collector `{collector}`.");
+        let start = Instant::now();
+        let bl = parse_mrt(rib_file)?;
+        debug!(
+            "Parsed {rib_file_name} in {}.",
+            human_duration(&start.elapsed())
+        );
+        bl
+    };
 
     let start = Instant::now();
     let as_stats_map: DashMap<u32, RouteStats<u64>> = DashMap::new();
     let as_pair_map: DashMap<(u32, u32), AsPairStats> = DashMap::new();
     let n_route_stats = bgp_lines.len();
+    let csv_header = csv_header();
 
     let (route_stats_sender, route_stats_receiver) = channel::<RouteStats<_>>();
-    let route_stats_writer = spawn(move || -> Result<_> {
-        while let Ok(stats) = route_stats_receiver.recv() {
-            route_stats_file.write_all(&stats.as_csv_bytes())?;
-            route_stats_file.write_all(b"\n")?;
-        }
-        route_stats_file.flush()?;
+    let route_stats_writer = {
+        let mut route_stats_file = BufWriter::new(File::create(route_stats_filename)?);
+        route_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
+        route_stats_file.write_all(b"\n")?;
 
-        Ok(())
-    });
+        spawn(move || -> Result<_> {
+            while let Ok(stats) = route_stats_receiver.recv() {
+                route_stats_file.write_all(&stats.as_csv_bytes())?;
+                route_stats_file.write_all(b"\n")?;
+            }
+            route_stats_file.flush()?;
+
+            Ok(())
+        })
+    };
 
     bgp_lines.into_par_iter().for_each(|line| {
         let compare = line.compare.verbosity(Verbosity {
@@ -152,36 +158,58 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         human_duration(&start.elapsed())
     );
 
-    for (an, s) in as_stats_map.into_iter() {
-        as_stats_file.write_all(an.to_string().as_bytes())?;
-        as_stats_file.write_all(b",")?;
-        as_stats_file.write_all(&s.as_csv_bytes())?;
-        as_stats_file.write_all(b"\n")?;
-    }
-    as_stats_file.flush()?;
-    debug!("Wrote AS stats for `{collector}`.");
-
-    for (
-        (from, to),
-        AsPairStats {
-            route_stats,
-            relationship,
-        },
-    ) in as_pair_map.into_iter()
     {
-        as_pair_stats_file.write_all(format!("{from},{to},").as_bytes())?;
-        as_pair_stats_file.write_all(&route_stats.as_csv_bytes())?;
-        as_pair_stats_file.write_all(b",")?;
-        as_pair_stats_file.write_all(match relationship {
-            Some(Relationship::P2C) => b"down",
-            Some(Relationship::P2P) => b"peer",
-            Some(Relationship::C2P) => b"up",
-            None => b"other",
-        })?;
-        as_pair_stats_file.write_all(b"\n")?;
+        let start = Instant::now();
+        let mut as_stats_file = BufWriter::new(File::create(as_stats_filename)?);
+        as_stats_file.write_all(b"aut_num,")?;
+        as_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
+        as_stats_file.write_all(b"\n")?;
+
+        for (an, s) in as_stats_map.into_iter() {
+            as_stats_file.write_all(an.to_string().as_bytes())?;
+            as_stats_file.write_all(b",")?;
+            as_stats_file.write_all(&s.as_csv_bytes())?;
+            as_stats_file.write_all(b"\n")?;
+        }
+        as_stats_file.flush()?;
+        debug!(
+            "Wrote AS stats for `{collector}` in {}.",
+            human_duration(&start.elapsed())
+        );
     }
-    as_pair_stats_file.flush()?;
-    debug!("Wrote AS pair stats for `{collector}`.");
+
+    {
+        let start = Instant::now();
+        let mut as_pair_stats_file = BufWriter::new(File::create(as_pair_stats_filename)?);
+        as_pair_stats_file.write_all(b"from,to,")?;
+        as_pair_stats_file.write_all(csv_header.as_bytes())?;
+        as_pair_stats_file.write_all(b"relationship\n")?;
+
+        for (
+            (from, to),
+            AsPairStats {
+                route_stats,
+                relationship,
+            },
+        ) in as_pair_map.into_iter()
+        {
+            as_pair_stats_file.write_all(format!("{from},{to},").as_bytes())?;
+            as_pair_stats_file.write_all(&route_stats.as_csv_bytes())?;
+            as_pair_stats_file.write_all(b",")?;
+            as_pair_stats_file.write_all(match relationship {
+                Some(Relationship::P2C) => b"down",
+                Some(Relationship::P2P) => b"peer",
+                Some(Relationship::C2P) => b"up",
+                None => b"other",
+            })?;
+            as_pair_stats_file.write_all(b"\n")?;
+        }
+        as_pair_stats_file.flush()?;
+        debug!(
+            "Wrote AS pair stats for `{collector}` in {}.",
+            human_duration(&start.elapsed())
+        );
+    }
 
     route_stats_writer
         .join()

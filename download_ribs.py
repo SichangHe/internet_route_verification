@@ -4,26 +4,36 @@
 import os
 from concurrent import futures
 from concurrent.futures import ThreadPoolExecutor
+from time import sleep
 
 import requests
 
 
-def download_file(url: str, filename: str):
-    try:
-        response = requests.get(url, stream=True)
-        with open(filename, "wb") as file:
-            for chunk in response.iter_content():
-                if chunk:
-                    file.write(chunk)
-    except Exception as e:
-        print(f"Error downloading {url} -> {filename}: {e}.")
-        return e
-    print(f"Downloaded {url} -> {filename}.")
+def download_file(url: str, filename: str, n_retry=3, retry_delay=1.0):
+    for trial in range(n_retry):
+        try:
+            response = requests.get(url, stream=True)
+            with open(filename, "wb") as file:
+                for chunk in response.iter_content():
+                    if chunk:
+                        file.write(chunk)
+                print(f"Downloaded {url} -> {filename}.")
+                return None
+        except Exception as e:
+            if trial < n_retry - 1:
+                delay = 2**trial * retry_delay
+                print(
+                    f"Error downloading {url} -> {filename}: {e},\n\tretry {trial + 1} in {delay}sec."
+                )
+                sleep(2**trial * retry_delay)
+            else:
+                print(f"Failed to download {url} -> {filename}: {e}.")
+                return e
 
 
 def parallel_download(url_filenames: list[tuple[str, str]]):
     errors = []
-    with ThreadPoolExecutor(max_workers=len(url_filenames)) as executor:
+    with ThreadPoolExecutor(max_workers=min(8, len(url_filenames))) as executor:
         future_to_url_filename = {
             executor.submit(download_file, url, filename): (url, filename)
             for url, filename in url_filenames

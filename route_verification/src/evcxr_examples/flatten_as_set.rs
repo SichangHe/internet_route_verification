@@ -25,7 +25,7 @@ fn count_rules_w_router_info(query: QueryIr) -> Result<()> {
     }
 
     let start = Instant::now();
-    let as_sets: HashMap<&String, HashSet<u32>> = query
+    let as_sets: HashMap<String, HashSet<u32>> = query
         .as_sets
         .par_iter()
         .map(|(name, set)| {
@@ -38,7 +38,7 @@ fn count_rules_w_router_info(query: QueryIr) -> Result<()> {
             visited.extend(set.set_members.iter().map(ToString::to_string));
             flatten(&mut members, &mut visited, &set.set_members, &query.as_sets);
 
-            (name, members)
+            (name.to_owned(), members)
         })
         .collect();
     println!(

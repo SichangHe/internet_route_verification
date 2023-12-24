@@ -34,6 +34,7 @@ before running Evcxr is also needed.
 :opt 3
 :dep anyhow
 :dep dashmap
+:dep hashbrown
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools

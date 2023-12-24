@@ -2,7 +2,7 @@ use super::*;
 
 /// Fully flatten each AS Set to all of its members.
 /// Copy this after running code from [`parse_bgp_lines`].
-fn count_rules_w_router_info(query: QueryIr) -> Result<()> {
+fn flatten_as_sets(query: QueryIr) -> Result<()> {
     fn flatten(
         as_set: &mut HashSet<u32>,
         visited_sets: &mut HashSet<String>,

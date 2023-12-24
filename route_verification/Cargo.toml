@@ -10,6 +10,8 @@ members = [
     "lex",
     "parse",
     "shared_struct",
+    # Binary
+    "rib_stats",
 ]
 
 [workspace.dependencies]
@@ -49,6 +51,8 @@ lex = { package = "route_verification_lex", path = "./lex", version = "0.1.0" }
 parse = { package = "route_verification_parse", path = "./parse", version = "0.1.0" }
 shared_struct = { package = "route_verification_shared_struct", path = "./shared_struct", version = "0.1.0" }
 
+route_verification = { package = "route_verification", path = ".", version = "0.2.0" }
+
 [workspace.package]
 description = "Parse RPSL in the IRR to verify observed BGP routes"
 license = "MIT"
@@ -85,6 +89,7 @@ parse.workspace = true
 
 [dev-dependencies]
 dashmap.workspace = true
+hashbrown.workspace = true
 itertools.workspace = true
 net-literals.workspace = true
 polars.workspace = true

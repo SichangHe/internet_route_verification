@@ -1,7 +1,7 @@
 use super::*;
 use ReportItem::*;
 
-pub fn one(stats: &mut RouteStats<u16>, report: Report) {
+pub fn one(stats: &mut RouteStats<u16>, report: &Report) {
     match report {
         OkImport { from: _, to: _ } => stats.import_ok.inc(),
         OkExport { from: _, to: _ } => stats.export_ok.inc(),
@@ -145,7 +145,7 @@ pub struct RouteStats<T: Inc> {
 }
 
 impl<T: Inc> RouteStats<T> {
-    pub fn skip(&mut self, items: ReportItems) {
+    pub fn skip(&mut self, items: &ReportItems) {
         for item in items {
             match item {
                 SkipAsRegexWithTilde(_) => self.skip_regex_tilde.inc(),
@@ -156,11 +156,8 @@ impl<T: Inc> RouteStats<T> {
         }
     }
 
-    pub fn unrec(&mut self, items: ReportItems) {
-        if let Some(item) = items
-            .into_iter()
-            .reduce(|acc, e| if acc < e { acc } else { e })
-        {
+    pub fn unrec(&mut self, items: &ReportItems) {
+        if let Some(item) = items.iter().reduce(|acc, e| if acc < e { acc } else { e }) {
             match item {
                 UnrecImportEmpty => self.unrec_import_empty.inc(),
                 UnrecExportEmpty => self.unrec_export_empty.inc(),
@@ -177,11 +174,8 @@ impl<T: Inc> RouteStats<T> {
         }
     }
 
-    pub fn meh(&mut self, items: ReportItems) {
-        if let Some(item) = items
-            .into_iter()
-            .reduce(|acc, e| if acc < e { acc } else { e })
-        {
+    pub fn meh(&mut self, items: &ReportItems) {
+        if let Some(item) = items.iter().reduce(|acc, e| if acc < e { acc } else { e }) {
             match item {
                 SpecUphill => self.spec_uphill.inc(),
                 SpecUphillTier1 => self.spec_uphill_tier1.inc(),
@@ -199,7 +193,7 @@ impl<T: Inc> RouteStats<T> {
         }
     }
 
-    pub fn bad(&mut self, items: ReportItems) {
+    pub fn bad(&mut self, items: &ReportItems) {
         for item in items {
             match item {
                 MatchFilter => self.err_filter.inc(),

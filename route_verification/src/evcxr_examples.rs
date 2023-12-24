@@ -18,6 +18,7 @@ mod count_asn_in_peering;
 mod count_path_sets;
 mod count_router_info;
 mod filter_as;
+mod flatten_as_set;
 mod route_stats;
 mod specific_line;
 
@@ -33,12 +34,14 @@ before running Evcxr is also needed.
 :opt 3
 :dep anyhow
 :dep dashmap
+:dep hashbrown
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools
 // */
 use anyhow::Result;
 use dashmap::{DashMap, DashSet};
+use hashbrown::{HashMap, HashSet};
 use itertools::multiunzip;
 use rayon::prelude::*;
 use route_verification::as_rel::*;

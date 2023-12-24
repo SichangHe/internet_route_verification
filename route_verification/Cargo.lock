@@ -1295,6 +1295,7 @@ dependencies = [
  "encoding_rs",
  "encoding_rs_io",
  "env_logger",
+ "hashbrown",
  "itertools",
  "log",
  "net-literals",

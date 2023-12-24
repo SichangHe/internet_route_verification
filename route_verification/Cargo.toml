@@ -89,6 +89,7 @@ parse.workspace = true
 
 [dev-dependencies]
 dashmap.workspace = true
+hashbrown.workspace = true
 itertools.workspace = true
 net-literals.workspace = true
 polars.workspace = true

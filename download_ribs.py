@@ -82,6 +82,7 @@ route_view_collector2path = {
     # "oix-route-views": "https://archive.routeviews.org/oix-route-views", # Empty
     # "oix-route-views-damp": "https://archive.routeviews.org/oix-route-views-damp", # Old
 }
+"""List from <https://archive.routeviews.org/>."""
 
 ris_collectors = [
     "rrc00",
@@ -108,6 +109,7 @@ ris_collectors = [
     "rrc25",
     "rrc26",
 ]
+"""List from <https://ris.ripe.net/docs/route-collectors/#bgp-timer-settings>."""
 
 DIR = "data/ribs"
 

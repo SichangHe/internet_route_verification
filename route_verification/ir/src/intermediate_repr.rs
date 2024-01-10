@@ -84,10 +84,11 @@ impl Ir {
         .collect()
     }
 
-    /// Split `self` based on the number of CPU logic cores available × 4.
+    /// Split `self` based on the number of CPU logic cores available × 4,
+    /// capped at 128 to avoid issues.
     pub fn split_n_cpus(self) -> Result<Vec<Self>> {
         let n: usize = available_parallelism()?.into();
-        Ok(self.split_n(n * 4))
+        Ok(self.split_n((n * 4).min(128)))
     }
 
     /// Split `self` and write to `directory` in parallel.

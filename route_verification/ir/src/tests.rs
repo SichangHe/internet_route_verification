@@ -41,7 +41,6 @@ fn merge_as_routes() -> Result<()> {
         route_sets: BTreeMap::new(),
         peering_sets: BTreeMap::new(),
         filter_sets: BTreeMap::new(),
-        // list of IP prefixes
         as_routes: [
             (
                 1,

@@ -93,10 +93,7 @@ fn make_hash<K>(hash_builder: &DefaultHashBuilder, val: &K) -> u64
 where
     K: Hash,
 {
-    use core::hash::Hasher;
-    let mut state = hash_builder.build_hasher();
-    val.hash(&mut state);
-    state.finish()
+    hash_builder.hash_one(val)
 }
 
 impl<K> BloomHashSet<K>

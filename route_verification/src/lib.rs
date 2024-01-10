@@ -47,18 +47,16 @@ pub fn parse_all(args: Vec<String>) -> Result<()> {
 }
 
 pub fn parse_priority(args: Vec<String>) -> Result<()> {
-    if args.len() < 5 {
-        bail!("Specify a priority directory to read from, a backup directory to read from, and a directory to write to!");
+    if args.len() < 4 {
+        bail!("Specify directories to read from in descending order of priorities, and a directory to write to!");
     }
 
-    let priority_dir = &args[2];
-    debug!("Will read from {priority_dir} as priority.");
-    let backup_dir = &args[3];
-    debug!("Will read from {backup_dir} as backup.");
-    let output_dir = &args[4];
+    let input_dirs = &args[2..args.len() - 1];
+    debug!("Will read from {:?}.", input_dirs);
+    let output_dir = &args.last().expect("`args.len() >= 5`");
     debug!("Will dump to {output_dir}.");
 
-    fs::parse_priority(priority_dir, backup_dir, output_dir)
+    fs::parse_priority(input_dirs, output_dir)
 }
 
 pub fn report(args: Vec<String>) -> Result<()> {

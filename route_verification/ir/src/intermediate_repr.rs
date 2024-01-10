@@ -1,12 +1,14 @@
 use std::{
+    collections::btree_map::Entry,
     fs::{create_dir_all, read_dir, File},
     io::{BufReader, Write},
+    mem,
     path::Path,
     thread::available_parallelism,
 };
 
 use io::serialize::from_reader;
-use itertools::izip;
+use itertools::{izip, merge};
 
 use super::*;
 
@@ -100,6 +102,7 @@ impl Ir {
     }
 
     /// When both [`Ir`]s have the same keys, choose `other`'s value.
+    /// Merge AS Routes per AS and keep them sorted.
     pub fn merge(mut self, other: Self) -> Self {
         let Self {
             aut_nums,
@@ -114,7 +117,19 @@ impl Ir {
         self.route_sets.extend(route_sets);
         self.peering_sets.extend(peering_sets);
         self.filter_sets.extend(filter_sets);
-        self.as_routes.extend(as_routes);
+
+        for (num, as_route) in as_routes {
+            match self.as_routes.entry(num) {
+                Entry::Vacant(empty) => _ = empty.insert(as_route),
+                Entry::Occupied(mut entry) => {
+                    let self_as_routes = mem::take(entry.get_mut());
+                    let mut merged: Vec<_> = merge(self_as_routes, as_route).collect();
+                    merged.dedup();
+                    merged.shrink_to_fit();
+                    _ = entry.insert(merged);
+                }
+            }
+        }
         self
     }
 

@@ -52,11 +52,26 @@ pub fn parse_all(input_dir: &str) -> Result<(Ir, Counts)> {
     debug!("Starting to read and parse {input_dir}.");
     parse_dbs(readers)
 }
-pub fn parse_priority(priority_dir: &str, backup_dir: &str, output_dir: &str) -> Result<()> {
-    let (priority, p_counts) = parse_all(priority_dir)?;
-    let (backup, b_counts) = parse_all(backup_dir)?;
-    let parsed = backup.merge(priority);
-    let counts = p_counts + b_counts;
+
+/// Parse files in each `input_dirs` directories and merge them while
+/// prioritizing the directories with smaller indexes.
+pub fn parse_priority(input_dirs: &[String], output_dir: &str) -> Result<()> {
+    if input_dirs.is_empty() {
+        bail!("No input directories specified.");
+    }
+
+    let parsed_all = input_dirs
+        .iter()
+        .rev()
+        .map(|dir| parse_all(dir))
+        .collect::<Result<Vec<_>>>()?;
+    let (parsed, counts) = parsed_all
+        .into_iter()
+        .reduce(|(backup, b_counts), (priority, p_counts)| {
+            (backup.merge(priority), p_counts + b_counts)
+        })
+        .expect("!input_dirs.is_empty()");
+
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 
     debug!("Starting to write the parsed IR.");

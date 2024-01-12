@@ -163,7 +163,6 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         .count();
     drop(route_stats_sender); // Close channel.
 
-    debug!("Awaiting for `bgpdump_handler` to gracefully finish.");
     bgpdump_handler
         .join()
         .expect("`bgpdump_handler` should not panic.");

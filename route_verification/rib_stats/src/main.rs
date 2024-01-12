@@ -1,6 +1,7 @@
 use std::{
     fs::{read_dir, File},
-    io::{BufWriter, Write},
+    io::{BufRead, BufWriter, Write},
+    mem,
     path::Path,
     sync::mpsc::channel,
     thread::spawn,
@@ -15,9 +16,9 @@ use rayon::prelude::*;
 use route_verification::{
     as_rel::{AsRelDb, Relationship},
     bgp::{
-        parse_mrt,
         stats::{as_, as_pair, csv_header, route, AsPairStats, RouteStats},
-        QueryIr, Verbosity,
+        wrapper::read_mrt,
+        Line, QueryIr, Verbosity,
     },
     ir::Ir,
 };
@@ -97,21 +98,27 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         return Ok(());
     }
 
-    let bgp_lines = {
-        debug!("Starting to process RIB file `{rib_file_name}` for collector `{collector}`.");
-        let start = Instant::now();
-        let bl = parse_mrt(rib_file)?;
-        debug!(
-            "Parsed {rib_file_name} in {}.",
-            human_duration(&start.elapsed())
-        );
-        bl
-    };
+    debug!("Starting to process RIB file `{rib_file_name}` for collector `{collector}`.");
+    let (line_sender, line_receiver) = channel();
+    let mut bgpdump_child = read_mrt(rib_file)?;
+    let bgpdump_handler = spawn(move || {
+        let mut line = String::new();
+
+        while bgpdump_child
+            .stdout
+            .read_line(&mut line)
+            .expect("Error reading `bgpdump` output.")
+            > 0
+        {
+            line_sender
+                .send(mem::take(&mut line))
+                .expect("`line_receiver` should stay open.");
+        }
+    });
 
     let start = Instant::now();
     let as_stats_map: DashMap<u32, RouteStats<u64>> = DashMap::new();
     let as_pair_map: DashMap<(u32, u32), AsPairStats> = DashMap::new();
-    let n_route_stats = bgp_lines.len();
     let csv_header = csv_header();
 
     let (route_stats_sender, route_stats_receiver) = channel::<RouteStats<_>>();
@@ -131,25 +138,35 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         })
     };
 
-    bgp_lines.into_par_iter().for_each(|line| {
-        let compare = line.compare.verbosity(Verbosity {
-            record_community: true,
-            ..Verbosity::minimum_all()
-        });
-        let reports = compare.check_with_relationship(query, db);
+    let n_route_stats = line_receiver
+        .into_iter()
+        .par_bridge()
+        .map(|line| {
+            let line = Line::from_raw(line).expect("`bgpdump` should output valid lines.");
+            let compare = line.compare.verbosity(Verbosity {
+                record_community: true,
+                ..Verbosity::minimum_all()
+            });
+            let reports = compare.check_with_relationship(query, db);
 
-        let mut stats = RouteStats::default();
-        for report in &reports {
-            as_::one(&as_stats_map, report);
-            as_pair::one(db, &as_pair_map, report);
-            route::one(&mut stats, report);
-        }
+            let mut stats = RouteStats::default();
+            for report in &reports {
+                as_::one(&as_stats_map, report);
+                as_pair::one(db, &as_pair_map, report);
+                route::one(&mut stats, report);
+            }
 
-        route_stats_sender
-            .send(stats)
-            .expect("`route_stats_sender` should not have been closed.");
-    });
+            route_stats_sender
+                .send(stats)
+                .expect("`route_stats_sender` should not have been closed.");
+        })
+        .count();
     drop(route_stats_sender); // Close channel.
+
+    debug!("Awaiting for `bgpdump_handler` to gracefully finish.");
+    bgpdump_handler
+        .join()
+        .expect("`bgpdump_handler` should not panic.");
 
     println!(
         "Generated stats for {} ASes, {} AS pairs, {n_route_stats} routes for {collector} in {}.",

@@ -4,6 +4,7 @@ use log::warn;
 use super::*;
 use RangeOperator::NoOp;
 
+/// Parse a basic <filter> component.
 pub fn parse_path_attribute(
     attr: String,
     mp_peerings: &[PeeringAction],

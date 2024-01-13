@@ -3,7 +3,7 @@ pub struct Counts {
     pub lex_skip: usize,
     pub syntax_err: usize,
     pub unknown_lex_err: usize,
-    /// Unknown path attributes when parsing.
+    /// Unknown path attributes (the basic component of <filter>) when parsing.
     pub parse_path_attr: usize,
     /// Invalid name parsing AutNum.
     pub parse_aut_num: usize,
@@ -64,7 +64,7 @@ impl std::fmt::Display for Counts {
             (lex_skip, "skips during lexing"),
             (syntax_err, "syntax errors"),
             (unknown_lex_err, "unknown lex errors"),
-            (parse_path_attr, "unknown path attributes"),
+            (parse_path_attr, "unknown path attributes in filter"),
             (parse_aut_num, "invalid AutNum names"),
             (parse_as_set, "invalid names parsing AS Sets"),
             (parse_route_set, "invalid Route Set names"),

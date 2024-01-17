@@ -4,7 +4,7 @@ use anyhow::{bail, Context, Result};
 
 use ipnet::IpNet;
 use ir::*;
-use log::{debug, error};
+use log::error;
 use rayon::prelude::*;
 
 use shared_struct::{action::Actions, stats::Counts};

@@ -59,6 +59,19 @@ pub fn parse_priority(args: Vec<String>) -> Result<()> {
     fs::parse_priority(input_dirs, output_dir)
 }
 
+pub fn parse_ordered(args: Vec<String>) -> Result<()> {
+    if args.len() < 4 {
+        bail!("Specify DB files to read from in descending order of priorities, and a directory to write to!");
+    }
+
+    let input_dbs = &args[2..args.len() - 1];
+    debug!("Will read from {:?}.", input_dbs);
+    let output_dir = &args.last().expect("`args.len() >= 5`");
+    debug!("Will dump to {output_dir}.");
+
+    fs::parse_ordered(input_dbs, output_dir)
+}
+
 pub fn report(args: Vec<String>) -> Result<()> {
     if args.len() < 4 {
         bail!("Specify a directory to read parsed IR from and a MRT file to read from!");

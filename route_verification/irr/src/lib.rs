@@ -190,6 +190,7 @@ pub fn parse_db(tag: impl Display, db: impl BufRead) -> Result<(Ir, Counts)> {
     Ok((ir, l_counts + p_counts))
 }
 
+/// No guarantee about the priorities of the IRs.
 pub fn merge_ir_and_counts<I>(ir_and_counts: I) -> (Ir, Counts)
 where
     I: IntoParallelIterator<Item = (Ir, Counts)>,
@@ -199,6 +200,21 @@ where
         .reduce(Default::default, |(ir_acc, counts_acc), (ir, counts)| {
             (ir_acc.merge(ir), counts_acc + counts)
         })
+}
+
+/// Priorities the IRs yielded later.
+/// # Panic
+/// If `ir_and_counts` is empty.
+pub fn merge_ir_and_counts_ordered<I>(ir_and_counts: I) -> (Ir, Counts)
+where
+    I: IntoIterator<Item = (Ir, Counts)>,
+{
+    ir_and_counts
+        .into_iter()
+        .reduce(|(backup, b_counts), (priority, p_counts)| {
+            (backup.merge(priority), p_counts + b_counts)
+        })
+        .expect("ir_and_counts should not be empty")
 }
 
 /// Split by `,`s followed by any number of whitespace.

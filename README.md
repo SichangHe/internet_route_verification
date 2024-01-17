@@ -2,6 +2,8 @@
 
 WIP
 
+TODO: update this README.
+
 ## Produce a parsed dump using both lexer and parser
 
 - Put the database file at `data/ripe.db`.
@@ -74,6 +76,18 @@ The above command parses all IRR DB files in `data/irrs/priority/` and
 `data/irrs/backup/`,
 overrides any duplicated information with the version from the former,
 and writes the result to multiple JSON files in `parsed_all/`.
+
+## Produce a parsed IR dump using IRRs in ordered priorities
+
+Run at `route_verification/`:
+
+```sh
+cargo r --release -- parse_ordered \
+../data/irrs/priority/apnic.db.* ../data/irrs/priority/afrinic.db ../data/irrs/priority/arin.db ../data/irrs/priority/lacnic.db\
+../data/irrs/priority/ripe.db ../data/irrs/backup/radb.db\
+../data/irrs/backup/altdb.db ../data/irrs/backup/idnic.db ../data/irrs/backup/jpirr.db ../data/irrs/backup/level3.db ../data/irrs/backup/nttcom.db ../data/irrs/backup/reach.db ../data/irrs/backup/tc.db\
+../parsed_all/
+```
 
 ## Running interactively in Jupyter Notebook
 

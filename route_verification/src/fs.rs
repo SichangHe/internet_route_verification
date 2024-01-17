@@ -50,12 +50,37 @@ pub fn parse_priority(input_dirs: &[String], output_dir: &str) -> Result<()> {
         bail!("No input directories specified.");
     }
 
-    let ir_and_counts = input_dirs
-        .iter()
+    let parsed_all = input_dirs
+        .par_iter()
         .rev()
         .map(|dir| parse_all(dir))
         .collect::<Result<Vec<_>>>()?;
-    let (parsed, counts) = merge_ir_and_counts(ir_and_counts);
+    let (parsed, counts) = merge_ir_and_counts_ordered(parsed_all);
+
+    println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
+
+    debug!("Starting to write the parsed IR.");
+    parsed.pal_write(output_dir)?;
+    debug!("Wrote the parsed IR.");
+
+    Ok(())
+}
+
+pub fn parse_ordered(input_dbs: &[String], output_dir: &str) -> Result<()> {
+    if input_dbs.is_empty() {
+        bail!("No input directories specified.");
+    }
+
+    let ir_and_counts = input_dbs
+        .par_iter()
+        .rev()
+        .map(|db| {
+            let reader = open_file_w_correct_encoding(db)?;
+            parse_db(db.to_string(), reader)
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    let (parsed, counts) = merge_ir_and_counts_ordered(ir_and_counts);
 
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 

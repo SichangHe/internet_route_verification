@@ -260,16 +260,21 @@ def try_get_and(key: str, left: dict[str, dict], right: dict[str, dict]) -> dict
     return None
 
 
-def try_get_merge(
-    key: str, left: dict[str, dict], right: dict[str, dict]
-) -> dict | None:
-    """Try to get values associated with `key` from `left` and `right` and
-    merge them.
+def try_get_merge_actions(left: dict[str, dict], right: dict[str, dict]) -> dict | None:
+    """Try to get `actions` from `left` and `right` and merge them.
     Return the associated value in one of them if the other does not have it.
-    Return `None` if neither `left` nor `right` has `key`."""
+    Return `None` if neither `left` nor `right` has `actions`."""
+    key = "actions"
     if left_value := left.get(key):
         if right_value := right.get(key):
             left_value_copy = left_value.copy()
+            for key, entry in left_value_copy.items():
+                if (
+                    isinstance(entry, list)
+                    and (right_entry := right_value.pop(key, None))
+                    and isinstance(right_entry, list)
+                ):
+                    entry.extend(right_entry)
             left_value_copy.update(right_value)
             return left_value_copy
         else:
@@ -309,8 +314,8 @@ def peering_action_cartasian_product(
 
     combined_peering_action = {"mp_peering": combined_peering}
 
-    if combined_actions := try_get_merge(
-        "actions", left_peering_action, right_peering_action
+    if combined_actions := try_get_merge_actions(
+        left_peering_action, right_peering_action
     ):
         combined_peering_action["actions"] = combined_actions
 

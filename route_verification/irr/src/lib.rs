@@ -6,7 +6,7 @@ use std::{
     sync::mpsc::Sender,
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use ir::Ir;
 use lazy_regex::regex;
 use lex::*;
@@ -57,12 +57,15 @@ pub fn read_line_wait(reader: &mut BufReader<ChildStdout>) -> Result<String> {
 
 pub fn parse_object(obj: RPSLObject, pa: &mut PreAst) -> Result<()> {
     match obj.class.as_str() {
-        "aut-num" => pa.send_aut_num.send(obj)?,
+        "aut-num" => pa.send_aut_num.send(obj).context("sending aut-num")?,
         "as-set" => parse_as_set(obj, &mut pa.as_sets),
         "route" | "route6" => parse_route(obj, pa),
         "route-set" => parse_route_set(obj, &mut pa.route_sets),
-        "filter-set" => pa.send_filter_set.send(obj)?,
-        "peering-set" => pa.send_peering_set.send(obj)?,
+        "filter-set" => pa.send_filter_set.send(obj).context("sending filter-set")?,
+        "peering-set" => pa
+            .send_peering_set
+            .send(obj)
+            .context("sending peering-set")?,
         _ => (),
     }
     Ok(())
@@ -111,9 +114,12 @@ const ONE_MEBIBYTE: usize = 1024 * 1024;
 pub fn read_db(db: impl BufRead) -> Result<(Ast, Counts)> {
     let (as_sets, route_sets, pseudo_route_sets, as_routes) =
         (Vec::new(), Vec::new(), BTreeMap::new(), BTreeMap::new());
-    let (send_aut_num, aut_num_worker) = spawn_aut_num_worker()?;
-    let (send_peering_set, peering_set_worker) = spawn_peering_set_worker()?;
-    let (send_filter_set, filter_set_worker) = spawn_filter_set_worker()?;
+    let (send_aut_num, aut_num_worker) = spawn_aut_num_worker().context("spawn_aut_num_worker")?;
+    let (send_peering_set, peering_set_worker) =
+        spawn_peering_set_worker().context("spawn_peering_set_worker")?;
+    let (send_filter_set, filter_set_worker) =
+        spawn_filter_set_worker().context("spawn_filter_set_worker")?;
+
     let mut pa = PreAst {
         as_sets,
         route_sets,
@@ -124,29 +130,26 @@ pub fn read_db(db: impl BufRead) -> Result<(Ast, Counts)> {
         as_routes,
         counts: Default::default(),
     };
-
-    for obj in rpsl_objects(io_wrapper_lines(db)) {
-        if obj.body.len() > ONE_MEBIBYTE {
-            // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
-            pa.counts.lex_skip += 1;
-            warn!(
-                "Skipping {} object `{}` with a {}MiB body.",
-                obj.class,
-                obj.name,
-                obj.body.len() / ONE_MEBIBYTE
-            );
-            continue;
-        }
-
-        parse_object(obj, &mut pa)?;
-    }
-    pa.route_sets.extend(conclude_set(pa.pseudo_route_sets));
+    let process_output = process_db(db, &mut pa);
 
     drop((pa.send_aut_num, pa.send_peering_set, pa.send_filter_set));
-    let an_out = aut_num_worker.join().unwrap()?;
+    let an_out = aut_num_worker
+        .join()
+        .unwrap()
+        .context("aut_num_worker_output")?;
+    let peering_sets = peering_set_worker
+        .join()
+        .unwrap()
+        .context("peering_set_worker_output")?;
+    let filter_sets = filter_set_worker
+        .join()
+        .unwrap()
+        .context("filter_set_worker_output")?;
+
+    process_output?;
+
+    pa.route_sets.extend(conclude_set(pa.pseudo_route_sets));
     pa.as_sets.extend(an_out.pseudo_as_sets);
-    let peering_sets = peering_set_worker.join().unwrap()?;
-    let filter_sets = filter_set_worker.join().unwrap()?;
 
     let counts = pa.counts + an_out.counts;
     debug!("read_db counts: {counts}.");
@@ -164,6 +167,26 @@ pub fn read_db(db: impl BufRead) -> Result<(Ast, Counts)> {
     ))
 }
 
+fn process_db(db: impl BufRead, pa: &mut PreAst) -> Result<()> {
+    for obj in rpsl_objects(io_wrapper_lines(db)) {
+        if obj.body.len() > ONE_MEBIBYTE {
+            // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
+            pa.counts.lex_skip += 1;
+            warn!(
+                "Skipping {} object `{}` with a {}MiB body.",
+                obj.class,
+                obj.name,
+                obj.body.len() / ONE_MEBIBYTE
+            );
+            continue;
+        }
+
+        parse_object(obj, pa)?;
+    }
+
+    Ok(())
+}
+
 pub struct PreAst {
     pub as_sets: Vec<AsOrRouteSet>,
     pub route_sets: Vec<AsOrRouteSet>,
@@ -178,7 +201,7 @@ pub struct PreAst {
 /// Read, lex and parse a single DB.
 pub fn parse_db(tag: impl Display, db: impl BufRead) -> Result<(Ir, Counts)> {
     debug!("Starting to read and lex RPSL in `{tag}`.");
-    let (parsed, l_counts) = read_db(db)?;
+    let (parsed, l_counts) = read_db(db).with_context(|| format!("reading DB `{tag}`"))?;
     debug!("Starting to parse lexed `{tag}`.");
     let (ir, p_counts) = parse_lexed(parsed);
     let (n_import, n_export) = ir.aut_nums.values().fold((0, 0), |(i, e), an| {

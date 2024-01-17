@@ -3,7 +3,6 @@ use ::lex;
 use super::*;
 
 pub fn parse_lexed(lexed: lex::Ast) -> (Ir, Counts) {
-    debug!("Start to parse lexed AST.");
     let lex::Ast {
         aut_nums,
         as_sets,
@@ -26,7 +25,6 @@ pub fn parse_lexed(lexed: lex::Ast) -> (Ir, Counts) {
         filter_sets,
         as_routes,
     };
-    debug!("parse_lexed: Parsed {ir}.");
     let counts = an_counts + as_counts + rs_counts + ps_counts + fs_counts + ar_counts;
     (ir, counts)
 }

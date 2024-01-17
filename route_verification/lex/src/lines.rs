@@ -22,10 +22,7 @@ use super::*;
 
 const CONTINUATION_CHARS: [&str; 3] = [" ", "+", "\t"];
 
-pub fn io_wrapper_lines<R>(reader: BufReader<R>) -> impl Iterator<Item = String>
-where
-    R: Read,
-{
+pub fn io_wrapper_lines(reader: impl BufRead) -> impl Iterator<Item = String> {
     reader
         .lines()
         .filter_map(|r| r.map_err(|e| error!("{e}")).ok())

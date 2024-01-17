@@ -1,13 +1,13 @@
 use std::{
     collections::BTreeMap,
-    io::{BufReader, Read},
-    path::Path,
+    fmt::Display,
+    io::{BufRead, BufReader, Read},
     process::ChildStdout,
     sync::mpsc::Sender,
 };
 
 use anyhow::Result;
-use ir::{merge_irs, Ir};
+use ir::Ir;
 use lazy_regex::regex;
 use lex::*;
 use log::{debug, error, warn};
@@ -108,10 +108,7 @@ fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
 const ONE_MEBIBYTE: usize = 1024 * 1024;
 
 /// Read and lex RPSL database.
-pub fn read_db<R>(db: BufReader<R>) -> Result<(Ast, Counts)>
-where
-    R: Read,
-{
+pub fn read_db(db: impl BufRead) -> Result<(Ast, Counts)> {
     let (as_sets, route_sets, pseudo_route_sets, as_routes) =
         (Vec::new(), Vec::new(), BTreeMap::new(), BTreeMap::new());
     let (send_aut_num, aut_num_worker) = spawn_aut_num_worker()?;
@@ -178,42 +175,30 @@ pub struct PreAst {
     pub counts: Counts,
 }
 
-/// When some DBs have the same keys, any value could be used.
-pub fn parse_dbs<I, P, R>(dbs: I) -> Result<(Ir, Counts)>
+/// Read, lex and parse a single DB.
+pub fn parse_db(tag: impl Display, db: impl BufRead) -> Result<(Ir, Counts)> {
+    debug!("Starting to read and lex RPSL in `{tag}`.");
+    let (parsed, l_counts) = read_db(db)?;
+    debug!("Starting to parse lexed `{tag}`.");
+    let (ir, p_counts) = parse_lexed(parsed);
+    let (n_import, n_export) = ir.aut_nums.values().fold((0, 0), |(i, e), an| {
+        (i + an.imports.len(), e + an.exports.len())
+    });
+    debug!(
+        "Read `{tag}`: {ir}; {n_import} imports, {n_export} exports. Lexing: {l_counts}. Parsing: {p_counts}.",
+    );
+    Ok((ir, l_counts + p_counts))
+}
+
+pub fn merge_ir_and_counts<I>(ir_and_counts: I) -> (Ir, Counts)
 where
-    I: IntoParallelIterator<Item = (P, BufReader<R>)>,
-    P: AsRef<Path>,
-    R: Read,
+    I: IntoParallelIterator<Item = (Ir, Counts)>,
 {
-    let (irs, counts) = dbs
+    ir_and_counts
         .into_par_iter()
-        .fold(
-            || Ok((Vec::new(), Counts::default())),
-            |acc: Result<_>, (path, db)| {
-                let (mut irs, counts) = acc?;
-                let (parsed, l_counts) = read_db(db)?;
-                let (ir, p_counts) = parse_lexed(parsed);
-                let (n_import, n_export) = ir.aut_nums.values().fold((0, 0), |(i, e), an| {
-                    (i + an.imports.len(), e + an.exports.len())
-                });
-                debug!(
-                    "Read {}: {ir}; {n_import} imports, {n_export} exports. Lexing: {l_counts}. Parsing: {p_counts}.",
-                    path.as_ref().to_string_lossy()
-                );
-                irs.push(ir);
-                Ok((irs, counts + l_counts + p_counts))
-            },
-        )
-        .reduce(
-            || Ok((Vec::new(), Counts::default())),
-            |acc, x| {
-                let (mut irs, counts) = acc?;
-                let (new_irs, new_counts) = x?;
-                irs.extend(new_irs);
-                Ok((irs, counts + new_counts))
-            },
-        )?;
-    Ok((merge_irs(irs), counts))
+        .reduce(Default::default, |(ir_acc, counts_acc), (ir, counts)| {
+            (ir_acc.merge(ir), counts_acc + counts)
+        })
 }
 
 /// Split by `,`s followed by any number of whitespace.

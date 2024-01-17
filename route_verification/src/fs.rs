@@ -3,23 +3,17 @@ use std::{fs::*, io::*, mem, path::Path};
 use bgp::wrapper::read_mrt;
 use chardetng::EncodingDetector;
 use encoding_rs::Encoding;
-use encoding_rs_io::DecodeReaderBytesBuilder;
+use encoding_rs_io::{DecodeReaderBytes, DecodeReaderBytesBuilder};
 use io::cmd::OutputChild;
 use ir::Ir;
 use lex::Counts;
 use rayon::prelude::*;
 
-use super::{bgp::*, irr::*, parse::parse_lexed, Result, *};
+use super::{bgp::*, irr::*, Result, *};
 
 pub fn parse(filename: &str, output_dir: &str) -> Result<()> {
-    let encoding = detect_file_encoding(filename)?;
-    let decoder = DecodeReaderBytesBuilder::new()
-        .encoding(Some(encoding))
-        .build(File::open(filename)?);
-    let reader = BufReader::new(decoder);
-    let (ast, l_counts) = read_db(reader)?;
-    let (parsed, p_counts) = parse_lexed(ast);
-    let counts = l_counts + p_counts;
+    let reader = open_file_w_correct_encoding(filename)?;
+    let (parsed, counts) = parse_db(filename, reader)?;
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
     debug!("Starting to write the parsed IR.");
     parsed.pal_write(output_dir)?;
@@ -36,21 +30,17 @@ pub fn read(input_dir: &str) -> Result<()> {
 }
 
 pub fn parse_all(input_dir: &str) -> Result<(Ir, Counts)> {
-    let readers = read_dir(input_dir)?
+    debug!("Starting to read and parse {input_dir}.");
+    let ir_and_counts = read_dir(input_dir)?
         .par_bridge()
         .map(|entry| {
             let path = entry?.path();
-            let encoding = detect_file_encoding(&path)?;
-            let decoder = DecodeReaderBytesBuilder::new()
-                .encoding(Some(encoding))
-                .build(File::open(&path)?);
-            let reader = BufReader::new(decoder);
-            Ok((path, reader))
+            let reader = open_file_w_correct_encoding(&path)?;
+            parse_db(path.to_string_lossy(), reader)
         })
         .collect::<Result<Vec<_>>>()?;
 
-    debug!("Starting to read and parse {input_dir}.");
-    parse_dbs(readers)
+    Ok(merge_ir_and_counts(ir_and_counts))
 }
 
 /// Parse files in each `input_dirs` directories and merge them while
@@ -60,17 +50,12 @@ pub fn parse_priority(input_dirs: &[String], output_dir: &str) -> Result<()> {
         bail!("No input directories specified.");
     }
 
-    let parsed_all = input_dirs
+    let ir_and_counts = input_dirs
         .iter()
         .rev()
         .map(|dir| parse_all(dir))
         .collect::<Result<Vec<_>>>()?;
-    let (parsed, counts) = parsed_all
-        .into_iter()
-        .reduce(|(backup, b_counts), (priority, p_counts)| {
-            (backup.merge(priority), p_counts + b_counts)
-        })
-        .expect("!input_dirs.is_empty()");
+    let (parsed, counts) = merge_ir_and_counts(ir_and_counts);
 
     println!("Summary\n\tParsed {parsed}.\n\t{counts}.");
 
@@ -79,6 +64,17 @@ pub fn parse_priority(input_dirs: &[String], output_dir: &str) -> Result<()> {
     debug!("Wrote the parsed IR.");
 
     Ok(())
+}
+
+pub fn open_file_w_correct_encoding(
+    path: impl AsRef<Path>,
+) -> Result<BufReader<DecodeReaderBytes<File, Vec<u8>>>> {
+    let path = path.as_ref();
+    let encoding = detect_file_encoding(path)?;
+    let decoder = DecodeReaderBytesBuilder::new()
+        .encoding(Some(encoding))
+        .build(File::open(path)?);
+    Ok(BufReader::new(decoder))
 }
 
 pub fn detect_file_encoding<P>(path: P) -> Result<&'static Encoding>

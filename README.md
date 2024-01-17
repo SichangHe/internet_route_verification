@@ -4,6 +4,20 @@ WIP
 
 TODO: update this README.
 
+## Debugging
+
+- Enable logging:
+
+    ```sh
+    export RUST_LOG=route_verification=trace
+    ```
+
+- Enable backtrace in error messages:
+
+    ```sh
+    export RUST_BACKTRACE=1
+    ```
+
 ## Produce a parsed dump using both lexer and parser
 
 - Put the database file at `data/ripe.db`.
@@ -13,18 +27,6 @@ TODO: update this README.
 
     ```sh
     python3 -m pip install rpsl-lexer
-    ```
-
-- Maybe you want to enable logging:
-
-    ```sh
-    export RUST_LOG=route_verification=trace
-    ```
-
-- Maybe you want to enable backtrace in error messages:
-
-    ```sh
-    export RUST_BACKTRACE=1
     ```
 
 - Run at `route_verification/`:

@@ -271,10 +271,15 @@ def try_get_merge_actions(left: dict[str, dict], right: dict[str, dict]) -> dict
             for key, entry in left_value_copy.items():
                 if (
                     isinstance(entry, list)
-                    and (right_entry := right_value.pop(key, None))
+                    and (right_entry := right_value.get(key))
                     and isinstance(right_entry, list)
                 ):
-                    entry.extend(right_entry)
+                    if (  # method-call
+                        isinstance(entry[0], dict) and isinstance(right_entry[0], dict)
+                    ) or (  # assigned-set
+                        isinstance(entry[0], str) and isinstance(right_entry[0], str)
+                    ):
+                        entry.extend(right_value.pop(key))
             left_value_copy.update(right_value)
             return left_value_copy
         else:

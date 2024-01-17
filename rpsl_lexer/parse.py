@@ -202,6 +202,7 @@ def apply_except(left: dict[str, list | dict], right: dict):
 def parse_import_term(
     lexed: dict,
 ) -> list[dict[str, list | dict]] | None:
+    """-> list[<parse_import_factor's output shape>]"""
     if import_factors := lexed.get("import-factors"):
         parsed = []
         for import_factor_raw in import_factors:
@@ -259,12 +260,21 @@ def try_get_and(key: str, left: dict[str, dict], right: dict[str, dict]) -> dict
     return None
 
 
-def try_get_merge(
-    key: str, left: dict[str, dict], right: dict[str, dict]
-) -> dict | None:
+def try_get_merge_actions(left: dict[str, dict], right: dict[str, dict]) -> dict | None:
+    """Try to get `actions` from `left` and `right` and merge them.
+    Return the associated value in one of them if the other does not have it.
+    Return `None` if neither `left` nor `right` has `actions`."""
+    key = "actions"
     if left_value := left.get(key):
         if right_value := right.get(key):
             left_value_copy = left_value.copy()
+            for key, entry in left_value_copy.items():
+                if (
+                    isinstance(entry, list)
+                    and (right_entry := right_value.pop(key, None))
+                    and isinstance(right_entry, list)
+                ):
+                    entry.extend(right_entry)
             left_value_copy.update(right_value)
             return left_value_copy
         else:
@@ -274,19 +284,15 @@ def try_get_merge(
     return None
 
 
-def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | list]:
-    left_peerings = left["mp_peerings"]
-    assert len(left_peerings) == 1
-    left_peering_action = left_peerings[0]
+def peering_action_cartasian_product(
+    left_peering_action: dict[str, dict], right_peering_action: dict[str, dict]
+):
+    """[T]he cartasian product of the two sides as follows:  for
+    each policy l in the left hand side and for each policy r in the
+    right hand side, the peerings of the resulting policy are the
+    peerings common to both r and l; … and action of the
+    resulting policy is l's action followed by r's action."""
     left_peering = left_peering_action["mp_peering"]
-
-    right_peerings = right["mp_peerings"]
-    # TODO: Deal with multiple <mp-peering>s.
-    if len(right_peerings) > 1:
-        raise ValueError(
-            f"Skip: Skipping REFINE expression with multiple <mp-peering>s: {right}."
-        )
-    right_peering_action = right_peerings[0]
     right_peering = right_peering_action["mp_peering"]
     combined_peering = {
         "as_expr": {
@@ -308,13 +314,21 @@ def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | 
 
     combined_peering_action = {"mp_peering": combined_peering}
 
-    if combined_actions := try_get_merge(
-        "actions", left_peering_action, right_peering_action
+    if combined_actions := try_get_merge_actions(
+        left_peering_action, right_peering_action
     ):
         combined_peering_action["actions"] = combined_actions
 
+    return combined_peering_action
+
+
+def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | list]:
     return {
-        "mp_peerings": [combined_peering_action],
+        "mp_peerings": [
+            peering_action_cartasian_product(left_peering_action, right_peering_action)
+            for left_peering_action in left["mp_peerings"]
+            for right_peering_action in right["mp_peerings"]
+        ],
         "mp_filter": {"and": {"left": left["mp_filter"], "right": right["mp_filter"]}},
     }
 
@@ -322,7 +336,12 @@ def apply_refine(left: dict[str, list | dict], right: dict) -> dict[str, dict | 
 def parse_import_expression_refine(
     lexed: dict, afi_entries: set[tuple[str, str]]
 ) -> list[tuple[set[tuple[str, str]], list[dict]]]:
-    """<https://www.rfc-editor.org/rfc/rfc2622#page-36>"""
+    """<https://www.rfc-editor.org/rfc/rfc2622#page-36>
+    For each policy l in the left hand side and for each policy r in the
+    right hand side, the peerings of the resulting policy are the
+    peerings common to both r and l; the filter of the resulting policy
+    is the intersection of l's filter and r's filter; and action of the
+    resulting policy is l's action followed by r's action."""
     result = []
     right = parse_afi_import_expression(lexed["right"], afi_entries)
     lefts = parse_import_term(lexed["left"])

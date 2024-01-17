@@ -108,8 +108,6 @@ fn parse_route_set(obj: RPSLObject, route_sets: &mut Vec<AsOrRouteSet>) {
     }
 }
 
-const ONE_MEBIBYTE: usize = 1024 * 1024;
-
 /// Read and lex RPSL database.
 pub fn read_db(db: impl BufRead) -> Result<(Ast, Counts)> {
     let (as_sets, route_sets, pseudo_route_sets, as_routes) =
@@ -169,18 +167,6 @@ pub fn read_db(db: impl BufRead) -> Result<(Ast, Counts)> {
 
 fn process_db(db: impl BufRead, pa: &mut PreAst) -> Result<()> {
     for obj in rpsl_objects(io_wrapper_lines(db)) {
-        if obj.body.len() > ONE_MEBIBYTE {
-            // <https://github.com/SichangHe/parse_rpsl_policy/issues/6#issuecomment-1566121009>
-            pa.counts.lex_skip += 1;
-            warn!(
-                "Skipping {} object `{}` with a {}MiB body.",
-                obj.class,
-                obj.name,
-                obj.body.len() / ONE_MEBIBYTE
-            );
-            continue;
-        }
-
         parse_object(obj, pa)?;
     }
 

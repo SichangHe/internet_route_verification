@@ -26,6 +26,13 @@ impl std::fmt::Display for ASSetGraph {
 }
 
 impl ASSetGraph {
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            as_num_and_sets: HashMap::with_capacity(capacity),
+            graph: DiGraph::with_capacity(capacity, capacity << 1),
+        }
+    }
+
     pub fn get_or_insert(&mut self, as_num_or_set: ASNumOrSet) -> NodeIndex {
         if let Some(index) = self.as_num_and_sets.get(&as_num_or_set) {
             *index
@@ -37,7 +44,7 @@ impl ASSetGraph {
     }
 
     /// Add each member in `members` to `set`.
-    pub fn add_member<I>(&mut self, members: I, set: ASNumOrSet) -> (Vec<NodeIndex>, NodeIndex)
+    pub fn add_members<I>(&mut self, members: I, set: ASNumOrSet) -> (Vec<NodeIndex>, NodeIndex)
     where
         I: IntoIterator<Item = ASNumOrSet>,
     {

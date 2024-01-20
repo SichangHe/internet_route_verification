@@ -25,7 +25,7 @@ fn insertions() {
 #[test]
 fn add_members() {
     let mut graph = ASSetGraph::default();
-    let (members0, set0) = graph.add_member(
+    let (members0, set0) = graph.add_members(
         vec![
             ASNumOrSet::Num(113),
             ASNumOrSet::Num(114),
@@ -35,7 +35,7 @@ fn add_members() {
         ],
         ASNumOrSet::set("AS-BC"),
     );
-    let (members1, set1) = graph.add_member(vec![ASNumOrSet::Num(113)], ASNumOrSet::set("AS-DE"));
+    let (members1, set1) = graph.add_members(vec![ASNumOrSet::Num(113)], ASNumOrSet::set("AS-DE"));
 
     let graph_str = format!("{graph}");
     print!("{graph_str}");
@@ -68,7 +68,7 @@ fn add_members() {
 #[test]
 fn stats() {
     let mut graph = ASSetGraph::default();
-    let (_, set_index) = graph.add_member(
+    let (_, set_index) = graph.add_members(
         vec![
             ASNumOrSet::Num(113),
             ASNumOrSet::Num(114),
@@ -80,7 +80,7 @@ fn stats() {
         ],
         ASNumOrSet::set("AS-BC"),
     );
-    graph.add_member(
+    graph.add_members(
         vec![
             ASNumOrSet::Num(113),
             ASNumOrSet::set("AS-BC"),
@@ -88,7 +88,7 @@ fn stats() {
         ],
         ASNumOrSet::set("AS-DE"),
     );
-    graph.add_member(
+    graph.add_members(
         vec![
             ASNumOrSet::Num(579),
             ASNumOrSet::set("AS-DE"),
@@ -97,7 +97,7 @@ fn stats() {
         ],
         ASNumOrSet::set("AS-FG"),
     );
-    graph.add_member(
+    graph.add_members(
         vec![
             ASNumOrSet::Num(579),
             ASNumOrSet::Num(24),
@@ -105,7 +105,7 @@ fn stats() {
         ],
         ASNumOrSet::set("AS-HI"),
     );
-    graph.add_member(vec![ASNumOrSet::Num(40)], ASNumOrSet::set("AS-JK"));
+    graph.add_members(vec![ASNumOrSet::Num(40)], ASNumOrSet::set("AS-JK"));
 
     let graph_str = format!("{graph}");
     print!("{graph_str}");

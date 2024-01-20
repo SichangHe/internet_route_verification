@@ -3,10 +3,11 @@ use super::*;
 /// Fully flatten each AS Set to all of its members.
 /// Copy from the `:dep` line after running code from [`parse_bgp_lines`].
 fn as_sets_graph_stats(query: QueryIr) -> Result<()> {
+    use graph as route_verification_graph;
     /*
-    :dep graph = { path = "route_verification/graph" }
+    :dep route_verification_graph = { path = "route_verification/graph" }
     // */
-    use graph::{ASNumOrSet, ASSetGraph, ASSetGraphStats};
+    use route_verification_graph::{ASNumOrSet, ASSetGraph, ASSetGraphStats};
     fn extend(
         as_set_graph: &mut ASSetGraph,
         as_num_or_set: ASNumOrSet,

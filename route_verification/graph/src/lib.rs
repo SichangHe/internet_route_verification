@@ -8,6 +8,9 @@ use petgraph::{
 #[cfg(test)]
 mod tests;
 
+/// AS Sets and AS Num membership graph.
+/// The display format can be used with Graphviz to visualize the graph.
+/// (Try print one out and paste it into Graphviz online.)
 #[derive(Clone, Debug, Default)]
 pub struct ASSetGraph {
     pub as_num_and_sets: HashMap<ASNumOrSet, NodeIndex>,
@@ -33,6 +36,24 @@ impl ASSetGraph {
         }
     }
 
+    /// Add each member in `members` to `set`.
+    pub fn add_member<I>(&mut self, members: I, set: ASNumOrSet) -> (Vec<NodeIndex>, NodeIndex)
+    where
+        I: IntoIterator<Item = ASNumOrSet>,
+    {
+        let set_index = self.get_or_insert(set);
+        let member_indexes = members
+            .into_iter()
+            .map(|member| {
+                let edge_weight = if member.is_pseudo_set() { 0 } else { 1 };
+                let member_index = self.get_or_insert(member);
+                self.graph.add_edge(set_index, member_index, edge_weight);
+                member_index
+            })
+            .collect();
+        (member_indexes, set_index)
+    }
+
     pub fn has_cycle(&self) -> bool {
         is_cyclic_directed(&self.graph)
     }
@@ -51,6 +72,13 @@ pub enum ASNumOrSet {
 impl ASNumOrSet {
     pub fn set(s: &str) -> Self {
         Self::Set(s.into())
+    }
+
+    pub fn is_pseudo_set(&self) -> bool {
+        match self {
+            ASNumOrSet::Set(set) => set.contains('#'),
+            _ => false,
+        }
     }
 }
 

@@ -50,8 +50,8 @@ fn flatten_as_sets(query: QueryIr) -> Result<()> {
 
     {
         let mut as_set_file = BufWriter::new(File::create("as_sets.txt")?);
-        for (num, (as_set, _depth)) in &as_sets {
-            as_set_file.write_all(num.to_string().as_bytes());
+        for (set, (as_set, _depth)) in &as_sets {
+            as_set_file.write_all(set.as_bytes());
             as_set_file.write_all(b";");
             for (index, member) in as_set.iter().enumerate() {
                 if index > 0 {
@@ -67,8 +67,8 @@ fn flatten_as_sets(query: QueryIr) -> Result<()> {
     {
         let mut as_set_sizes_file = BufWriter::new(File::create("as_set_sizes.csv")?);
         as_set_sizes_file.write_all(b"as_set,size,depth\n")?;
-        for (num, (as_set, depth)) in &as_sets {
-            as_set_sizes_file.write_all(num.to_string().as_bytes());
+        for (set, (as_set, depth)) in &as_sets {
+            as_set_sizes_file.write_all(set.as_bytes());
             as_set_sizes_file.write_all(b",");
             as_set_sizes_file.write_all(as_set.len().to_string().as_bytes());
             as_set_sizes_file.write_all(b",");

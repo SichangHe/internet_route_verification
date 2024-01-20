@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use petgraph::{
-    algo::is_cyclic_directed,
+    algo::{dijkstra, is_cyclic_directed},
     dot::Dot,
     prelude::{DiGraph, NodeIndex},
 };
@@ -54,6 +54,33 @@ impl ASSetGraph {
         (member_indexes, set_index)
     }
 
+    pub fn count_stats(&self, set_index: NodeIndex) -> ASSetGraphStats {
+        let mut stats = ASSetGraphStats::default();
+
+        let shortest_distances = dijkstra(&self.graph, set_index, None, |e| *e.weight());
+        for (as_num_or_set, node_index) in &self.as_num_and_sets {
+            if *node_index == set_index {
+                continue;
+            }
+
+            match as_num_or_set {
+                ASNumOrSet::Num(_) => {
+                    stats.n_nums += 1;
+                    if let Some(distance) = shortest_distances.get(node_index) {
+                        stats.depth = stats.depth.max(*distance);
+                    }
+                }
+                ASNumOrSet::Set(_) => {
+                    if !as_num_or_set.is_pseudo_set() {
+                        stats.n_sets += 1
+                    }
+                }
+            }
+        }
+
+        stats
+    }
+
     pub fn has_cycle(&self) -> bool {
         is_cyclic_directed(&self.graph)
     }
@@ -61,6 +88,13 @@ impl ASSetGraph {
     pub fn to_dot(&self) -> Dot<&DiGraph<ASNumOrSet, u32>> {
         Dot::new(&self.graph)
     }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ASSetGraphStats {
+    pub n_sets: u32,
+    pub n_nums: u32,
+    pub depth: u32,
 }
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

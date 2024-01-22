@@ -190,9 +190,10 @@ pub fn parse_db(tag: impl Display, db: impl BufRead) -> Result<(Ir, Counts)> {
     let (parsed, l_counts) = read_db(db).with_context(|| format!("reading DB `{tag}`"))?;
     debug!("Starting to parse lexed `{tag}`.");
     let (ir, p_counts) = parse_lexed(parsed);
-    let (n_import, n_export) = ir.aut_nums.values().fold((0, 0), |(i, e), an| {
-        (i + an.imports.len(), e + an.exports.len())
-    });
+    let (n_import, n_export) = ir
+        .aut_nums
+        .values()
+        .fold((0, 0), |(i, e), an| (i + an.n_import, e + an.n_export));
     debug!(
         "Read `{tag}`: {ir}; {n_import} imports, {n_export} exports. Lexing: {l_counts}. Parsing: {p_counts}.",
     );

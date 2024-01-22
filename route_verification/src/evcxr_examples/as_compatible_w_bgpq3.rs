@@ -27,6 +27,10 @@ fn as_compatible_with_bgpq3(query: QueryIr) -> Result<()> {
         .iter()
         .filter(|(_, an)| !an.imports.is_empty() || !an.exports.is_empty())
         .filter(|(_, an)| {
+            an.imports.entries_iter().count() == an.n_import as usize
+                && an.exports.entries_iter().count() == an.n_export as usize
+        })
+        .filter(|(_, an)| {
             [&an.imports, &an.exports]
                 .into_iter()
                 .flat_map(|ports| ports.entries_iter())

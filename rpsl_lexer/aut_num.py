@@ -1,9 +1,20 @@
 import sys
 
-from .dump import parse_mp_import
+from .lex import mp_import
 from .lines import expressions
+from .parse import import_export, lex_with
 from .piped import stdin_lines, write_obj
 from .rpsl_object import AutNum
+
+
+def parse_mp_import(
+    expr: str, imports: dict[str, dict[str, list[dict]]], is_mp: bool = False
+):
+    try:
+        lexed = lex_with(mp_import, expr)
+        import_export(lexed, imports, is_mp)
+    except Exception as err:
+        print(f"{err} parsing `{expr}`.")
 
 
 def parse_aut_num():

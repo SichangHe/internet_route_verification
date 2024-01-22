@@ -51,6 +51,8 @@ pub fn parse_lexed_aut_num(aut_num: lex::AutNum, counts: &mut Counts) -> Result<
     let lex::AutNum {
         name: _,
         body,
+        n_import,
+        n_export,
         imports,
         exports,
     } = aut_num;
@@ -60,6 +62,8 @@ pub fn parse_lexed_aut_num(aut_num: lex::AutNum, counts: &mut Counts) -> Result<
         num,
         AutNum {
             body,
+            n_import,
+            n_export,
             imports,
             exports,
         },

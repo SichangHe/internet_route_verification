@@ -14,6 +14,8 @@ class AutNum:
 
     name: str
     body: str
+    n_import: int
+    n_export: int
     imports: dict[str, dict[str, list[dict]]]
     exports: dict[str, dict[str, list[dict]]]
 

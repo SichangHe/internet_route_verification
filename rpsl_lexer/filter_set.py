@@ -1,6 +1,6 @@
 import sys
 
-from .dump import red
+from . import red
 from .lex import mp_filter
 from .lines import expressions
 from .parse import clean_mp_filter, lex_with

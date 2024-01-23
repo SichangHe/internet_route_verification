@@ -3,6 +3,8 @@ use super::*;
 #[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AutNum {
     pub body: String,
+    pub n_import: u32,
+    pub n_export: u32,
     pub imports: Versions,
     pub exports: Versions,
 }

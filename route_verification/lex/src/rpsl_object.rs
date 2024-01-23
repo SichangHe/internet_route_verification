@@ -4,6 +4,8 @@ use super::*;
 pub struct AutNum {
     pub name: String,
     pub body: String,
+    pub n_import: u32,
+    pub n_export: u32,
     pub imports: Versions,
     pub exports: Versions,
 }

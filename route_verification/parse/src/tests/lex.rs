@@ -169,6 +169,8 @@ fn expected_aut_nums() -> BTreeMap<u32, AutNum> {
         590,
         AutNum {
             body,
+            n_import: 4,
+            n_export: 4,
             imports,
             exports,
         },

@@ -1,6 +1,6 @@
 import sys
 
-from .dump import red
+from . import red
 from .lex import mp_peering
 from .lines import expressions
 from .parse import clean_mp_peering, lex_with

@@ -11,6 +11,7 @@
 mod as_appeared_in_rules;
 mod as_compatible_w_bgpq3;
 mod as_neighbors_vs_rules;
+mod as_path_set_all_ribs;
 mod as_set_graphing;
 mod as_stats;
 mod as_w_single_rs_export;

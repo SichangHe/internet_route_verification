@@ -1,6 +1,6 @@
 use super::*;
 
-fn count_sets_in_as_paths_in_all_ribs() {
+fn count_sets_and_singles_in_as_paths_in_all_ribs() {
     let rib_files = std::fs::read_dir("data/ribs")
         .unwrap()
         .map(|maybe_entry| maybe_entry.unwrap().path())
@@ -27,6 +27,7 @@ fn count_sets_in_as_paths_in_all_ribs() {
 
             let mut n_set = 0;
             let mut n_path_w_set = 0usize;
+            let mut n_single = 0usize;
             let mut total = 0usize;
 
             let mut bgpdump_child = wrapper::read_mrt(rib_file).unwrap();
@@ -38,11 +39,11 @@ fn count_sets_in_as_paths_in_all_ribs() {
                 .expect("Error reading `bgpdump` output.")
                 > 0
             {
-                let line = Line::from_raw(std::mem::take(&mut line))
-                    .expect("`bgpdump` should output valid lines.");
-                let n_set_present = line
+                let mut as_path = Line::from_raw(std::mem::take(&mut line))
+                    .expect("`bgpdump` should output valid lines.")
                     .compare
-                    .as_path
+                    .as_path;
+                let n_set_present = as_path
                     .iter()
                     .filter(|a| !matches!(a, AsPathEntry::Seq(_)))
                     .count();
@@ -50,22 +51,33 @@ fn count_sets_in_as_paths_in_all_ribs() {
                     n_set += n_set_present;
                     n_path_w_set += 1;
                 }
+
+                as_path.dedup();
+                if as_path.len() == 1 {
+                    n_single += 1;
+                }
+
                 total += 1;
             }
 
             println!(
-                "{collector}: {n_set} sets in the AS-path of {n_path_w_set} routes out of {total}."
+                "{collector}: {n_set} sets and {n_single} single entries in the AS-path of {n_path_w_set} routes out of {total}."
             );
-            (n_set, n_path_w_set, total)
+            (n_set, n_path_w_set, n_single, total)
         })
         .collect();
 
-    let (n_set, n_path_w_set, total) = counts
+    let (n_set, n_path_w_set, n_single, total) = counts
         .iter()
         .copied()
-        .reduce(|acc, (n_set, n_path_w_set, total)| {
-            (acc.0 + n_set, acc.1 + n_path_w_set, acc.2 + total)
+        .reduce(|acc, (n_set, n_path_w_set, n_single, total)| {
+            (
+                acc.0 + n_set,
+                acc.1 + n_path_w_set,
+                acc.2 + n_single,
+                acc.3 + total,
+            )
         })
         .unwrap();
-    println!("Total: {n_set} sets in the AS-path of {n_path_w_set} routes out of {total}.");
+    println!("Total: {n_set} sets and {n_single} single entries in the AS-path of {n_path_w_set} routes out of {total}.");
 }

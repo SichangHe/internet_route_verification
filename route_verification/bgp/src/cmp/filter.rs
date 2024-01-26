@@ -259,7 +259,7 @@ impl<'a> CheckFilter<'a> {
         let last = self.last_on_path()?;
         if let (true, Ok(true)) = (
             op.permits(&self.cmp.prefix),
-            self.set_has_member(as_set, last, self.cmp.recursion_limit, &mut visited()),
+            self.set_has_member(as_set, last),
         ) {
             self.special_any_report(|| SpecAsSetContainsOriginButNoRoute(as_set.into(), last))
         } else {
@@ -331,40 +331,18 @@ impl<'a> CheckFilter<'a> {
         self.bad_any_report(|| RpslInvalidFilter(reason.into()))
     }
 
-    /// `Err` contains all the skips.
-    pub fn set_has_member(
-        &self,
-        set: &'a str,
-        asn: u32,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-    ) -> Result<bool, AnyReport> {
-        if depth < 0 {
-            return Err(bad_any_report(RecCheckSetMember(set.into())));
-        }
-        let hash = visited.make_hash(&set);
-        if visited.contains_with_hash(&set, hash) {
-            return Err(empty_bad_any_report());
-        }
+    /// `Err` contains all the skips in an [`AnyReport`].
+    pub fn set_has_member(&self, set: &'a str, asn: u32) -> Result<bool, AnyReport> {
         let as_set = match self.query.as_sets.get(set) {
             Some(s) => s,
             None => return Err(self.unrec_any_report(|| UnrecordedAsSet(set.into()))),
         };
-        if as_set.is_any || as_set.members.contains(&asn) {
-            return Ok(true);
-        }
-        let mut report = SkipAnyReport(vec![]);
-        visited.insert_with_hash(set, hash);
-        for set in &as_set.set_members {
-            match self.set_has_member(set, asn, depth - 1, visited) {
-                Ok(true) => return Ok(true),
-                Ok(false) => (),
-                Err(err) => report |= err.unwrap(),
-            }
-        }
-        match report {
-            SkipAnyReport(items) if items.is_empty() => Ok(false),
-            report => Err(Some(report)),
+        if as_set.contains(&asn) {
+            Ok(true)
+        } else if !as_set.unrecorded_members.is_empty() {
+            Err(self.unrec_any_report(|| UnrecordedSomeAsSet(set.into())))
+        } else {
+            Ok(false)
         }
     }
 }

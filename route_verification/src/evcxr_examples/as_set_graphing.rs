@@ -2,7 +2,7 @@ use super::*;
 
 /// Fully flatten each AS Set to all of its members.
 /// Copy from the `:dep` line after running code from [`parse_bgp_lines`].
-fn as_sets_graph_stats(query: QueryIr) -> Result<()> {
+fn as_sets_graph_stats(query: Ir) -> Result<()> {
     use graph as route_verification_graph;
     /*
     :dep route_verification_graph = { path = "route_verification/graph" }
@@ -12,7 +12,7 @@ fn as_sets_graph_stats(query: QueryIr) -> Result<()> {
         as_set_graph: &mut ASSetGraph,
         as_num_or_set: ASNumOrSet,
         as_set: &AsSet,
-        as_sets: &HashMap<String, AsSet>,
+        as_sets: &std::collections::BTreeMap<String, AsSet>,
     ) {
         let set_members_cloned: Vec<ASNumOrSet> = as_set
             .set_members

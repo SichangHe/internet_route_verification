@@ -68,9 +68,7 @@ impl<'a> CheckPeering<'a> {
         match as_name {
             AsName::Any => None,
             AsName::Num(num) => self.check_remote_as_num(*num),
-            AsName::Set(name) => {
-                self.check_remote_as_set(name, depth, &mut BloomHashSet::with_capacity(2048, 32768))
-            }
+            AsName::Set(name) => self.check_remote_as_set(name),
             AsName::Invalid(reason) => self.bad_any_report(|| RpslInvalidAsName(reason.into())),
         }
     }
@@ -83,52 +81,23 @@ impl<'a> CheckPeering<'a> {
         }
     }
 
-    fn check_remote_as_set(
-        &self,
-        name: &'a str,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-    ) -> AnyReport {
-        let hash = visited.make_hash(&name);
-        if visited.contains_with_hash(&name, hash) {
-            return empty_bad_any_report();
-        }
-
-        if depth <= 0 {
-            return bad_any_report(RecRemoteAsSet(name.into()));
-        }
+    fn check_remote_as_set(&self, name: &'a str) -> AnyReport {
         let as_set = match self.c.query.as_sets.get(name) {
             Some(r) => r,
             None => return self.unrec_any_report(|| UnrecordedAsSet(name.into())),
         };
 
-        if as_set.is_any || as_set.members.binary_search(&self.accept_num).is_ok() {
+        if as_set.contains(&self.accept_num) {
             return None;
         }
 
-        self.check_remote_as_set_members(name, depth, visited, hash, as_set)
-    }
-
-    fn check_remote_as_set_members(
-        &self,
-        name: &'a str,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-        hash: u64,
-        as_set: &'a AsSet,
-    ) -> AnyReport {
-        visited.insert_with_hash(name, hash);
-
-        let mut report = AnyReportCase::const_default();
-        for set in &as_set.set_members {
-            report |= self.check_remote_as_set(set, depth - 1, visited)?;
-        }
-        if let BadAnyReport(_) = report {
+        if as_set.unrecorded_members.is_empty() {
             self.bad_any_report(|| MatchRemoteAsSet(name.into()))
         } else {
-            Some(report)
+            self.unrec_any_report(|| UnrecordedAsSet(name.into()))
         }
     }
+
     fn check_remote_peering_set(&self, name: &str, depth: isize) -> AnyReport {
         if depth <= 0 {
             return bad_any_report(RecRemotePeeringSet(name.into()));

@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 
 use super::*;
 
@@ -48,6 +48,25 @@ impl AsSetRoute {
     }
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct QueryAsSet {
+    pub body: String,
+    pub members: HashSet<u32>,
+    pub unrecorded_members: Vec<String>,
+    pub is_any: bool,
+}
+
+impl QueryAsSet {
+    pub fn contains(&self, as_num: &u32) -> bool {
+        self.is_any || self.members.contains(as_num)
+    }
+
+    pub fn clean_up(&mut self) {
+        self.members.shrink_to_fit();
+        clean_vec(&mut self.unrecorded_members);
+    }
+}
+
 pub fn clean_vec<T: Ord>(v: &mut Vec<T>) {
     v.sort();
     v.shrink_to_fit();
@@ -93,7 +112,7 @@ fn all_providers(versions: &Versions, num: u32, db: &AsRelDb) -> bool {
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryIr {
     pub aut_nums: HashMap<u32, AutNum>,
-    pub as_sets: HashMap<String, AsSet>,
+    pub as_sets: HashMap<String, QueryAsSet>,
     pub route_sets: HashMap<String, RouteSet>,
     pub peering_sets: HashMap<String, PeeringSet>,
     pub filter_sets: HashMap<String, FilterSet>,
@@ -128,7 +147,7 @@ impl QueryIr {
         let as_set_routes = flatten_as_set_routes(&as_set_routes);
         let as_set_routes = HashMap::from_iter(as_set_routes);
         let aut_nums = HashMap::from_iter(aut_nums);
-        let as_sets = HashMap::from_iter(as_sets);
+        let as_sets = flatten_as_sets(&as_sets);
         let route_sets = HashMap::from_iter(route_sets);
         let peering_sets = HashMap::from_iter(peering_sets);
         let filter_sets = HashMap::from_iter(filter_sets);
@@ -183,4 +202,50 @@ fn flatten_as_set_routes(
         v.clean_up();
     });
     result
+}
+
+fn flatten_as_set(
+    query_as_set: &mut QueryAsSet,
+    visited_sets: &mut HashSet<String>,
+    set_members: &[String],
+    as_sets: &BTreeMap<String, AsSet>,
+) {
+    for set_member in set_members {
+        if !visited_sets.contains(set_member) {
+            visited_sets.insert(set_member.to_string());
+            if let Some(set) = as_sets.get(set_member) {
+                query_as_set.members.extend(set.members.iter().copied());
+            } else {
+                query_as_set.unrecorded_members.push(set_member.to_string());
+            }
+        }
+    }
+}
+
+pub fn flatten_as_sets(as_sets: &BTreeMap<String, AsSet>) -> HashMap<String, QueryAsSet> {
+    as_sets
+        .par_iter()
+        .map(|(name, set)| {
+            let AsSet {
+                body,
+                members,
+                set_members,
+                is_any,
+            } = set;
+            let mut query_as_set = QueryAsSet {
+                body: body.clone(),
+                members: HashSet::with_capacity(set_members.len() * 32 + members.len()),
+                unrecorded_members: Vec::new(),
+                is_any: *is_any,
+            };
+            query_as_set.members.extend(members.iter().copied());
+
+            let mut visited = HashSet::with_capacity(set_members.len() * 8);
+            visited.insert(name.to_string());
+            flatten_as_set(&mut query_as_set, &mut visited, set_members, as_sets);
+
+            query_as_set.clean_up();
+            (name.to_owned(), query_as_set)
+        })
+        .collect()
 }

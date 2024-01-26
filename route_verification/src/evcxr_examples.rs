@@ -20,7 +20,6 @@ mod count_asn_in_peering;
 mod count_path_sets;
 mod count_router_info;
 mod filter_as;
-mod flatten_as_set;
 mod route_stats;
 mod specific_line;
 

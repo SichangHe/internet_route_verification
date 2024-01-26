@@ -103,6 +103,7 @@ pub enum ReportItem {
 
     // Unrecorded RPSL Objects.
     UnrecordedAsSet(String),
+    UnrecordedSomeAsSet(String),
     UnrecordedAsRoutes(u32),
     UnrecordedAsSetRoute(String),
     UnrecordedSomeAsSetRoute(String),

@@ -143,6 +143,7 @@ fn flatten_as_set(
             visited_sets.insert(set_member.to_string());
             if let Some(set) = as_sets.get(set_member) {
                 query_as_set.members.extend(set.members.iter().copied());
+                flatten_as_set(query_as_set, visited_sets, &set.set_members, as_sets);
             } else {
                 query_as_set.unrecorded_members.push(set_member.to_string());
             }

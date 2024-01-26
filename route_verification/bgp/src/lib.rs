@@ -2,7 +2,6 @@ use std::{collections::BTreeMap, mem};
 
 use anyhow::Result;
 use as_rel::{AsRelDb, Relationship::*};
-use bloom::BloomHashSet;
 use ipnet::IpNet;
 use ir::*;
 use rayon::prelude::*;
@@ -20,7 +19,7 @@ pub mod wrapper;
 pub use {
     bgpmap::{self as map, AsPathEntry},
     cmp::Compare,
-    query::{customer_set, AsProperty, AsSetRoute, QueryAsSet, QueryIr},
+    query::{customer_set, AsProperty, QueryAsSet, QueryIr},
     report::{Report, ReportItem},
     verbosity::Verbosity,
     wrapper::{parse_mrt, Line},

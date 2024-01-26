@@ -178,12 +178,21 @@ pub fn get_range_operator_range(s: &str) -> Option<(&str, &str, &str)> {
     regex_captures!(r"\^(\d{1,3})-(\d{1,3})$", s)
 }
 
+pub fn match_ips_linear(ip: &IpNet, ips: &[IpNet], range_operator: RangeOperator) -> bool {
+    ips.iter()
+        .any(|value| address_prefix_contains(value, range_operator, ip))
+}
+
 /// `ips` must be sorted.
 /// Starting from the index of the closest element in `ips`, search right and
 /// left for address prefix that, combined with `range_operator`,
 /// contains `ip`.
 /// Stop searching either end when the index do not point to `ip`'s siblings.
 pub fn match_ips(ip: &IpNet, ips: &[IpNet], range_operator: RangeOperator) -> bool {
+    if ips.len() <= 6 {
+        return match_ips_linear(ip, ips, range_operator);
+    }
+
     let center = ips.binary_search(ip).map_or_else(identity, identity);
     // Check center.
     if let Some(value) = ips.get(center) {

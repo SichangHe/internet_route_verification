@@ -150,31 +150,20 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     debug!("Read {} lines from {mrt_dir}", bgp_lines.len());
 
     const SIZE: usize = 0x10000;
-    bgp_lines[..SIZE].iter_mut().for_each(|line| {
-        line.compare.verbosity = Verbosity::minimum_all();
-        line.check(&query);
-    });
-    debug!("Generated {SIZE} reports");
-
     let n_error: usize = bgp_lines[..SIZE]
         .par_iter_mut()
         .map(|line| {
             line.compare.verbosity = Verbosity::minimum_all();
             let old = line.compare.check(&query);
             let new = line.compare.check_new(&query);
-            if old != new {
-                println!(
-                    "Line: {}\nOld: {}\nNew: {}\n",
-                    line.display_str(),
-                    old.iter()
-                        .map(|r| format!("{r:?}"))
-                        .collect::<Vec<_>>()
-                        .join("\n"),
-                    new.iter()
-                        .map(|r| format!("{r:?}"))
-                        .collect::<Vec<_>>()
-                        .join("\n"),
-                );
+            let mut reports_str = String::new();
+            for (old, new) in old.iter().zip(&new) {
+                if old != new {
+                    reports_str.push_str(&format!("- {old:?}\n+ {new:?}\n",));
+                }
+            }
+            if !reports_str.is_empty() {
+                println!("{}\n{reports_str}", line.display_str());
             }
             if new.iter().any(|report| {
                 matches!(

@@ -20,6 +20,7 @@ serde_json.workspace = true
 
 as_path_regex.workspace = true
 as_rel.workspace = true
+bloom.workspace = true
 bgpmap.workspace = true
 io.workspace = true
 ir.workspace = true

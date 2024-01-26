@@ -1364,6 +1364,7 @@ dependencies = [
  "route_verification_as_path_regex",
  "route_verification_as_rel",
  "route_verification_bgpmap",
+ "route_verification_bloom",
  "route_verification_io",
  "route_verification_ir",
  "route_verification_lex",

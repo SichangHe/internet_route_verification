@@ -157,9 +157,26 @@ pub fn report(parsed_dir: &str, mrt_dir: &str) -> Result<()> {
     debug!("Generated {SIZE} reports");
 
     let n_error: usize = bgp_lines[..SIZE]
-        .par_iter()
+        .par_iter_mut()
         .map(|line| {
-            if line.report.as_ref().unwrap().iter().any(|report| {
+            line.compare.verbosity = Verbosity::minimum_all();
+            let old = line.compare.check(&query);
+            let new = line.compare.check_new(&query);
+            if old != new {
+                println!(
+                    "Line: {}\nOld: {}\nNew: {}\n",
+                    line.display_str(),
+                    old.iter()
+                        .map(|r| format!("{r:?}"))
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                    new.iter()
+                        .map(|r| format!("{r:?}"))
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                );
+            }
+            if new.iter().any(|report| {
                 matches!(
                     report,
                     Report::BadImport {

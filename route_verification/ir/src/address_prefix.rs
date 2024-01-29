@@ -184,7 +184,14 @@ pub fn get_range_operator_range(s: &str) -> Option<(&str, &str, &str)> {
 /// contains `ip`.
 /// Stop searching either end when the index do not point to `ip`'s siblings.
 pub fn match_ips(ip: &IpNet, ips: &[IpNet], range_operator: RangeOperator) -> bool {
-    let center = ips.binary_search(ip).map_or_else(identity, identity);
+    let center = ips.binary_search(ip);
+
+    // Exact match.
+    if let RangeOperator::NoOp = range_operator {
+        return center.is_ok();
+    }
+
+    let center = center.map_or_else(identity, identity);
     // Check center.
     if let Some(value) = ips.get(center) {
         if address_prefix_contains(value, range_operator, ip) {

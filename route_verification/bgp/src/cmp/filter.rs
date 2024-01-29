@@ -23,7 +23,7 @@ impl<'a> CheckFilter<'a> {
             AddrPrefixSet(prefixes) => self.filter_prefixes(prefixes),
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
-            AsSet(name, op) => self.filter_as_set(name, *op, depth, &mut visited()),
+            AsSet(name, op) => self.filter_as_set(name, *op),
             AsPathRE(expr) => self.filter_as_regex(expr, depth),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
@@ -86,13 +86,7 @@ impl<'a> CheckFilter<'a> {
     #[inline]
     pub fn is_filter_export_customer(&self, num: u32, op: RangeOperator) -> bool {
         if self.export && self.cmp.verbosity.check_customer && num == self.self_num {
-            self.filter_as_set(
-                &customer_set(num),
-                op,
-                self.cmp.recursion_limit,
-                &mut visited(),
-            )
-            .is_none()
+            self.filter_as_set(&customer_set(num), op).is_none()
         } else {
             false
         }
@@ -194,61 +188,31 @@ impl<'a> CheckFilter<'a> {
         }
     }
 
-    fn filter_as_set(
-        &self,
-        name: &'a str,
-        op: RangeOperator,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-    ) -> AnyReport {
-        let hash = visited.make_hash(&name);
-        if visited.contains_with_hash(&name, hash) {
-            return empty_bad_any_report();
-        }
-
-        if depth <= 0 {
-            return bad_any_report(RecFilterAsSet(name.into()));
-        }
-        let as_set_route = match self.query.as_set_routes.get(name) {
-            Some(r) => r,
+    fn filter_as_set(&self, name: &'a str, op: RangeOperator) -> AnyReport {
+        let as_set = match self.query.as_sets.get(name) {
+            Some(s) => s,
             None => return self.unrec_any_report(|| UnrecordedAsSetRoute(name.into())),
         };
 
-        if match_ips(&self.cmp.prefix, &as_set_route.routes, op) {
-            return None;
+        let mut all_members_recorded = true;
+        for num in &as_set.members {
+            match self.query.as_routes.get(num) {
+                Some(as_routes) => {
+                    if match_ips(&self.cmp.prefix, as_routes, op) {
+                        return None;
+                    }
+                }
+                None => all_members_recorded = false,
+            }
         }
 
-        self.filter_as_set_members(name, op, depth, visited, hash, as_set_route)
-    }
-
-    fn filter_as_set_members(
-        &self,
-        name: &'a str,
-        op: RangeOperator,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-        hash: u64,
-        as_set_route: &'a AsSetRoute,
-    ) -> AnyReport {
-        visited.insert_with_hash(name, hash);
-
-        let mut report = AnyReportCase::const_default();
-        for set in &as_set_route.set_members {
-            report |= self.filter_as_set(set, op, depth - 1, visited)?;
-        }
-
-        if !as_set_route.unrecorded_nums.is_empty() {
-            report |= self.unrec_any_report(|| UnrecordedSomeAsSetRoute(name.into()))?;
-        }
-
-        if let Some(spec_report) = self.is_filter_as_set_origin(name, op) {
-            report |= spec_report;
-        }
-
-        if let BadAnyReport(_) = report {
-            self.bad_any_report(|| MatchFilterAsSet(name.into(), op))
+        if all_members_recorded && as_set.unrecorded_members.is_empty() {
+            match self.is_filter_as_set_origin(name, op) {
+                spec_report @ Some(_) => spec_report,
+                None => self.bad_any_report(|| MatchFilterAsSet(name.into(), op)),
+            }
         } else {
-            Some(report)
+            self.unrec_any_report(|| UnrecordedSomeAsSetRoute(name.into()))
         }
     }
 
@@ -259,7 +223,7 @@ impl<'a> CheckFilter<'a> {
         let last = self.last_on_path()?;
         if let (true, Ok(true)) = (
             op.permits(&self.cmp.prefix),
-            self.set_has_member(as_set, last, self.cmp.recursion_limit, &mut visited()),
+            self.set_has_member(as_set, last),
         ) {
             self.special_any_report(|| SpecAsSetContainsOriginButNoRoute(as_set.into(), last))
         } else {
@@ -331,40 +295,18 @@ impl<'a> CheckFilter<'a> {
         self.bad_any_report(|| RpslInvalidFilter(reason.into()))
     }
 
-    /// `Err` contains all the skips.
-    pub fn set_has_member(
-        &self,
-        set: &'a str,
-        asn: u32,
-        depth: isize,
-        visited: &mut BloomHashSet<&'a str>,
-    ) -> Result<bool, AnyReport> {
-        if depth < 0 {
-            return Err(bad_any_report(RecCheckSetMember(set.into())));
-        }
-        let hash = visited.make_hash(&set);
-        if visited.contains_with_hash(&set, hash) {
-            return Err(empty_bad_any_report());
-        }
+    /// `Err` contains all the skips in an [`AnyReport`].
+    pub fn set_has_member(&self, set: &'a str, asn: u32) -> Result<bool, AnyReport> {
         let as_set = match self.query.as_sets.get(set) {
             Some(s) => s,
             None => return Err(self.unrec_any_report(|| UnrecordedAsSet(set.into()))),
         };
-        if as_set.is_any || as_set.members.contains(&asn) {
-            return Ok(true);
-        }
-        let mut report = SkipAnyReport(vec![]);
-        visited.insert_with_hash(set, hash);
-        for set in &as_set.set_members {
-            match self.set_has_member(set, asn, depth - 1, visited) {
-                Ok(true) => return Ok(true),
-                Ok(false) => (),
-                Err(err) => report |= err.unwrap(),
-            }
-        }
-        match report {
-            SkipAnyReport(items) if items.is_empty() => Ok(false),
-            report => Err(Some(report)),
+        if as_set.contains(&asn) {
+            Ok(true)
+        } else if !as_set.unrecorded_members.is_empty() {
+            Err(self.unrec_any_report(|| UnrecordedSomeAsSet(set.into())))
+        } else {
+            Ok(false)
         }
     }
 }
@@ -373,8 +315,4 @@ impl<'a> VerbosityReport for CheckFilter<'a> {
     fn get_verbosity(&self) -> Verbosity {
         self.cmp.verbosity
     }
-}
-
-pub(crate) fn visited<'a>() -> BloomHashSet<&'a str> {
-    BloomHashSet::with_capacity(16384, 262144)
 }

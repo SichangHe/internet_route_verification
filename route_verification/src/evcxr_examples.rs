@@ -14,6 +14,7 @@ mod as_neighbors_vs_rules;
 mod as_path_scan_all_ribs;
 mod as_set_graphing;
 mod as_stats;
+mod as_w_routes_wo_aut_num;
 mod as_w_single_rs_export;
 mod collect_source;
 mod count_asn_in_peering;

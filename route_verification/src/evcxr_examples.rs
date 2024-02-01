@@ -21,6 +21,7 @@ mod count_asn_in_peering;
 mod count_path_sets;
 mod count_router_info;
 mod filter_as;
+mod object_referred_in_rules;
 mod route_stats;
 mod specific_line;
 

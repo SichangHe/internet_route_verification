@@ -212,6 +212,7 @@ fn object_referred_in_rules(query: QueryIr) {
         as_set_list: query
             .as_sets
             .par_keys()
+            .filter(|name| !name.contains('#'))
             .map(|name| (name.clone(), Appearance::recorded()))
             .collect(),
         rs_list: query

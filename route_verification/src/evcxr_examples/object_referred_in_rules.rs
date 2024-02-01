@@ -4,7 +4,7 @@ use super::*;
 /// Copy this after running code from [`parse_bgp_lines`].
 fn object_referred_in_rules(query: QueryIr) {
     use std::collections::HashMap;
-    #[derive(Default)]
+    #[derive(Debug, Default)]
     struct Appearance {
         recorded: bool,
         import_peering: usize,
@@ -31,17 +31,7 @@ fn object_referred_in_rules(query: QueryIr) {
         }
     }
 
-    macro_rules! clean_up_vecs {
-        // For each expression passed in, run Vec::sort and Vec::dedup
-        ($($vec:expr),*) => {
-            $(
-                $vec.sort_unstable();
-                $vec.dedup();
-            )*
-        };
-    }
-
-    #[derive(Default)]
+    #[derive(Debug, Default)]
     struct Appeared {
         an_list: Vec<u32>,
         as_set_list: Vec<String>,
@@ -99,6 +89,15 @@ fn object_referred_in_rules(query: QueryIr) {
         }
 
         fn clean_up(&mut self) {
+            macro_rules! clean_up_vecs {
+                // For each expression passed in, run Vec::sort and Vec::dedup
+                ($($vec:expr),*) => {
+                    $(
+                        $vec.sort_unstable();
+                        $vec.dedup();
+                    )*
+                }
+            }
             clean_up_vecs!(
                 self.an_list,
                 self.as_set_list,
@@ -240,4 +239,105 @@ fn object_referred_in_rules(query: QueryIr) {
             query_record.add_rule(entry, true);
         }
     });
+
+    {
+        let mut file = BufWriter::new(File::create("as_num_appearances_in_rules.csv").unwrap());
+        file.write_all(b"as_num,recorded,import_peering,export_peering,import_filter,export_filter,import_overall,export_overall\n").unwrap();
+        for (num, appearance) in &query_record.an_list {
+            writeln!(
+                file,
+                "{},{},{},{},{},{},{},{}",
+                num,
+                appearance.recorded,
+                appearance.import_peering,
+                appearance.export_peering,
+                appearance.import_filter,
+                appearance.export_filter,
+                appearance.import_overall,
+                appearance.export_overall
+            )
+            .unwrap();
+        }
+    }
+
+    {
+        let mut file = BufWriter::new(File::create("as_set_appearances_in_rules.csv").unwrap());
+        file.write_all(b"as_set,recorded,import_peering,export_peering,import_filter,export_filter,import_overall,export_overall\n").unwrap();
+        for (set, appearance) in &query_record.as_set_list {
+            writeln!(
+                file,
+                "{},{},{},{},{},{},{},{}",
+                set,
+                appearance.recorded,
+                appearance.import_peering,
+                appearance.export_peering,
+                appearance.import_filter,
+                appearance.export_filter,
+                appearance.import_overall,
+                appearance.export_overall
+            )
+            .unwrap();
+        }
+    }
+
+    {
+        let mut file = BufWriter::new(File::create("route_set_appearances_in_rules.csv").unwrap());
+        file.write_all(b"route_set,recorded,import_peering,export_peering,import_filter,export_filter,import_overall,export_overall\n").unwrap();
+        for (set, appearance) in &query_record.rs_list {
+            writeln!(
+                file,
+                "{},{},{},{},{},{},{},{}",
+                set,
+                appearance.recorded,
+                appearance.import_peering,
+                appearance.export_peering,
+                appearance.import_filter,
+                appearance.export_filter,
+                appearance.import_overall,
+                appearance.export_overall
+            )
+            .unwrap();
+        }
+    }
+
+    {
+        let mut file =
+            BufWriter::new(File::create("peering_set_appearances_in_rules.csv").unwrap());
+        file.write_all(b"peering_set,recorded,import_peering,export_peering,import_filter,export_filter,import_overall,export_overall\n").unwrap();
+        for (set, appearance) in &query_record.ps_list {
+            writeln!(
+                file,
+                "{},{},{},{},{},{},{},{}",
+                set,
+                appearance.recorded,
+                appearance.import_peering,
+                appearance.export_peering,
+                appearance.import_filter,
+                appearance.export_filter,
+                appearance.import_overall,
+                appearance.export_overall
+            )
+            .unwrap();
+        }
+    }
+
+    {
+        let mut file = BufWriter::new(File::create("filter_set_appearances_in_rules.csv").unwrap());
+        file.write_all(b"filter_set,recorded,import_peering,export_peering,import_filter,export_filter,import_overall,export_overall\n").unwrap();
+        for (set, appearance) in &query_record.fs_list {
+            writeln!(
+                file,
+                "{},{},{},{},{},{},{},{}",
+                set,
+                appearance.recorded,
+                appearance.import_peering,
+                appearance.export_peering,
+                appearance.import_filter,
+                appearance.export_filter,
+                appearance.import_overall,
+                appearance.export_overall
+            )
+            .unwrap();
+        }
+    }
 }

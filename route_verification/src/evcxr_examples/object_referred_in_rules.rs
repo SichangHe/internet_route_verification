@@ -119,13 +119,9 @@ fn object_referred_in_rules(query: QueryIr) {
     impl QueryRecord {
         fn add_rule(&mut self, entry: &Entry, is_export: bool) {
             let mut as_expr_appeared = Appeared::default();
-            entry
-                .mp_peerings
-                .iter()
-                .map(|peering_action| &peering_action.mp_peering.remote_as)
-                .map(|as_expr| {
-                    as_expr_appeared.collect_as_expr(as_expr);
-                });
+            for peering_action in &entry.mp_peerings {
+                as_expr_appeared.collect_as_expr(&peering_action.mp_peering.remote_as);
+            }
             as_expr_appeared.clean_up();
 
             macro_rules! add_peerings {

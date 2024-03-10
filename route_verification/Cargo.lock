@@ -1320,19 +1320,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
-name = "rib_stats"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "dashmap",
- "env_logger",
- "human-duration",
- "log",
- "rayon",
- "route_verification",
-]
-
-[[package]]
 name = "route_verification"
 version = "0.3.0"
 dependencies = [
@@ -1511,6 +1498,19 @@ dependencies = [
  "route_verification_ir",
  "route_verification_lex",
  "route_verification_shared_struct",
+]
+
+[[package]]
+name = "route_verification_rib_stats"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "dashmap",
+ "env_logger",
+ "human-duration",
+ "log",
+ "rayon",
+ "route_verification",
 ]
 
 [[package]]

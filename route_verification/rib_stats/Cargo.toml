@@ -1,5 +1,5 @@
 [package]
-name = "rib_stats"
+name = "route_verification_rib_stats"
 version = "0.1.1"
 edition = "2021"
 description.workspace = true

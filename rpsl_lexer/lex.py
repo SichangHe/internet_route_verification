@@ -2,6 +2,7 @@
 Parse mp-import statement following
 <https://www.rfc-editor.org/rfc/rfc4012#section-2.5>
 """
+
 from pyparsing import (
     CaselessKeyword,
     Combine,

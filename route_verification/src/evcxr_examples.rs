@@ -24,6 +24,7 @@ mod filter_as;
 mod object_referred_in_rules;
 mod route_stats;
 mod specific_line;
+mod transit_as_rules;
 
 use crate as route_verification;
 

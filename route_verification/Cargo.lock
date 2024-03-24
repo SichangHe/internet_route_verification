@@ -549,6 +549,7 @@ dependencies = [
  "ahash",
  "allocator-api2",
  "rayon",
+ "serde",
 ]
 
 [[package]]
@@ -1321,7 +1322,7 @@ checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "route_verification"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "chardetng",
@@ -1620,6 +1621,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "743b4dc2cbde11890ccb254a8fc9d537fa41b36da00de2a1c5e9848c9bc42bd7"
 dependencies = [
  "log",
+]
+
+[[package]]
+name = "stat_route_objects"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "env_logger",
+ "hashbrown",
+ "log",
+ "rayon",
+ "route_verification",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

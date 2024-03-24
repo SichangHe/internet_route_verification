@@ -1,0 +1,19 @@
+[package]
+name = "stat_route_objects"
+version = "0.1.0"
+edition = "2021"
+description.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow.workspace = true
+env_logger.workspace = true
+hashbrown = { workspace = true, features = ["serde"] }
+log.workspace = true
+rayon.workspace = true
+route_verification.workspace = true
+serde.workspace = true
+serde_json.workspace = true

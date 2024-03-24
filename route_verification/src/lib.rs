@@ -3,7 +3,7 @@ use log::debug;
 
 pub use {as_rel, bgp, common_regex, io, ir, irr, lex, parse};
 
-mod fs;
+pub mod fs;
 
 pub fn parse_one(args: Vec<String>) -> Result<()> {
     if args.len() < 4 {

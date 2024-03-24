@@ -57,7 +57,21 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
         routes_defined_multiple_times.len()
     );
 
-    let route_defined_by_different_mntners: HashMap<_, _> = routes_defined_multiple_times
+    let n_route_w_different_origins = routes_defined_multiple_times
+        .iter()
+        .filter(|(_, routes)| {
+            let first_route = &routes[0];
+            routes[1..]
+                .iter()
+                .any(|route| route.origin != first_route.origin)
+        })
+        .count();
+    debug!(
+        "{} routes with different origins.",
+        n_route_w_different_origins
+    );
+
+    let n_route_defined_by_different_mntners = routes_defined_multiple_times
         .iter()
         .filter(|(_, routes)| {
             let first_route = &routes[0];
@@ -65,17 +79,16 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
                 .iter()
                 .any(|route| route.mnt_by != first_route.mnt_by)
         })
-        .collect();
+        .count();
     debug!(
         "{} routes defined by multiple maintainers.",
-        route_defined_by_different_mntners.len()
+        n_route_defined_by_different_mntners
     );
 
     warn!("Dumping routes defined multiple times.");
     let mut file = File::create("route_objects_defined_multiple_times.json")?;
     serde_json::to_writer(&mut file, &routes_defined_multiple_times)?;
 
-    // The other two maps can also be dumped.
     Ok(())
 }
 

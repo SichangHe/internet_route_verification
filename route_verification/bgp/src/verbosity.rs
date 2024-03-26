@@ -30,8 +30,8 @@ pub struct Verbosity {
     pub special_uphill: bool,
     /// Check for pseudo customer sets.
     pub check_customer: bool,
-    /// Check for peers that only specify imports from providers.
-    pub check_import_only_provider: bool,
+    /// Check for ASes that only specify policies for providers.
+    pub check_only_provider_policies: bool,
 }
 
 impl std::fmt::Debug for Verbosity {
@@ -50,7 +50,7 @@ impl std::fmt::Debug for Verbosity {
             record_community,
             special_uphill,
             check_customer,
-            check_import_only_provider,
+            check_only_provider_policies,
         } = self;
         for (is_true, tag) in [
             (stop_at_first, "stop_at_first"),
@@ -65,7 +65,7 @@ impl std::fmt::Debug for Verbosity {
             (record_community, "record_community"),
             (special_uphill, "special_uphill"),
             (check_customer, "check_customer"),
-            (check_import_only_provider, "check_import_only_provider"),
+            (check_only_provider_policies, "check_only_provider_policies"),
         ] {
             if *is_true {
                 result.entry(&tag);
@@ -98,7 +98,7 @@ impl Verbosity {
             per_filter_err: true,
             special_uphill: true,
             check_customer: true,
-            check_import_only_provider: true,
+            check_only_provider_policies: true,
             ..Self::least()
         }
     }
@@ -117,7 +117,7 @@ impl Verbosity {
             record_community: false,
             special_uphill: false,
             check_customer: false,
-            check_import_only_provider: false,
+            check_only_provider_policies: false,
         }
     }
 }

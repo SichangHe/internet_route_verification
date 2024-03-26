@@ -127,12 +127,10 @@ pub enum ReportItem {
     // Unique for each import/export.
     /// Route between Tier 1 ASes.
     SpecTier1Pair,
-    /// Import route between peers while Only Imports From Providers are
-    /// Specified (OIFPS).
-    SpecImportPeerOIFPS,
-    /// Import route from customer while Only Imports From Providers are
-    /// Specified (OIFPS).
-    SpecImportCustomerOIFPS,
+    /// Route between peers while only provider policies are specified.
+    SpecPeerOnlyProviderPolicies,
+    /// Import/export from customer while only provider policies are specified.
+    SpecCustomerOnlyProviderPolicies,
     /// Route from customer to provider that is tier-1.
     SpecUphillTier1,
     /// Route from customer to provider.

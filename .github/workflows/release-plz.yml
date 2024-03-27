@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - '.github/workflows/release-plz.yml'
+      - '**.rs'
       - '**Cargo.toml'
       - '**CHANGELOG.md'
 

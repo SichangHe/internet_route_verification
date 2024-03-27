@@ -17,50 +17,35 @@ impl Compare {
     }
 
     fn alter_report_with_relationship(&self, report: &mut Report, query: &QueryIr, db: &AsRelDb) {
-        match report {
-            BadImport { from, to, items } => match db.get(*to, *from) {
-                Some(P2C) if self.verbosity.special_uphill => {
-                    let reason = match db.is_clique(to) {
-                        true => SpecUphillTier1,
-                        false => SpecUphill,
-                    };
-                    *report = self.meh_import(*from, *to, mem::take(items), reason);
-                }
-                Some(P2P) if self.verbosity.check_import_only_provider => {
-                    if let Some(property) = query.as_properties.get(to) {
-                        if property.import_only_provider {
-                            let reason = SpecImportPeerOIFPS;
-                            *report = self.meh_import(*from, *to, mem::take(items), reason);
-                        }
-                    }
-                }
-                Some(C2P) if self.verbosity.check_import_only_provider => {
-                    if let Some(property) = query.as_properties.get(to) {
-                        if property.import_only_provider {
-                            let reason = SpecImportCustomerOIFPS;
-                            *report = self.meh_import(*from, *to, mem::take(items), reason);
-                        }
-                    }
-                }
-                _ if db.is_clique(from) && db.is_clique(to) => {
-                    *report = self.meh_import(*from, *to, mem::take(items), SpecTier1Pair);
-                }
-                _ => (),
-            },
-            BadExport { from, to, items } => match db.get(*to, *from) {
-                Some(P2C) if self.verbosity.special_uphill => {
-                    let reason = match db.is_clique(to) {
-                        true => SpecUphillTier1,
-                        false => SpecUphill,
-                    };
-                    *report = self.meh_export(*from, *to, mem::take(items), reason);
-                }
-                _ if db.is_clique(from) && db.is_clique(to) => {
-                    *report = self.meh_export(*from, *to, mem::take(items), SpecTier1Pair);
-                }
-                _ => (),
-            },
-            _ => (),
+        let (from, to, items, this_as, is_export) = match report {
+            BadImport { from, to, items } => (*from, *to, items, *to, false),
+            BadExport { from, to, items } => (*from, *to, items, *from, true),
+            _ => return,
+        };
+        let only_provider_policies =
+            || {
+                self.verbosity.check_only_provider_policies
+                    && query.as_properties.get(&this_as).map(|property| {
+                        property.import_only_provider && property.export_only_provider
+                    }) == Some(true)
+            };
+        let maybe_report_reason = match (db.get(from, to), is_export) {
+            (Some(C2P), _) if self.verbosity.special_uphill => Some(match db.is_clique(&to) {
+                true => SpecUphillTier1,
+                false => SpecUphill,
+            }),
+            (Some(P2P), _) if only_provider_policies() => Some(SpecPeerOnlyProviderPolicies),
+            (Some(C2P), false) | (Some(P2C), true) if only_provider_policies() => {
+                Some(SpecCustomerOnlyProviderPolicies)
+            }
+            _ if db.is_clique(&from) && db.is_clique(&to) => Some(SpecTier1Pair),
+            _ => None,
+        };
+        if let Some(reason) = maybe_report_reason {
+            *report = match is_export {
+                false => self.meh_import(from, to, mem::take(items), reason),
+                true => self.meh_export(from, to, mem::take(items), reason),
+            }
         }
     }
 }

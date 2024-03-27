@@ -97,5 +97,6 @@ hashbrown.workspace = true
 itertools.workspace = true
 net-literals.workspace = true
 polars.workspace = true
+serde_json.workspace = true
 
 graph.workspace = true

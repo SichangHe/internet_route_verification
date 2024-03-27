@@ -42,6 +42,7 @@ before running Evcxr is also needed.
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools
+:dep serde_json
 // */
 use anyhow::Result;
 use dashmap::{DashMap, DashSet};
@@ -94,6 +95,10 @@ fn parse_bgp_lines() -> Result<()> {
 
     let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
     let parsed = Ir::pal_read("parsed_all")?;
+    println!(
+        "{}",
+        serde_json::to_string(parsed.aut_nums.get(&33549).unwrap())?
+    );
     let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
     println!("{:#?}", query.aut_nums.iter().next());
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;

@@ -120,7 +120,9 @@ pub enum ReportItem {
     SpecAsSetContainsOriginButNoRoute(String, u32),
     /// Export customer routes while specifying the AS itself as `<filter>`.
     SpecExportCustomers,
-    /// Import from neighbor while specifying them as `<filter>`.
+    /// Import from customer while specifying them as `<filter>`.
+    SpecImportCustomer,
+    /// Import from non-customer neighbor while specifying them as `<filter>`.
     SpecImportFromNeighbor,
 
     // Special case for the whole import/export.

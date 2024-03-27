@@ -65,7 +65,16 @@ impl<'a> CheckFilter<'a> {
         } else if self.is_filter_as_origin(num, op) {
             self.special_any_report(|| SpecAsIsOriginButNoRoute(num))
         } else if self.is_filter_import_from_neighbor(num, op) {
-            self.special_any_report(|| SpecImportFromNeighbor)
+            let reason = match self
+                .query
+                .as_sets
+                .get(&customer_set(self.self_num))
+                .map(|customer_set| customer_set.contains(&num))
+            {
+                Some(true) => || SpecImportCustomer,
+                _ => || SpecImportFromNeighbor,
+            };
+            self.special_any_report(reason)
         } else {
             self.bad_any_report(|| MatchFilterAsNum(num, op))
         }
@@ -94,8 +103,8 @@ impl<'a> CheckFilter<'a> {
 
     /// Check for this case:
     /// - Importing.
-    /// - The customer AS is the `<filter>`.
-    /// - The `<peering>` is just the customer AS.
+    /// - The neighbor AS is the `<filter>`.
+    /// - The `<peering>` is just the neighbor AS.
     /// - The prefix length matches the range operator, if any.
     #[inline]
     pub fn is_filter_import_from_neighbor(&self, num: u32, op: RangeOperator) -> bool {

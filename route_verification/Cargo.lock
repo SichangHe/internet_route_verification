@@ -1347,6 +1347,7 @@ dependencies = [
  "route_verification_irr",
  "route_verification_lex",
  "route_verification_parse",
+ "serde_json",
 ]
 
 [[package]]

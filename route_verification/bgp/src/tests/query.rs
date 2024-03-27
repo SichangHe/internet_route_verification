@@ -14,6 +14,12 @@ fn psedo_customer_set() -> Result<()> {
 
 fn expected_as_sets() -> HashMap<String, QueryAsSet> {
     hashmap! {
+        "AS33549:AS-ALL".into()=> QueryAsSet {
+            body: "".into(), members: HashSet::from([33549]), unrecorded_members: vec![], is_any: false
+        },
+        "c#1299".into()=> QueryAsSet {
+            body: "".into(), members: HashSet::from([33549]), unrecorded_members: vec![], is_any: false
+        },
         "c#2914".into()=> QueryAsSet {
             body: "".into(), members:  HashSet::from([4096, 9583]), unrecorded_members: vec![], is_any: false
         },

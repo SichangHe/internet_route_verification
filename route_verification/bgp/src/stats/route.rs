@@ -186,7 +186,7 @@ impl<T: Inc> RouteStats<T> {
                 SpecPeerOnlyProviderPolicies => self.spec_peer_only_provider_policies.inc(),
                 SpecCustomerOnlyProviderPolicies => self.spec_customer_only_provider_policies.inc(),
                 SpecExportCustomers => self.spec_export_customers.inc(),
-                SpecImportCustomer => self.spec_import_from_neighbor.inc(),
+                SpecImportCustomer => self.spec_import_customer.inc(),
                 SpecImportFromNeighbor => self.spec_import_from_neighbor.inc(),
                 SpecAsIsOriginButNoRoute(_) => self.spec_as_is_origin_but_no_route.inc(),
                 SpecAsSetContainsOriginButNoRoute(_, _) => {

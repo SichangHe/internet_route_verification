@@ -16,8 +16,8 @@ as_stats = CsvFile(
 )
 """From <https://github.com/SichangHe/internet_route_verification/pull/120>."""
 route_stats = CsvFile(
-    "route_stats4.csv.gz",
-    "https://github.com/SichangHe/internet_route_verification/releases/download/data-120/route_stats4.csv.gz",
+    "route_stats5.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/releases/download/data-142/route_stats5.csv.gz",
 )
 """From <https://github.com/SichangHe/internet_route_verification/pull/120>."""
 

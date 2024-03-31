@@ -3,7 +3,7 @@ use std::{
     io::{BufRead, BufWriter, Write},
     mem,
     path::Path,
-    sync::mpsc::channel,
+    sync::mpsc::{channel, sync_channel},
     thread::spawn,
     time::Instant,
 };
@@ -83,11 +83,13 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         .next()
         .expect("First split always succeeds.");
 
-    let route_stats_filename = format!("{collector}--route_stats.csv");
-    let as_stats_filename = format!("{collector}--as_stats.csv");
-    let as_pair_stats_filename = format!("{collector}--as_pair_stats.csv");
+    let route_stats_filename = format!("{collector}--route_stats2.csv");
+    let route_first_hop_stats_filename = format!("{collector}--route_first_hop_stats2.csv");
+    let as_stats_filename = format!("{collector}--as_stats2.csv");
+    let as_pair_stats_filename = format!("{collector}--as_pair_stats2.csv");
     if [
         &route_stats_filename,
+        &route_first_hop_stats_filename,
         &as_stats_filename,
         &as_pair_stats_filename,
     ]
@@ -99,7 +101,8 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
     }
 
     debug!("Starting to process RIB file `{rib_file_name}` for collector `{collector}`.");
-    let (line_sender, line_receiver) = channel();
+    // Bounded channel to apply back pressure to bgpdump Stdout.
+    let (line_sender, line_receiver) = sync_channel(8);
     let mut bgpdump_child = read_mrt(rib_file)?;
     let bgpdump_handler = spawn(move || {
         let mut line = String::new();
@@ -138,6 +141,24 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         })
     };
 
+    let (route_first_hop_stats_sender, route_first_hop_stats_receiver) = channel::<RouteStats<_>>();
+    let route_first_hop_stats_writer = {
+        let mut route_first_hop_stats_file =
+            BufWriter::new(File::create(route_first_hop_stats_filename)?);
+        route_first_hop_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
+        route_first_hop_stats_file.write_all(b"\n")?;
+
+        spawn(move || -> Result<_> {
+            while let Ok(stats) = route_first_hop_stats_receiver.recv() {
+                route_first_hop_stats_file.write_all(&stats.as_csv_bytes())?;
+                route_first_hop_stats_file.write_all(b"\n")?;
+            }
+            route_first_hop_stats_file.flush()?;
+
+            Ok(())
+        })
+    };
+
     let n_route_stats = line_receiver
         .into_iter()
         .par_bridge()
@@ -155,10 +176,18 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
                 as_pair::one(db, &as_pair_map, report);
                 route::one(&mut stats, report);
             }
-
             route_stats_sender
                 .send(stats)
                 .expect("`route_stats_sender` should not have been closed.");
+
+            let mut first_hop_stats = RouteStats::default();
+            // Assume that reports for the first hop are the first two.
+            for report in reports.iter().take(2) {
+                route::one(&mut first_hop_stats, report)
+            }
+            route_first_hop_stats_sender
+                .send(first_hop_stats)
+                .expect("`route_first_hop_stats_sender` should not have been closed.");
         })
         .count();
     drop(route_stats_sender); // Close channel.
@@ -173,6 +202,14 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         as_pair_map.len(),
         human_duration(&start.elapsed())
     );
+
+    route_stats_writer
+        .join()
+        .expect("Route stats writer thread should not panic.")?;
+    route_first_hop_stats_writer
+        .join()
+        .expect("Route stats writer thread should not panic.")?;
+    debug!("Wrote route stats for `{collector}`.");
 
     {
         let start = Instant::now();
@@ -226,11 +263,6 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
             human_duration(&start.elapsed())
         );
     }
-
-    route_stats_writer
-        .join()
-        .expect("Route stats writer thread should not panic.")?;
-    debug!("Wrote route stats for `{collector}`.");
 
     Ok(())
 }

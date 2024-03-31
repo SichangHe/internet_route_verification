@@ -226,8 +226,8 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
             }
 
             for export_as in appear.peering {
-                if as_num == export_peering_self {
-                    export_self += 1;
+                if as_num == export_as {
+                    export_peering_self += 1;
                 }
                 match db.get(as_num, export_as) {
                     Some(Relationship::C2P) => export_peering_provider += 1,
@@ -238,8 +238,8 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
             }
 
             for export_as in appear.filter {
-                if as_num == export_filter_self {
-                    export_self += 1;
+                if as_num == export_as {
+                    export_filter_self += 1;
                 }
                 match db.get(as_num, export_as) {
                     Some(Relationship::C2P) => export_filter_provider += 1,

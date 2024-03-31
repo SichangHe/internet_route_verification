@@ -801,6 +801,6 @@ route_set_appearances_in_rules = CsvFile(
 
 transit_as_stats = CsvFile(
     "transit_as_stats.csv",
-    "https://github.com/SichangHe/internet_route_verification/files/14816058/transit_as_stats.csv",
+    "https://github.com/SichangHe/internet_route_verification/files/14816185/transit_as_stats.csv",
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/134#issuecomment-2028748974>."""

@@ -10,6 +10,7 @@ use std::{
 
 use anyhow::Result;
 use dashmap::DashMap;
+use flate2::{write::GzEncoder, Compression};
 use human_duration::human_duration;
 use log::{debug, error, info};
 use rayon::prelude::*;
@@ -83,10 +84,10 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         .next()
         .expect("First split always succeeds.");
 
-    let route_stats_filename = format!("{collector}--route_stats2.csv");
-    let route_first_hop_stats_filename = format!("{collector}--route_first_hop_stats2.csv");
-    let as_stats_filename = format!("{collector}--as_stats2.csv");
-    let as_pair_stats_filename = format!("{collector}--as_pair_stats2.csv");
+    let route_stats_filename = format!("{collector}--route_stats2.csv.gz");
+    let route_first_hop_stats_filename = format!("{collector}--route_first_hop_stats2.csv.gz");
+    let as_stats_filename = format!("{collector}--as_stats2.csv.gz");
+    let as_pair_stats_filename = format!("{collector}--as_pair_stats2.csv.gz");
     if [
         &route_stats_filename,
         &route_first_hop_stats_filename,
@@ -126,7 +127,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
 
     let (route_stats_sender, route_stats_receiver) = channel::<RouteStats<_>>();
     let route_stats_writer = {
-        let mut route_stats_file = BufWriter::new(File::create(route_stats_filename)?);
+        let mut route_stats_file = gzip_file(route_stats_filename)?;
         route_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
         route_stats_file.write_all(b"\n")?;
 
@@ -143,8 +144,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
 
     let (route_first_hop_stats_sender, route_first_hop_stats_receiver) = channel::<RouteStats<_>>();
     let route_first_hop_stats_writer = {
-        let mut route_first_hop_stats_file =
-            BufWriter::new(File::create(route_first_hop_stats_filename)?);
+        let mut route_first_hop_stats_file = gzip_file(route_first_hop_stats_filename)?;
         route_first_hop_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
         route_first_hop_stats_file.write_all(b"\n")?;
 
@@ -213,7 +213,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
 
     {
         let start = Instant::now();
-        let mut as_stats_file = BufWriter::new(File::create(as_stats_filename)?);
+        let mut as_stats_file = gzip_file(as_stats_filename)?;
         as_stats_file.write_all(b"aut_num,")?;
         as_stats_file.write_all(csv_header.trim_end_matches(',').as_bytes())?;
         as_stats_file.write_all(b"\n")?;
@@ -233,7 +233,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
 
     {
         let start = Instant::now();
-        let mut as_pair_stats_file = BufWriter::new(File::create(as_pair_stats_filename)?);
+        let mut as_pair_stats_file = gzip_file(as_pair_stats_filename)?;
         as_pair_stats_file.write_all(b"from,to,")?;
         as_pair_stats_file.write_all(csv_header.as_bytes())?;
         as_pair_stats_file.write_all(b"relationship\n")?;
@@ -265,4 +265,11 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
     }
 
     Ok(())
+}
+
+fn gzip_file(path: impl AsRef<Path>) -> Result<GzEncoder<BufWriter<File>>> {
+    Ok(GzEncoder::new(
+        BufWriter::new(File::create(path)?),
+        Compression::default(),
+    ))
 }

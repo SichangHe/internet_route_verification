@@ -12,6 +12,7 @@ repository.workspace = true
 anyhow.workspace = true
 dashmap.workspace = true
 env_logger.workspace = true
+flate2.workspace = true
 human-duration = "0.1"
 log.workspace = true
 rayon.workspace = true

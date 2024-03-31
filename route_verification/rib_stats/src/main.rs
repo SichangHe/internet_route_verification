@@ -102,7 +102,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
 
     debug!("Starting to process RIB file `{rib_file_name}` for collector `{collector}`.");
     // Bounded channel to apply back pressure to bgpdump Stdout.
-    let (line_sender, line_receiver) = sync_channel(8);
+    let (line_sender, line_receiver) = sync_channel(32);
     let mut bgpdump_child = read_mrt(rib_file)?;
     let bgpdump_handler = spawn(move || {
         let mut line = String::new();
@@ -190,7 +190,7 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
                 .expect("`route_first_hop_stats_sender` should not have been closed.");
         })
         .count();
-    drop(route_stats_sender); // Close channel.
+    drop((route_stats_sender, route_first_hop_stats_sender)); // Close channels.
 
     bgpdump_handler
         .join()

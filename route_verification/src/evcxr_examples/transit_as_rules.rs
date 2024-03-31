@@ -1,8 +1,12 @@
 use super::*;
 
 /// Generate sources for ASes with unrecorded AutNum.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
+/// Copy the whole function after running code from [`parse_bgp_lines`],
+/// and run as
+/// ```no_run
+/// transit_as_rules(&query, &db)
+/// ```
+fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
     let mut transit_ases: Vec<u32> = db
         .source2dest
         .iter()
@@ -24,48 +28,73 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
     }
 
     impl Appear {
-        fn record_as_expr(&mut self, as_expr: &AsExpr) {
+        fn record_as_expr(&mut self, as_expr: &AsExpr, query: &QueryIr) {
             match as_expr {
-                AsExpr::Single(name) => match name {
-                    AsName::Num(num) => {
-                        self.overall.push(*num);
-                        self.peering.push(*num);
+                AsExpr::Single(AsName::Num(num)) => {
+                    self.overall.push(*num);
+                    self.peering.push(*num);
+                }
+                AsExpr::Single(AsName::Set(name)) => {
+                    if let Some(as_set) = query.as_sets.get(name) {
+                        self.overall.extend(&as_set.members);
+                        self.peering.extend(&as_set.members);
                     }
-                    AsName::Set(name) => todo!(),
-                    _ => {}
-                },
-                AsExpr::PeeringSet(_) => todo!(),
+                }
+                AsExpr::Single(AsName::Any | AsName::Invalid(_)) => {}
+                AsExpr::PeeringSet(name) => {
+                    if let Some(peering_set) = query.peering_sets.get(name) {
+                        for peering in &peering_set.peerings {
+                            self.record_as_expr(&peering.remote_as, query);
+                        }
+                    }
+                }
                 AsExpr::And { left, right }
                 | AsExpr::Or { left, right }
                 | AsExpr::Except { left, right } => {
-                    self.record_as_expr(left);
-                    self.record_as_expr(right);
+                    self.record_as_expr(left, query);
+                    self.record_as_expr(right, query);
                 }
-                AsExpr::Group(as_expr) => self.record_as_expr(as_expr),
+                AsExpr::Group(as_expr) => self.record_as_expr(as_expr, query),
             }
         }
-        fn record_filter(&mut self, filter: &Filter) {
+        fn record_filter(&mut self, filter: &Filter, query: &QueryIr) {
             match filter {
-                Filter::FilterSet(_) => todo!(),
-                Filter::RouteSet(_, _) => todo!(),
+                Filter::FilterSet(name) => {
+                    if let Some(filter_set) = query.filter_sets.get(name) {
+                        for filter in &filter_set.filters {
+                            self.record_filter(filter, query);
+                        }
+                    }
+                }
                 Filter::AsNum(num, _) => {
                     self.overall.push(*num);
                     self.filter.push(*num);
                 }
-                Filter::AsSet(_, _) => todo!(),
-                Filter::And { left, right } | Filter::Or { left, right } => {
-                    self.record_filter(left);
-                    self.record_filter(right);
+                Filter::AsSet(name, _) => {
+                    if let Some(as_set) = query.as_sets.get(name) {
+                        self.overall.extend(&as_set.members);
+                        self.filter.extend(&as_set.members)
+                    }
                 }
-                Filter::Not(filter) | Filter::Group(filter) => self.record_filter(filter),
-                _ => (),
+                Filter::And { left, right } | Filter::Or { left, right } => {
+                    self.record_filter(left, query);
+                    self.record_filter(right, query);
+                }
+                Filter::Not(filter) | Filter::Group(filter) => self.record_filter(filter, query),
+                Filter::Any
+                | Filter::AddrPrefixSet(_)
+                | Filter::RouteSet(_, _)
+                | Filter::AsPathRE(_)
+                | Filter::Community(_)
+                | Filter::Unknown(_)
+                | Filter::Invalid(_) => {}
             }
         }
-        fn record_entry(&mut self, entry: &Entry) {
+        fn record_entry(&mut self, entry: &Entry, query: &QueryIr) {
             for peering_action in &entry.mp_peerings {
-                self.record_as_expr(&peering_action.mp_peering.remote_as);
+                self.record_as_expr(&peering_action.mp_peering.remote_as, query);
             }
-            self.record_filter(&entry.mp_filter);
+            self.record_filter(&entry.mp_filter, query);
         }
         fn clean_up(&mut self) {
             self.overall.sort_unstable();
@@ -87,9 +116,9 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
         };
     }
 
-    for as_num in &transit_ases {
+    for &as_num in &transit_ases {
         file.write_all(as_num.to_string().as_bytes())?;
-        let Some(aut_num) = query.aut_nums.get(as_num) else {
+        let Some(aut_num) = query.aut_nums.get(&as_num) else {
             file.write_all(b",-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1\n");
             continue;
         };
@@ -109,16 +138,16 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             let mut import_filter_other = 0;
 
             let mut appear = Appear {
-                as_num: *as_num,
+                as_num,
                 ..Default::default()
             };
             for entry in aut_num.imports.entries_iter() {
-                appear.record_entry(entry);
+                appear.record_entry(entry, query);
             }
             appear.clean_up();
 
             for import_as in appear.overall {
-                match db.get(*as_num, import_as) {
+                match db.get(as_num, import_as) {
                     Some(Relationship::C2P) => import_provider += 1,
                     Some(Relationship::P2P) => import_peer += 1,
                     Some(Relationship::P2C) => import_customer += 1,
@@ -127,7 +156,7 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             }
 
             for import_as in appear.peering {
-                match db.get(*as_num, import_as) {
+                match db.get(as_num, import_as) {
                     Some(Relationship::C2P) => import_peering_provider += 1,
                     Some(Relationship::P2P) => import_peering_peer += 1,
                     Some(Relationship::P2C) => import_peering_customer += 1,
@@ -136,7 +165,7 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             }
 
             for import_as in appear.filter {
-                match db.get(*as_num, import_as) {
+                match db.get(as_num, import_as) {
                     Some(Relationship::C2P) => import_filter_provider += 1,
                     Some(Relationship::P2P) => import_filter_peer += 1,
                     Some(Relationship::P2C) => import_filter_customer += 1,
@@ -176,19 +205,19 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             let mut export_filter_self = 0;
 
             let mut appear = Appear {
-                as_num: *as_num,
+                as_num,
                 ..Default::default()
             };
             for entry in aut_num.exports.entries_iter() {
-                appear.record_entry(entry);
+                appear.record_entry(entry, query);
             }
             appear.clean_up();
 
             for export_as in appear.overall {
-                if *as_num == export_as {
+                if as_num == export_as {
                     export_self += 1;
                 }
-                match db.get(*as_num, export_as) {
+                match db.get(as_num, export_as) {
                     Some(Relationship::C2P) => export_provider += 1,
                     Some(Relationship::P2P) => export_peer += 1,
                     Some(Relationship::P2C) => export_customer += 1,
@@ -197,10 +226,10 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             }
 
             for export_as in appear.peering {
-                if *as_num == export_peering_self {
+                if as_num == export_peering_self {
                     export_self += 1;
                 }
-                match db.get(*as_num, export_as) {
+                match db.get(as_num, export_as) {
                     Some(Relationship::C2P) => export_peering_provider += 1,
                     Some(Relationship::P2P) => export_peering_peer += 1,
                     Some(Relationship::P2C) => export_peering_customer += 1,
@@ -209,10 +238,10 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             }
 
             for export_as in appear.filter {
-                if *as_num == export_filter_self {
+                if as_num == export_filter_self {
                     export_self += 1;
                 }
-                match db.get(*as_num, export_as) {
+                match db.get(as_num, export_as) {
                     Some(Relationship::C2P) => export_filter_provider += 1,
                     Some(Relationship::P2P) => export_filter_peer += 1,
                     Some(Relationship::P2C) => export_filter_customer += 1,
@@ -236,7 +265,11 @@ fn transit_as_rules(query: QueryIr, db: AsRelDb) -> Result<()> {
             write_comma_num!(export_peering_self);
             write_comma_num!(export_filter_self);
         }
+        file.write_all(b"\n")?;
     }
+
+    file.flush()?;
+    drop(file);
 
     Ok(())
 }

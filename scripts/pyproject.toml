@@ -1,0 +1,15 @@
+# To help LSP find project root.
+[tool.poetry]
+name = "scripts"
+version = "0.1.0"
+description = ""
+authors = ["Steven Hé (Sīchàng) <sichang.he@dukekunshan.edu.cn>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

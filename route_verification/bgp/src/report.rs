@@ -133,6 +133,9 @@ pub enum ReportItem {
     SpecPeerOnlyProviderPolicies,
     /// Import/export from customer while only provider policies are specified.
     SpecCustomerOnlyProviderPolicies,
+    /// Import/export from non-peer/customer while only provider policies are
+    /// specified.
+    SpecOtherOnlyProviderPolicies,
     /// Route from customer to provider that is tier-1.
     SpecUphillTier1,
     /// Route from customer to provider.

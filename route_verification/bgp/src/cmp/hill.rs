@@ -30,14 +30,15 @@ impl Compare {
                     }) == Some(true)
             };
         let maybe_report_reason = match (db.get(from, to), is_export) {
-            (Some(C2P), _) if self.verbosity.special_uphill => Some(match db.is_clique(&to) {
-                true => SpecUphillTier1,
-                false => SpecUphill,
-            }),
             (Some(P2P), _) if only_provider_policies() => Some(SpecPeerOnlyProviderPolicies),
             (Some(C2P), false) | (Some(P2C), true) if only_provider_policies() => {
                 Some(SpecCustomerOnlyProviderPolicies)
             }
+            (None, _) if only_provider_policies() => Some(SpecOtherOnlyProviderPolicies),
+            (Some(C2P), _) if self.verbosity.special_uphill => Some(match db.is_clique(&to) {
+                true => SpecUphillTier1,
+                false => SpecUphill,
+            }),
             _ if db.is_clique(&from) && db.is_clique(&to) => Some(SpecTier1Pair),
             _ => None,
         };

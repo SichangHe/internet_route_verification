@@ -1,5 +1,5 @@
 use std::{
-    fs::{read_dir, File},
+    fs::{create_dir, read_dir, File},
     io::{BufRead, BufWriter, Write},
     mem,
     path::Path,
@@ -47,6 +47,8 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
+    _ = create_dir("all3");
+
     let mut failed = vec![];
     for rib_file in &rib_files {
         match process_rib_file(&query, &db, rib_file) {
@@ -84,10 +86,10 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         .next()
         .expect("First split always succeeds.");
 
-    let route_stats_filename = format!("{collector}--route_stats2.csv.gz");
-    let route_first_hop_stats_filename = format!("{collector}--route_first_hop_stats2.csv.gz");
-    let as_stats_filename = format!("{collector}--as_stats2.csv.gz");
-    let as_pair_stats_filename = format!("{collector}--as_pair_stats2.csv.gz");
+    let route_stats_filename = format!("all3/{collector}--route_stats3.csv.gz");
+    let route_first_hop_stats_filename = format!("all3/{collector}--route_first_hop_stats3.csv.gz");
+    let as_stats_filename = format!("all3/{collector}--as_stats3.csv.gz");
+    let as_pair_stats_filename = format!("all3/{collector}--as_pair_stats3.csv.gz");
     if [
         &route_stats_filename,
         &route_first_hop_stats_filename,

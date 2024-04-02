@@ -1,8 +1,8 @@
 """Run at `scripts/` with `python3 -m scripts.fig.as_spec_stacked_area`.
 """
 
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 

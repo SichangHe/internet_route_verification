@@ -20,7 +20,6 @@ TAGS = ("ok", "skip", "unrec", "meh", "err")
 def read_as_pair_stats(file: CsvFile):
     return pd.read_csv(
         file.path,
-        dtype="uint",
         index_col=["from", "to"],
         usecols=["from", "to"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],
         engine="pyarrow",
@@ -30,7 +29,10 @@ def read_as_pair_stats(file: CsvFile):
 def plot():
     with futures.ProcessPoolExecutor() as executor:
         df = (
-            pd.concat(executor.map(read_as_pair_stats, FILES), copy=False)
+            pd.concat(
+                (d for d in executor.map(read_as_pair_stats, FILES) if len(d) > 0),
+                copy=False,
+            )
             .groupby(["from", "to"])
             .sum(engine="pyarrow")
         )

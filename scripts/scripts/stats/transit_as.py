@@ -43,6 +43,7 @@ def main() -> None:
     FILE.download_if_missing()
     df = pd.read_csv(FILE.path)
     n_transit_as = len(df)
+    df_raw = df
 
     df = df[df[FIELDS[1]] != -1]
     n_recorded_transit_as = len(df)
@@ -54,6 +55,21 @@ def main() -> None:
     n_w_export_filter_self = len(w_export_filter_self)
     print(
         f"{n_w_export_filter_self} with at least one export rule where they appear in the filter ({n_w_export_filter_self * 100 / n_recorded_transit_as:2f}%)"
+    )
+
+    df = df_raw
+    df = df[
+        (df["import_peer"] == 0)
+        & (df["import_customer"] == 0)
+        & (df["import_other"] == 0)
+        & (df["export_peer"] == 0)
+        & (df["export_customer"] == 0)
+        & (df["export_other"] == 0)
+        & ((df["import_provider"] > 0) | (df["export_provider"] > 0))
+    ]
+    n_only_provider_policies = len(df)
+    print(
+        f"{n_only_provider_policies} only specify policies for providers ({n_only_provider_policies * 100 / n_recorded_transit_as:2f}%)"
     )
 
 

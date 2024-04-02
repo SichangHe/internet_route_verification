@@ -9,23 +9,13 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from scripts import CsvFile
+from scripts.csv_fields import SPECIAL_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.csv_files import as_stats_all
 from scripts.fig import smart_sample
 
 FILES = as_stats_all
 PORTS = ("import", "export")
 LEVELS = ("ok", "skip", "unrec", "meh", "err")
-TAGS = (
-    "spec_export_customers",
-    "spec_as_is_origin_but_no_route",
-    "spec_as_set_contains_origin_but_no_route",
-    "spec_import_from_neighbor",
-    "spec_uphill",
-    "spec_uphill_tier1",
-    "spec_tier1_pair",
-    "spec_import_peer_oifps",
-    "spec_import_customer_oifps",
-)
 
 
 def read_as_stats(file: CsvFile):
@@ -80,6 +70,7 @@ def plot():
         indexes,
         values,
         labels=[
+            # FIXME: Should be changed.
             "%Export Customer",
             "%AS Is Origin",
             "%as-set ∋ Origin",

@@ -8,21 +8,11 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from scripts.csv_fields import SPECIAL_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.csv_files import as_pair_stats
 from scripts.fig import smart_sample
 
 FILE = as_pair_stats
-TAGS = (
-    "spec_export_customers",
-    "spec_as_is_origin_but_no_route",
-    "spec_as_set_contains_origin_but_no_route",
-    "spec_import_from_neighbor",
-    "spec_uphill",
-    "spec_uphill_tier1",
-    "spec_tier1_pair",
-    "spec_import_peer_oifps",
-    "spec_import_customer_oifps",
-)
 
 
 def plot():

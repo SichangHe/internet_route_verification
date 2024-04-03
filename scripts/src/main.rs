@@ -1,4 +1,3 @@
-#![allow(clippy::unnecessary_lazy_evaluations)]
 use core::cmp::Ordering::*;
 use std::{
     collections::BTreeMap,
@@ -8,7 +7,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use flate2::read::GzDecoder;
+use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use rayon::prelude::*;
 
 #[allow(dead_code)]
@@ -23,242 +22,246 @@ const fn CsvFile(path: &'static str, url: &'static str) -> CsvFile {
 }
 
 /// Copied from `scripts/csv_files.py`.
-const ROUTE_STATS_ALL: [CsvFile;59]  = [
+const ROUTE_STATS_ALL: [CsvFile; 60]  = [
     CsvFile(
-        "pacwave.lax--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/pacwave.lax--route_stats1.csv.gz",
+        "all3/oix-route-views--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/oix-route-views--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.amsix--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.amsix--route_stats1.csv.gz",
+        "all3/pacwave.lax--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/pacwave.lax--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.bdix--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.bdix--route_stats1.csv.gz",
+        "all3/route-views.amsix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.amsix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.bknix--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.bknix--route_stats1.csv",
+        "all3/route-views.bdix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.bdix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.chicago--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.chicago--route_stats1.csv.gz",
+        "all3/route-views.bknix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.bknix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.chile--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.chile--route_stats1.csv.gz",
+        "all3/route-views.chicago--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.chicago--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.decix-jhb--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.decix-jhb--route_stats1.csv.gz",
+        "all3/route-views.chile--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.chile--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.eqix--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.eqix--route_stats1.csv.gz",
+        "all3/route-views.decix-jhb--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.decix-jhb--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.flix--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.flix--route_stats1.csv.gz",
+        "all3/route-views.eqix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.eqix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.fortaleza--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.fortaleza--route_stats1.csv.gz",
+        "all3/route-views.flix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.flix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.gixa--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.gixa--route_stats1.csv",
+        "all3/route-views.fortaleza--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.fortaleza--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.gorex--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.gorex--route_stats1.csv",
+        "all3/route-views.gixa--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.gixa--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.isc--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.isc--route_stats1.csv.gz",
+        "all3/route-views.gorex--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.gorex--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.kixp--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.kixp--route_stats1.csv.gz",
+        "all3/route-views.isc--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.isc--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.linx--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.linx--route_stats1.csv.gz",
+        "all3/route-views.kixp--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.kixp--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.mwix--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.mwix--route_stats1.csv",
+        "all3/route-views.linx--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.linx--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.napafrica--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.napafrica--route_stats1.csv.gz",
+        "all3/route-views.mwix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.mwix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.nwax--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.nwax--route_stats1.csv.gz",
+        "all3/route-views.napafrica--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.napafrica--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.ny--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.ny--route_stats1.csv.gz",
+        "all3/route-views.nwax--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.nwax--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.perth--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.perth--route_stats1.csv.gz",
+        "all3/route-views.ny--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.ny--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.peru--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.peru--route_stats1.csv",
+        "all3/route-views.perth--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.perth--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.phoix--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.phoix--route_stats1.csv",
+        "all3/route-views.peru--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.peru--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.rio--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.rio--route_stats1.csv.gz",
+        "all3/route-views.phoix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.phoix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.sfmix--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.sfmix--route_stats1.csv.gz",
+        "all3/route-views.rio--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.rio--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.sg--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.sg--route_stats1.csv.gz",
+        "all3/route-views.sfmix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.sfmix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.soxrs--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.soxrs--route_stats1.csv.gz",
+        "all3/route-views.sg--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.sg--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.sydney--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.sydney--route_stats1.csv.gz",
+        "all3/route-views.soxrs--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.soxrs--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.telxatl--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.telxatl--route_stats1.csv.gz",
+        "all3/route-views.sydney--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.sydney--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.uaeix--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.uaeix--route_stats1.csv.gz",
+        "all3/route-views.telxatl--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.telxatl--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views.wide--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views.wide--route_stats1.csv.gz",
+        "all3/route-views.uaeix--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.uaeix--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views2--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views2--route_stats1.csv.gz",
+        "all3/route-views.wide--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views.wide--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views2.saopaulo--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views2.saopaulo--route_stats1.csv.gz",
+        "all3/route-views2--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views2--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views3--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views3--route_stats1.csv.gz",
+        "all3/route-views2.saopaulo--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views2.saopaulo--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views4--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views4--route_stats1.csv.gz",
+        "all3/route-views3--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views3--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views5--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views5--route_stats1.csv.gz",
+        "all3/route-views4--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views4--route_stats3.csv.gz",
     ),
     CsvFile(
-        "route-views6--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/route-views6--route_stats1.csv.gz",
+        "all3/route-views5--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views5--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc00--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc00--route_stats1.csv.gz",
+        "all3/route-views6--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/route-views6--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc01--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc01--route_stats1.csv.gz",
+        "all3/rrc00--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc00--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc03--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc03--route_stats1.csv.gz",
+        "all3/rrc01--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc01--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc04--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc04--route_stats1.csv.gz",
+        "all3/rrc03--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc03--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc05--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc05--route_stats1.csv.gz",
+        "all3/rrc04--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc04--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc06--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc06--route_stats1.csv.gz",
+        "all3/rrc05--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc05--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc07--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc07--route_stats1.csv.gz",
+        "all3/rrc06--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc06--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc10--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc10--route_stats1.csv.gz",
+        "all3/rrc07--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc07--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc11--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc11--route_stats1.csv.gz",
+        "all3/rrc10--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc10--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc12--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc12--route_stats1.csv.gz",
+        "all3/rrc11--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc11--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc13--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc13--route_stats1.csv.gz",
+        "all3/rrc12--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc12--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc14--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc14--route_stats1.csv.gz",
+        "all3/rrc13--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc13--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc15--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc15--route_stats1.csv.gz",
+        "all3/rrc14--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc14--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc16--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc16--route_stats1.csv.gz",
+        "all3/rrc15--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc15--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc18--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc18--route_stats1.csv.gz",
+        "all3/rrc16--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc16--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc19--route_stats1.csv",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc19--route_stats1.csv",
+        "all3/rrc18--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc18--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc20--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc20--route_stats1.csv.gz",
+        "all3/rrc19--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc19--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc21--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc21--route_stats1.csv.gz",
+        "all3/rrc20--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc20--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc22--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc22--route_stats1.csv.gz",
+        "all3/rrc21--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc21--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc23--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc23--route_stats1.csv.gz",
+        "all3/rrc22--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc22--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc24--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc24--route_stats1.csv.gz",
+        "all3/rrc23--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc23--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc25--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc25--route_stats1.csv.gz",
+        "all3/rrc24--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc24--route_stats3.csv.gz",
     ),
     CsvFile(
-        "rrc26--route_stats1.csv.gz",
-        "https://github.com/SichangHe/internet_route_verification/releases/download/data-116-1/rrc26--route_stats1.csv.gz",
+        "all3/rrc25--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc25--route_stats3.csv.gz",
+    ),
+    CsvFile(
+        "all3/rrc26--route_stats3.csv.gz",
+        "/SichangHe/internet_route_verification/releases/download/data-142-follow-up/rrc26--route_stats3.csv.gz",
     ),
 ];
 
@@ -324,7 +327,7 @@ impl Row {
         let export_total = export_ok + export_skip + export_unrec + export_meh + export_err;
         let total = import_total + export_total;
 
-        let import_percentages = (import_total > 0.0).then(|| Percentages {
+        let import_percentages = (import_total > 0.0).then_some(Percentages {
             ok: import_ok * 100.0 / import_total,
             skip: import_skip * 100.0 / import_total,
             unrec: import_unrec * 100.0 / import_total,
@@ -332,7 +335,7 @@ impl Row {
             err: import_err * 100.0 / import_total,
         });
 
-        let export_percentages = (export_total > 0.0).then(|| Percentages {
+        let export_percentages = (export_total > 0.0).then_some(Percentages {
             ok: export_ok * 100.0 / export_total,
             skip: export_skip * 100.0 / export_total,
             unrec: export_unrec * 100.0 / export_total,
@@ -340,7 +343,7 @@ impl Row {
             err: export_err * 100.0 / export_total,
         });
 
-        let total_percentages = (total > 0.0).then(|| Percentages {
+        let total_percentages = (total > 0.0).then_some(Percentages {
             ok: (import_ok + export_ok) * 100.0 / total,
             skip: (import_skip + export_skip) * 100.0 / total,
             unrec: (import_unrec + export_unrec) * 100.0 / total,
@@ -490,18 +493,12 @@ fn main() {
     ROUTE_STATS_ALL
         .par_iter()
         .map(|CsvFile { path, url: _ }| {
-            let file = File::open(path).context("Failed to open file")?;
-            if path.ends_with(".gz") {
-                let file = BufReader::new(GzDecoder::new(file));
-                process_file(file, stats.clone())
-                    .with_context(|| format!("Failed to process file {}", path))?;
-                println!("Processed `{}`", path);
-            } else {
-                let file = BufReader::new(file);
-                process_file(file, stats.clone())
-                    .with_context(|| format!("Failed to process file {}", path))?;
-                println!("Processed `{}`", path);
-            }
+            let file = BufReader::new(GzDecoder::new(
+                File::open(path).context("Failed to open file")?,
+            ));
+            process_file(file, stats.clone())
+                .with_context(|| format!("Failed to process file {}", path))?;
+            println!("Processed `{}`", path);
 
             Ok(())
         })
@@ -509,11 +506,14 @@ fn main() {
         .unwrap();
 
     for (stats, filename) in stats.into_iter().zip([
-        "route_all_import_stats1.csv",
-        "route_all_export_stats1.csv",
-        "route_all_total_stats1.csv",
+        "all3/route_all_import_stats3.csv.gz",
+        "all3/route_all_export_stats3.csv.gz",
+        "all3/route_all_total_stats3.csv.gz",
     ]) {
-        let mut file = BufWriter::new(File::create(filename).unwrap());
+        let mut file = GzEncoder::new(
+            BufWriter::new(File::create(filename).unwrap()),
+            Compression::default(),
+        );
         file.write_all(b"%ok,%skip,%unrec,%meh,%err,count\n")
             .unwrap();
 

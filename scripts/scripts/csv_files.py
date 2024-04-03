@@ -998,20 +998,20 @@ route_first_hop_stats_all = [
 """From <https://github.com/SichangHe/internet_route_verification/releases/tag/data-142-follow-up>."""
 
 route_all_import_stats = CsvFile(
-    "route_all_import_stats1.csv",
-    "https://github.com/SichangHe/internet_route_verification/files/13926591/route_all_total_stats1.csv",
+    "all3/route_all_import_stats3.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/files/14846212/route_all_import_stats3.csv.gz",
 )
-"""From <https://github.com/SichangHe/internet_route_verification/issues/88>."""
+"""From <https://github.com/SichangHe/internet_route_verification/issues/142#issuecomment-2033452390>."""
 route_all_export_stats = CsvFile(
-    "route_all_export_stats1.csv",
-    "https://github.com/SichangHe/internet_route_verification/files/13926592/route_all_export_stats1.csv",
+    "all3/route_all_export_stats3.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/files/14846211/route_all_export_stats3.csv.gz",
 )
-"""From <https://github.com/SichangHe/internet_route_verification/issues/88>."""
+"""From <https://github.com/SichangHe/internet_route_verification/issues/142#issuecomment-2033452390>."""
 route_all_total_stats = CsvFile(
-    "route_all_total_stats1.csv",
-    "https://github.com/SichangHe/internet_route_verification/files/13926593/route_all_import_stats1.csv",
+    "all3/route_all_total_stats3.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/files/14846213/route_all_total_stats3.csv.gz",
 )
-"""From <https://github.com/SichangHe/internet_route_verification/issues/88>."""
+"""From <https://github.com/SichangHe/internet_route_verification/issues/142#issuecomment-2033452390>."""
 
 as_set_sizes = CsvFile(
     "as_set_sizes2.csv.gz",

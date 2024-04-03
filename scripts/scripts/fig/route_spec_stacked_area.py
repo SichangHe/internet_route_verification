@@ -28,7 +28,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         ignore_index=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002
+        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore
     )
 
     fig: Figure

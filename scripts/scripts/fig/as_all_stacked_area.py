@@ -21,12 +21,12 @@ def read_as_stats(file: CsvFile):
     return pd.read_csv(
         file.path,
         index_col="aut_num",
-        usecols=["aut_num"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],
+        usecols=["aut_num"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],  # type: ignore
         engine="pyarrow",
     )
 
 
-def plot() -> None:
+def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]:
     with futures.ProcessPoolExecutor() as executor:
         df = (
             pd.concat(
@@ -34,7 +34,7 @@ def plot() -> None:
                 copy=False,
             )
             .groupby("aut_num")
-            .sum(engine="pyarrow")
+            .sum(engine="pyarrow")  # type: ignore
         )
 
     dfs: dict[str, pd.DataFrame] = {}
@@ -70,7 +70,7 @@ def plot() -> None:
         ("Import", "Export", "Import/Export"),
     ):
         indexes, values = smart_sample(
-            tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0003
+            tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0003  # type: ignore
         )
 
         fig, ax = plt.subplots(figsize=(16, 9))

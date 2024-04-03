@@ -1,8 +1,8 @@
 """Run at `scripts/` with `python3 -m scripts.fig.as_spec_stacked_area`.
 """
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
@@ -15,11 +15,11 @@ PORTS = ("import", "export")
 LEVELS = ("ok", "skip", "unrec", "meh", "err")
 
 
-def plot():
+def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     df = pd.read_csv(
         FILE.path,
         index_col="aut_num",
-        usecols=[f"{port}_{level}" for port in PORTS for level in LEVELS]
+        usecols=[f"{port}_{level}" for port in PORTS for level in LEVELS]  # type: ignore
         + list(TAGS)
         + ["aut_num"],
     )
@@ -44,7 +44,7 @@ def plot():
         inplace=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS),
+        tuple(d[f"%{tag}"] for tag in TAGS),  # type: ignore
         min_gap_frac=0.0003,
     )
 

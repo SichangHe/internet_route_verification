@@ -11,3 +11,17 @@ SPECIAL_CASE_REPORT_ITEM_FIELDS = (
     "spec_customer_only_provider_policies",
     "spec_other_only_provider_policies",
 )
+
+UNRECORDED_CASE_REPORT_ITEM_FIELDS = (
+    "unrec_import_empty",
+    "unrec_export_empty",
+    "unrec_aut_num",
+    "unrec_as_set_route",
+    "unrec_some_as_set_route",
+    "unrec_as_set",
+    "unrec_some_as_set",
+    "unrec_as_routes",
+    "unrec_route_set",
+    "unrec_peering_set",
+    "unrec_filter_set",
+)

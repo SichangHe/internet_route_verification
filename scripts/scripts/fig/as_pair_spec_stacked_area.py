@@ -15,7 +15,7 @@ from scripts.fig import smart_sample
 FILE = as_pair_stats
 
 
-def plot():
+def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     df = pd.read_csv(FILE.path)
 
     d = pd.DataFrame({"total": sum(df[tag] for tag in TAGS)})
@@ -29,7 +29,7 @@ def plot():
         inplace=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002
+        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore
     )
 
     fig: Figure

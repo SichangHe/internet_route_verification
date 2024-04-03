@@ -14,11 +14,11 @@ PORTS = ("import", "export")
 TAGS = ("ok", "skip", "unrec", "meh", "err")
 
 
-def plot():
+def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]:
     df = pd.read_csv(
         FILE.path,
         index_col=["from", "to"],
-        usecols=["from", "to"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],
+        usecols=["from", "to"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],  # type: ignore
     )
 
     dfs: dict[str, pd.DataFrame] = {}
@@ -54,7 +54,7 @@ def plot():
         ("Import", "Export", "Import/Export"),
     ):
         indexes, values = smart_sample(
-            tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002
+            tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore
         )
 
         fig, ax = plt.subplots(figsize=(16, 9))

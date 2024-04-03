@@ -8,7 +8,7 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts import CsvFile
+from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_pair_stats_all
 from scripts.fig import smart_sample
 
@@ -94,8 +94,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
 
 
 def main():
-    with futures.ThreadPoolExecutor() as executor:
-        executor.map(CsvFile.download_if_missing, FILES)
+    download_csv_files_if_missing(FILES)
 
     figs, _, _ = plot()
 

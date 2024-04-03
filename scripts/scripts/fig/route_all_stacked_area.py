@@ -1,14 +1,12 @@
 """Run at `scripts/` with `python3 -m scripts.fig.route_all_stacked_area`.
 """
 
-from concurrent import futures
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts import CsvFile
+from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import (
     route_all_export_stats,
     route_all_import_stats,
@@ -81,8 +79,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
 
 
 def main():
-    with futures.ThreadPoolExecutor() as executor:
-        executor.map(CsvFile.download_if_missing, FILES)
+    download_csv_files_if_missing(FILES)
 
     figs, _, _ = plot()
 

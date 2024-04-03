@@ -5,7 +5,7 @@ from concurrent import futures
 
 import pandas as pd
 
-from scripts import CsvFile
+from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_neighbors_vs_rules, as_stats_all
 
 NEIGHBORS = ("provider", "peer", "customer")
@@ -30,8 +30,7 @@ def main():
         anr_raw[(anr_raw["import"] == -1) | (anr_raw["provider"] == -1)].index
     )
 
-    with futures.ThreadPoolExecutor() as executor:
-        executor.map(CsvFile.download_if_missing, as_stats_all)
+    download_csv_files_if_missing(as_stats_all)
     with futures.ProcessPoolExecutor() as executor:
         asst = (
             pd.concat(executor.map(read_as_stats, as_stats_all), copy=False)

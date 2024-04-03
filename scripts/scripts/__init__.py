@@ -1,5 +1,7 @@
 import os
+from concurrent import futures
 from dataclasses import dataclass
+from typing import Iterable
 
 import requests
 
@@ -18,3 +20,9 @@ class CsvFile:
         with open(self.path, "wb") as f:
             f.write(response.content)
         print(f"Downloaded {self.url} -> {self.path}.")
+
+
+def download_csv_files_if_missing(files: Iterable[CsvFile]):
+    with futures.ThreadPoolExecutor() as executor:
+        for _ in executor.map(CsvFile.download_if_missing, files):
+            pass

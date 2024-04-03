@@ -7,7 +7,7 @@ from concurrent import futures
 
 import pandas as pd
 
-from scripts import CsvFile
+from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import route_first_hop_stats_all as FILES
 
 PORTS = ("import", "export")
@@ -27,10 +27,8 @@ def read_all_route_stats() -> pd.DataFrame:
 
 
 def main() -> None:
-    with futures.ThreadPoolExecutor() as executor:
-        executor.map(CsvFile.download_if_missing, FILES)
+    download_csv_files_if_missing(FILES)
 
     df = read_all_route_stats()
 
-    print(df.to_string())
     print(df.describe().to_string())

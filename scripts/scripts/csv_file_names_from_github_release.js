@@ -3,7 +3,7 @@ function csvAnchorsWith(pattern, filePrefix) {
     const anchors = document.querySelectorAll(`a[href*="${pattern}"]`)
     filePrefix = filePrefix || "";
     const formattedOutput = Array.from(anchors).map(anchor => {
-        const href = anchor.getAttribute("href");
+        const href = anchor.href;
         const filename = href.substring(href.lastIndexOf("/") + 1);
         return `CsvFile("${filePrefix}${filename}", "${href}")`;
     }).join(", ");

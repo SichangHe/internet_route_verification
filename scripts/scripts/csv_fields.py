@@ -9,4 +9,5 @@ SPECIAL_CASE_REPORT_ITEM_FIELDS = (
     "spec_tier1_pair",
     "spec_peer_only_provider_policies",
     "spec_customer_only_provider_policies",
+    "spec_other_only_provider_policies",
 )

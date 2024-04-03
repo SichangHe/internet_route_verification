@@ -6,18 +6,18 @@ as_neighbors_vs_rules = CsvFile(
 )
 """From <https://github.com/SichangHe/internet_route_verification/pull/120>."""
 as_pair_stats = CsvFile(
-    "as_pair_stats4.csv.gz",
-    "https://github.com/SichangHe/internet_route_verification/files/13884363/as_pair_stats4.csv.gz",
+    "all3/route-views2--as_pair_stats3.csv.gz",
+    "TODO",
 )
-"""From <https://github.com/SichangHe/internet_route_verification/pull/120>."""
+"""From <https://github.com/SichangHe/internet_route_verification/issues/142>."""
 as_stats = CsvFile(
-    "as_stats4.csv",
-    "https://github.com/SichangHe/internet_route_verification/files/13884360/as_stats4.csv",
+    "all3/route-views2--as_stats3.csv.gz",
+    "TODO",
 )
-"""From <https://github.com/SichangHe/internet_route_verification/pull/120>."""
+"""From <https://github.com/SichangHe/internet_route_verification/issues/142>."""
 route_stats = CsvFile(
-    "route_stats5.csv.gz",
-    "https://github.com/SichangHe/internet_route_verification/releases/download/data-142/route_stats5.csv.gz",
+    "all3/route-views2--route_stats3.csv.gz",
+    "TODO",
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/142>."""
 

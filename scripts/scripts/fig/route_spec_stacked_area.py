@@ -7,24 +7,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+
+from scripts.csv_fields import SPECIAL_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.csv_files import route_stats
 from scripts.fig import smart_sample
 
 FILE = route_stats
-TAGS = (
-    "spec_export_customers",
-    "spec_as_is_origin_but_no_route",
-    "spec_as_set_contains_origin_but_no_route",
-    "spec_import_customer",
-    # TODO: add `spec_import_customer` near all other `spec_import_from_neighbor`.
-    "spec_import_from_neighbor",
-    "spec_uphill",
-    "spec_uphill_tier1",
-    "spec_tier1_pair",
-    # TODO: Change other instances of `oifps`.
-    "spec_peer_only_provider_policies",
-    "spec_customer_only_provider_policies",
-)
 
 
 def plot() -> tuple[Figure, Axes, pd.DataFrame]:
@@ -40,7 +28,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         ignore_index=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002
+        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore
     )
 
     fig: Figure

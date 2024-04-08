@@ -3,18 +3,20 @@ function csvAnchorsWith(pattern, filePrefix) {
     const anchors = document.querySelectorAll(`a[href*="${pattern}"]`)
     filePrefix = filePrefix || "";
     const formattedOutput = Array.from(anchors).map(anchor => {
-        const href = anchor.getAttribute("href");
+        const href = anchor.href;
         const filename = href.substring(href.lastIndexOf("/") + 1);
         return `CsvFile("${filePrefix}${filename}", "${href}")`;
     }).join(", ");
     return formattedOutput;
 }
 
-// AS stats:
-console.log(csvAnchorsWith("--as_stats2.csv", "all2/"));
-// AS pair stats:
-console.log(csvAnchorsWith("--as_pair_stats2.csv", "all2/"));
-// Route stats:
-console.log(csvAnchorsWith("--route_stats2.csv", "all2/"));
-// Route first-hop stats:
-console.log(csvAnchorsWith("--route_first_hop_stats2.csv", "all2/"));
+const version = 3;
+const docstring = "From <https://github.com/SichangHe/internet_route_verification/releases/tag/data-142-follow-up>."
+const stats_names = ["as_stats", "as_pair_stats", "route_stats", "route_first_hop_stats"];
+
+const csv_files = stats_names.map(stats_name => {
+    const listing = csvAnchorsWith(`--${stats_name}${version}.csv`, `all${version}/`)
+    return `${stats_name}_all = [${listing}]\n"""${docstring}"""`;
+}).join("\n\n");
+
+console.log(csv_files);

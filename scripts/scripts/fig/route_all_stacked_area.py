@@ -1,14 +1,12 @@
 """Run at `scripts/` with `python3 -m scripts.fig.route_all_stacked_area`.
 """
 
-from concurrent import futures
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts import CsvFile
+from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import (
     route_all_export_stats,
     route_all_import_stats,
@@ -38,7 +36,7 @@ def counted_smart_sample(same: tuple[pd.Series], counts: pd.Series):
 
         cumm_index += count
         if count > 1:
-            indexes.append(cumm_index - 1)
+            indexes.append(cumm_index - 1)  # type: ignore
             for vs, v in zip(values, value):
                 vs.append(v)
     return indexes, values
@@ -47,7 +45,7 @@ def counted_smart_sample(same: tuple[pd.Series], counts: pd.Series):
 def process_route_stats(file: CsvFile, y_label: str):
     df = pd.read_csv(file.path, engine="pyarrow")
     indexes, values = counted_smart_sample(
-        tuple(df[f"%{tag}"] for tag in TAGS), df["count"]
+        tuple(df[f"%{tag}"] for tag in TAGS), df["count"]  # type: ignore
     )
 
     fig, ax = plt.subplots(figsize=(16, 9))
@@ -66,7 +64,7 @@ def process_route_stats(file: CsvFile, y_label: str):
     return fig, ax, df
 
 
-def plot():
+def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]:
     dfs: dict[str, pd.DataFrame] = {}
     figs: dict[str, Figure] = {}
     axs: dict[str, Axes] = {}
@@ -81,8 +79,7 @@ def plot():
 
 
 def main():
-    with futures.ThreadPoolExecutor() as executor:
-        executor.map(CsvFile.download_if_missing, FILES)
+    download_csv_files_if_missing(FILES)
 
     figs, _, _ = plot()
 

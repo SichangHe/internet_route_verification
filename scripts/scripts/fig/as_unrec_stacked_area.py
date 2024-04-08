@@ -6,31 +6,20 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from scripts.csv_fields import UNRECORDED_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.csv_files import as_stats
 from scripts.fig import smart_sample
 
 FILE = as_stats
 PORTS = ("import", "export")
 LEVELS = ("ok", "skip", "unrec", "meh", "err")
-TAGS = (
-    "unrec_import_empty",
-    "unrec_export_empty",
-    "unrec_aut_num",
-    "unrec_as_set_route",
-    "unrec_some_as_set_route",
-    "unrec_as_set",
-    "unrec_as_routes",
-    "unrec_route_set",
-    "unrec_peering_set",
-    "unrec_filter_set",
-)
 
 
-def plot():
+def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     df = pd.read_csv(
         FILE.path,
         index_col="aut_num",
-        usecols=[f"{port}_{level}" for port in PORTS for level in LEVELS]
+        usecols=[f"{port}_{level}" for port in PORTS for level in LEVELS]  # type: ignore
         + list(TAGS)
         + ["aut_num"],
     )
@@ -55,7 +44,7 @@ def plot():
         inplace=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002
+        tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore
     )
 
     fig: Figure

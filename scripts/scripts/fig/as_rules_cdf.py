@@ -11,10 +11,10 @@ from scripts.csv_files import as_neighbors_vs_rules
 FILE = as_neighbors_vs_rules
 
 
-def plot():
+def plot() -> tuple[Figure, Axes]:
     df_raw = pd.read_csv(FILE.path)
     # Remove ASes not in IRR.
-    df = df_raw.drop(df_raw[df_raw["import"] == -1].index)
+    df = df_raw.drop(df_raw[df_raw["import"] == -1].index)  # type: ignore
     df["rules"] = df["import"] + df["export"]
 
     fig: Figure

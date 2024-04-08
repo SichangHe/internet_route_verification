@@ -8,7 +8,7 @@ plt.rcParams["pdf.fonttype"] = 42
 plt.rcParams["ps.fonttype"] = 42
 
 
-def smart_sample(same: tuple[pd.Series], min_gap_frac: float = 0):
+def smart_sample(same: tuple[pd.Series, ...], min_gap_frac: float = 0):
     """Only sample the indexes of boundary values.
     All same (plural of "series") should have the same length."""
     size = len(same[0])

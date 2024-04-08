@@ -8,7 +8,7 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts import CsvFile
+from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_stats_all
 from scripts.fig import smart_sample
 
@@ -20,19 +20,21 @@ TAGS = ("ok", "skip", "unrec", "meh", "err")
 def read_as_stats(file: CsvFile):
     return pd.read_csv(
         file.path,
-        dtype="uint",
         index_col="aut_num",
-        usecols=["aut_num"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],
+        usecols=["aut_num"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],  # type: ignore
         engine="pyarrow",
     )
 
 
-def plot():
+def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]:
     with futures.ProcessPoolExecutor() as executor:
         df = (
-            pd.concat(executor.map(read_as_stats, FILES), copy=False)
+            pd.concat(
+                (d for d in executor.map(read_as_stats, FILES) if len(d) > 0),
+                copy=False,
+            )
             .groupby("aut_num")
-            .sum(engine="pyarrow")
+            .sum(engine="pyarrow")  # type: ignore
         )
 
     dfs: dict[str, pd.DataFrame] = {}
@@ -68,7 +70,7 @@ def plot():
         ("Import", "Export", "Import/Export"),
     ):
         indexes, values = smart_sample(
-            tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0003
+            tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0003  # type: ignore
         )
 
         fig, ax = plt.subplots(figsize=(16, 9))
@@ -92,8 +94,7 @@ def plot():
 
 
 def main():
-    with futures.ThreadPoolExecutor() as executor:
-        executor.map(CsvFile.download_if_missing, FILES)
+    download_csv_files_if_missing(FILES)
 
     figs, _, _ = plot()
 

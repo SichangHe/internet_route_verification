@@ -1,7 +1,8 @@
 """Run at `scripts/` with `python3 -m scripts.stats.route_first_hop`.
 Stats for the first hop in each AS-path.
-This takes more RAM than ordinary laptops have.
 """
+
+# FIXME: This takes more than 200GiB of RAM.
 
 from concurrent import futures
 

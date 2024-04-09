@@ -55,13 +55,13 @@ def main() -> None:
     df = recorded_transit_as
     n_recorded_transit_as = len(recorded_transit_as)
     print(
-        f"{n_transit_as} transit AS in total, {n_recorded_transit_as} with recorded aut-num object ({n_recorded_transit_as * 100 / n_transit_as:2f}%)"
+        f"{n_transit_as} transit AS in total, {n_recorded_transit_as} with recorded aut-num object ({n_recorded_transit_as * 100 / n_transit_as:.2f}%)"
     )
 
     w_export_filter_self: Final = df[df["export_filter_self"] > 0]
     n_w_export_filter_self = len(w_export_filter_self)
     print(
-        f"{n_w_export_filter_self} with at least one export rule where they appear in the filter ({n_w_export_filter_self * 100 / n_recorded_transit_as:2f}%)"
+        f"{n_w_export_filter_self} with at least one export rule where they appear in the filter ({n_w_export_filter_self * 100 / n_recorded_transit_as:.2f}%)"
     )
 
     w_in_both: Final = df[
@@ -72,13 +72,13 @@ def main() -> None:
     ]
     n_w_in_both = len(w_in_both)
     print(
-        f"{n_w_in_both} with AS in both peering and filter of the same import rules ({n_w_in_both * 100 / n_recorded_transit_as:2f}%)"
+        f"{n_w_in_both} with AS in both peering and filter of the same import rules ({n_w_in_both * 100 / n_recorded_transit_as:.2f}%)"
     )
 
     customer_in_both: Final = df[df["import_both_customer"] > 0]
     n_customer_in_both = len(customer_in_both)
     print(
-        f"{n_customer_in_both} with customers in both peering and filter of the same import rules ({n_customer_in_both * 100 / n_recorded_transit_as:2f}%)"
+        f"{n_customer_in_both} with customers in both peering and filter of the same import rules ({n_customer_in_both * 100 / n_recorded_transit_as:.2f}%)"
     )
 
     only_provider_policies: Final = df[
@@ -92,7 +92,7 @@ def main() -> None:
     ]
     n_only_provider_policies = len(only_provider_policies)
     print(
-        f"{n_only_provider_policies} only specify policies for providers ({n_only_provider_policies * 100 / n_recorded_transit_as:2f}%)"
+        f"{n_only_provider_policies} only specify policies for providers ({n_only_provider_policies * 100 / n_recorded_transit_as:.2f}%)"
     )
 
 

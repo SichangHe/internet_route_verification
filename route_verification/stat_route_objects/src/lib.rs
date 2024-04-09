@@ -2,9 +2,11 @@ use std::{
     fmt::Display,
     fs::{read_dir, File},
     io::BufRead,
+    path::Path,
 };
 
 use anyhow::{bail, Result};
+use flate2::{write::GzEncoder, Compression};
 use hashbrown::HashMap;
 use log::{debug, error, warn};
 use rayon::prelude::*;
@@ -81,9 +83,33 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
         })
         .count();
     debug!(
-        "{} routes defined by multiple maintainers.",
+        "{} routes defined by different (not entirely the same) maintainers.",
         n_route_defined_by_different_mntners
     );
+
+    let n_route_defined_wo_common_mntners = routes_defined_multiple_times
+        .iter()
+        .filter(|(_, routes)| {
+            let intersection: Vec<_> = routes[0].mnt_by.iter().collect();
+            routes[1..]
+                .iter()
+                .fold(intersection, |mut intersection, route| {
+                    intersection.retain(|mntner| route.mnt_by.contains(mntner));
+                    intersection
+                })
+                .is_empty()
+        })
+        .count();
+    debug!(
+        "{} routes defined without a common maintainer.",
+        n_route_defined_wo_common_mntners
+    );
+
+    {
+        warn!("Dumping all aggregated route objects.");
+        let mut file = gzip_file("aggregated_route_objects.json.gz")?;
+        serde_json::to_writer(&mut file, &aggregated_routes)?;
+    }
 
     warn!("Dumping routes defined multiple times.");
     let mut file = File::create("route_objects_defined_multiple_times.json")?;
@@ -156,4 +182,8 @@ pub fn scan_db(tag: impl Display, db: impl BufRead) -> Result<Vec<Route>> {
     debug!("Scanned {tag}.");
 
     Ok(routes)
+}
+
+fn gzip_file(path: impl AsRef<Path>) -> Result<GzEncoder<File>> {
+    Ok(GzEncoder::new(File::create(path)?, Compression::default()))
 }

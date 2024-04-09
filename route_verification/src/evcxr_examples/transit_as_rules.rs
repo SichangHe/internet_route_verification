@@ -106,8 +106,8 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
         }
     }
 
-    let mut file = BufWriter::new(File::create("transit_as_stats.csv")?);
-    file.write_all(b"as_num,import_provider,import_peer,import_customer,import_other,import_peering_provider,import_filter_provider,import_peering_peer,import_filter_peer,import_peering_customer,import_filter_customer,import_peering_other,import_filter_other,export_provider,export_peer,export_customer,export_other,export_self,export_peering_provider,export_filter_provider,export_peering_peer,export_filter_peer,export_peering_customer,export_filter_customer,export_peering_other,export_filter_other,export_peering_self,export_filter_self\n");
+    let mut file = BufWriter::new(File::create("transit_as_stats2.csv")?);
+    file.write_all(b"as_num,import_provider,import_peer,import_customer,import_other,import_both_provider,import_both_peer,import_both_customer,import_both_other,import_peering_provider,import_filter_provider,import_peering_peer,import_filter_peer,import_peering_customer,import_filter_customer,import_peering_other,import_filter_other,export_provider,export_peer,export_customer,export_other,export_self,export_peering_provider,export_filter_provider,export_peering_peer,export_filter_peer,export_peering_customer,export_filter_customer,export_peering_other,export_filter_other,export_peering_self,export_filter_self\n");
 
     macro_rules! write_comma_num {
         ($num:expr) => {
@@ -119,7 +119,7 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
     for &as_num in &transit_ases {
         file.write_all(as_num.to_string().as_bytes())?;
         let Some(aut_num) = query.aut_nums.get(&as_num) else {
-            file.write_all(b",-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1\n");
+            file.write_all(b",-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1\n");
             continue;
         };
 
@@ -128,6 +128,10 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
             let mut import_peer = 0;
             let mut import_customer = 0;
             let mut import_other = 0;
+            let mut import_both_provider = 0;
+            let mut import_both_peer = 0;
+            let mut import_both_customer = 0;
+            let mut import_both_other = 0;
             let mut import_peering_provider = 0;
             let mut import_filter_provider = 0;
             let mut import_peering_peer = 0;
@@ -155,6 +159,17 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
                 }
             }
 
+            for &import_as in &appear.peering {
+                if appear.filter.contains(&import_as) {
+                    match db.get(as_num, import_as) {
+                        Some(Relationship::C2P) => import_both_provider += 1,
+                        Some(Relationship::P2P) => import_both_peer += 1,
+                        Some(Relationship::P2C) => import_both_customer += 1,
+                        None => import_peering_other += 1,
+                    }
+                }
+            }
+
             for import_as in appear.peering {
                 match db.get(as_num, import_as) {
                     Some(Relationship::C2P) => import_peering_provider += 1,
@@ -177,6 +192,10 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
             write_comma_num!(import_peer);
             write_comma_num!(import_customer);
             write_comma_num!(import_other);
+            write_comma_num!(import_both_provider);
+            write_comma_num!(import_both_peer);
+            write_comma_num!(import_both_customer);
+            write_comma_num!(import_both_other);
             write_comma_num!(import_peering_provider);
             write_comma_num!(import_filter_provider);
             write_comma_num!(import_peering_peer);

@@ -67,11 +67,11 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
             # "%filter-set"
         ],
     )
-    ax.set_xlabel("AS Ordered by Associated Unrecorded Case", fontsize=36)
-    ax.set_ylabel(f"Percentage of Unrecorded Case", fontsize=36)
+    ax.set_xlabel("ASes Ordered by Associated Unrecorded Cases", fontsize=36)
+    ax.set_ylabel(f"Percentages of Unrecorded Cases", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(loc="lower center", fontsize=36)
+    ax.legend(loc="lower center", fontsize=32)
 
     # For checking.
     # fig.show()

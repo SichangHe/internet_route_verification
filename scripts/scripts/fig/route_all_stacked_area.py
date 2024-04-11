@@ -55,11 +55,11 @@ def process_route_stats(file: CsvFile, y_label: str):
         values,
         labels=("%OK", "%Skip", "%Unrec", "%Special", "%Error"),
     )
-    ax.set_xlabel("Route Ordered by Correctness", fontsize=36)
-    ax.set_ylabel(f"Percentage of {y_label}", fontsize=36)
+    ax.set_xlabel("Routes Ordered by Correctness", fontsize=36)
+    ax.set_ylabel(f"Percentages of {y_label} in Routes", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(loc="lower left", fontsize=36)
+    ax.legend(loc="lower left", fontsize=32)
 
     return fig, ax, df
 
@@ -70,7 +70,9 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
     axs: dict[str, Axes] = {}
 
     for key, file, y_label in zip(
-        ("import", "export", "exchange"), FILES, ("Import", "Export", "Import/Export")
+        ("import", "export", "exchange"),
+        FILES,
+        ("Imports", "Exports", "Imports/Exports\n"),
     ):
         fig, ax, df = process_route_stats(file, y_label)
         dfs[key], figs[key], axs[key] = df, fig, ax

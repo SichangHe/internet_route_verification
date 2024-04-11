@@ -67,25 +67,32 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
     dfs["exchange"] = d
     for (key, d), y_label in zip(
         dfs.items(),
-        ("Import", "Export", "Import/Export"),
+        ("Imports", "Exports", "Imports/Exports\n"),
     ):
         indexes, values = smart_sample(
             tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0003  # type: ignore
         )
 
+        ax: Axes
         fig, ax = plt.subplots(figsize=(16, 9))
         figs[key], axs[key] = fig, ax
         fig.tight_layout()
         ax.stackplot(
             indexes,
             values,
-            labels=("%OK", "%Skip", "%Unrec", "%Special", "%Error"),
+            labels=(
+                "Verified",
+                "Skipped",
+                "Unrecorded",
+                "Special",
+                "Unverified",
+            ),
         )
-        ax.set_xlabel("AS Ordered by Correctness", fontsize=36)
-        ax.set_ylabel(f"Percentage of {y_label}", fontsize=36)
+        ax.set_xlabel("ASes Ordered by Correctness", fontsize=36)
+        ax.set_ylabel(f"Percentages of {y_label} in Routes", fontsize=36)
         ax.tick_params(axis="both", labelsize=32)
         ax.grid()
-        ax.legend(loc="lower center", fontsize=36)
+        ax.legend(loc="lower center", bbox_to_anchor=(0.6, 0.0), fontsize=32)
 
     # For checking.
     # figs["import"].show()

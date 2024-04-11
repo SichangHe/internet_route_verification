@@ -12,6 +12,7 @@ from scripts.csv_files import (
     route_all_import_stats,
     route_all_total_stats,
 )
+from scripts.fig import VERIFICATION_STATUSES
 
 FILES = (route_all_import_stats, route_all_export_stats, route_all_total_stats)
 PORTS = ("import", "export")
@@ -53,7 +54,7 @@ def process_route_stats(file: CsvFile, y_label: str):
     ax.stackplot(
         indexes,
         values,
-        labels=("%OK", "%Skip", "%Unrec", "%Special", "%Error"),
+        labels=VERIFICATION_STATUSES,
     )
     ax.set_xlabel("Routes Ordered by Correctness", fontsize=36)
     ax.set_ylabel(f"Percentages of {y_label} in Routes", fontsize=36)

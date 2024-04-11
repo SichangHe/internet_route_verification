@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 
 from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_stats_all
-from scripts.fig import smart_sample
+from scripts.fig import VERIFICATION_STATUSES, smart_sample
 
 FILES = as_stats_all
 PORTS = ("import", "export")
@@ -80,13 +80,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
         ax.stackplot(
             indexes,
             values,
-            labels=(
-                "Verified",
-                "Skipped",
-                "Unrecorded",
-                "Special",
-                "Unverified",
-            ),
+            labels=VERIFICATION_STATUSES,
         )
         ax.set_xlabel("ASes Ordered by Correctness", fontsize=36)
         ax.set_ylabel(f"Percentages of {y_label} in Routes", fontsize=36)

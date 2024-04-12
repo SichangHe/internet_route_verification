@@ -1,6 +1,7 @@
 """Run at `scripts/` with `python3 -m scripts.fig.as_spec_all_stacked_area`.
 """
 
+import re
 from concurrent import futures
 
 import matplotlib.pyplot as plt
@@ -50,17 +51,37 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     )
     d["spec_rate"] = d["total_spec"] / d["total_report"]
     d["%non_spec"] = 100.0 - (d["spec_rate"] * 100.0)
-    for tag in TAGS:
-        d[f"%{tag}"] = df[tag] / d["total_spec"] * 100.0 * d["spec_rate"]
+    # TODO: Do this to other spec plots.
+    MODIFIED_TAGS = (
+        "spec_export_customers",
+        "spec_import_customer",
+        "spec_as_.*origin.*",
+        "spec_.*_only_provider_policies",
+        # "spec_tier1_pair",
+        "spec_uphill_tier1",
+        "spec_uphill",
+    )
+    for tag in MODIFIED_TAGS:
+        d[f"%{tag}"] = (
+            sum(
+                df[matching_tag]
+                for matching_tag in TAGS
+                if re.match(f"^{tag}$", matching_tag)
+            )
+            / d["total_spec"]
+            * 100.0
+            * d["spec_rate"]
+        )
     d.dropna(inplace=True)
+
     d.sort_values(
-        by=[f"%{tag}" for tag in TAGS] + ["%non_spec"],
-        ascending=[False for _ in TAGS] + [True],
+        by=[f"%{tag}" for tag in MODIFIED_TAGS] + ["%non_spec"],
+        ascending=[False for _ in MODIFIED_TAGS] + [True],
         ignore_index=True,
         inplace=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS),  # type: ignore
+        tuple(d[f"%{tag}"] for tag in MODIFIED_TAGS),  # type: ignore
         min_gap_frac=0.0003,
     )
 
@@ -72,22 +93,20 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         indexes,
         values,
         labels=[
-            # FIXME: Should be changed.
-            "%Export Customer",
-            "%AS Is Origin",
-            "%as-set ∋ Origin",
-            "%Import Neighbor",
-            "%Uphill",
-            "%Uphill Tier-1",
-            # "%spec_import_peer_oifps",
-            # "%spec_import_customer_oifps",
+            "Export Self",
+            "Import Customer",
+            "Missing Route",
+            "Only Provider",
+            # "Tier-1 Peering", # Invisible
+            "Uphill Tier-1",
+            "Uphill",
         ],
     )
     ax.set_xlabel("ASes Ordered by Associated Special Cases", fontsize=36)
     ax.set_ylabel(f"Percentages of Special Cases", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(loc="lower center", fontsize=32)
+    ax.legend(loc="upper right", fontsize=32)
 
     # For checking.
     # fig.show()

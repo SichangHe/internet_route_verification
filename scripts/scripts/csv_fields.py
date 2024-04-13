@@ -25,3 +25,23 @@ UNRECORDED_CASE_REPORT_ITEM_FIELDS = (
     "unrec_peering_set",
     "unrec_filter_set",
 )
+
+MODIFIED_SPECIAL_CASE_FIELDS = (
+    "spec_export_customers",
+    "spec_import_customer",
+    "spec_as_.*origin.*",
+    "spec_.*_only_provider_policies",
+    # "spec_tier1_pair",
+    "spec_uphill_tier1",
+    "spec_uphill",
+)
+
+MODIFIED_SPECIAL_CASE_LABELS = (
+    "Export Self",
+    "Import Customer",
+    "Missing Route",
+    "Only Provider",
+    # "Tier-1 Peering", # Invisible
+    "Uphill Tier-1",
+    "Uphill",
+)

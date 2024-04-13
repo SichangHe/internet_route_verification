@@ -10,6 +10,8 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from scripts import CsvFile, download_csv_files_if_missing
+from scripts.csv_fields import MODIFIED_SPECIAL_CASE_FIELDS as MODIFIED_TAGS
+from scripts.csv_fields import MODIFIED_SPECIAL_CASE_LABELS
 from scripts.csv_fields import SPECIAL_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.csv_files import as_stats_all
 from scripts.fig import smart_sample
@@ -51,16 +53,6 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     )
     d["spec_rate"] = d["total_spec"] / d["total_report"]
     d["%non_spec"] = 100.0 - (d["spec_rate"] * 100.0)
-    # TODO: Do this to other spec plots.
-    MODIFIED_TAGS = (
-        "spec_export_customers",
-        "spec_import_customer",
-        "spec_as_.*origin.*",
-        "spec_.*_only_provider_policies",
-        # "spec_tier1_pair",
-        "spec_uphill_tier1",
-        "spec_uphill",
-    )
     for tag in MODIFIED_TAGS:
         d[f"%{tag}"] = (
             sum(
@@ -92,15 +84,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     ax.stackplot(
         indexes,
         values,
-        labels=[
-            "Export Self",
-            "Import Customer",
-            "Missing Route",
-            "Only Provider",
-            # "Tier-1 Peering", # Invisible
-            "Uphill Tier-1",
-            "Uphill",
-        ],
+        labels=MODIFIED_SPECIAL_CASE_LABELS,
     )
     ax.set_xlabel("ASes Ordered by Associated Special Cases", fontsize=36)
     ax.set_ylabel(f"Percentages of Special Cases", fontsize=36)

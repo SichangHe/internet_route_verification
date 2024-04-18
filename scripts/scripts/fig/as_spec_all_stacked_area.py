@@ -68,8 +68,11 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         values,
         labels=MODIFIED_SPECIAL_CASE_LABELS,
     )
-    ax.set_xlabel("ASes Ordered by Associated Special Cases", fontsize=36)
-    ax.set_ylabel(f"Percentages of Special Cases", fontsize=36)
+    ax.set_xlabel("ASes Ordered by Prevalent Special/Whitelisted Cases", fontsize=36)
+    ax.set_ylabel(
+        f"Percentages of Special/Whitelisted\nCases in Imports/Exports in Routes",
+        fontsize=34,
+    )
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="upper right", fontsize=32)

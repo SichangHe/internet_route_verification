@@ -1,4 +1,6 @@
-SPECIAL_CASE_REPORT_ITEM_FIELDS = (
+from typing import Final
+
+SPECIAL_CASE_REPORT_ITEM_FIELDS: Final = (
     "spec_export_customers",
     "spec_as_is_origin_but_no_route",
     "spec_as_set_contains_origin_but_no_route",
@@ -12,7 +14,7 @@ SPECIAL_CASE_REPORT_ITEM_FIELDS = (
     "spec_other_only_provider_policies",
 )
 
-UNRECORDED_CASE_REPORT_ITEM_FIELDS = (
+UNRECORDED_CASE_REPORT_ITEM_FIELDS: Final = (
     "unrec_import_empty",
     "unrec_export_empty",
     "unrec_aut_num",
@@ -26,7 +28,7 @@ UNRECORDED_CASE_REPORT_ITEM_FIELDS = (
     "unrec_filter_set",
 )
 
-MODIFIED_SPECIAL_CASE_FIELDS = (
+MODIFIED_SPECIAL_CASE_FIELDS: Final = (
     "spec_export_customers",
     "spec_import_customer",
     "spec_as_.*origin.*",
@@ -36,7 +38,7 @@ MODIFIED_SPECIAL_CASE_FIELDS = (
     "spec_uphill",
 )
 
-MODIFIED_SPECIAL_CASE_LABELS = (
+MODIFIED_SPECIAL_CASE_LABELS: Final = (
     "Export Self",
     "Import Customer",
     "Missing Route",
@@ -45,3 +47,31 @@ MODIFIED_SPECIAL_CASE_LABELS = (
     "Uphill Tier-1",
     "Uphill",
 )
+
+assert len(MODIFIED_SPECIAL_CASE_FIELDS) == len(MODIFIED_SPECIAL_CASE_LABELS)
+
+MODIFIED_UNRECORDED_CASE_FIELDS: Final = (
+    "unrec_aut_num",
+    "unrec_import_empty",
+    "unrec_export_empty",
+    "unrec.*_as_set_route",
+    "unrec.*_as_set",
+    "unrec_as_routes",
+    "unrec_route_set",
+    # "unrec_peering_set",
+    # "unrec_filter_set",
+)
+
+MODIFIED_UNRECORDED_CASE_LABELS: Final = (
+    "aut-num",
+    "Import Rules",
+    "Export Rules",
+    "as-set Routes",
+    "as-set",
+    "AS Routes",
+    "route-set",
+    # "peering-set", # Invisible
+    # "filter-set", # Invisible
+)
+
+assert len(MODIFIED_UNRECORDED_CASE_FIELDS) == len(MODIFIED_UNRECORDED_CASE_LABELS)

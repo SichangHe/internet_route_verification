@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 import requests
+import pandas as pd
 
 
 @dataclass
@@ -20,6 +21,13 @@ class CsvFile:
         with open(self.path, "wb") as f:
             f.write(response.content)
         print(f"Downloaded {self.url} -> {self.path}.")
+
+    def read_w_default_config(self, usecols: list[str]):
+        return pd.read_csv(
+            self.path,
+            usecols=usecols,  # type: ignore
+            engine="pyarrow",
+        )
 
 
 def download_csv_files_if_missing(files: Iterable[CsvFile]):

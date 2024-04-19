@@ -67,11 +67,11 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
             # "%spec_import_customer_oifps",
         ],
     )
-    ax.set_xlabel("AS Ordered by Associated Special Case", fontsize=36)
-    ax.set_ylabel(f"Percentage of Special Case", fontsize=36)
+    ax.set_xlabel("ASes Ordered by Associated Special Cases", fontsize=36)
+    ax.set_ylabel(f"Percentages of Special Cases", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(loc="lower center", fontsize=36)
+    ax.legend(loc="lower center", fontsize=32)
 
     # For checking.
     # fig.show()

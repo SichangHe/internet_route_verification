@@ -1,44 +1,29 @@
 """Run at `scripts/` with `python3 -m scripts.fig.as_spec_all_stacked_area`.
 """
 
-from concurrent import futures
+import re
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts import CsvFile, download_csv_files_if_missing
+from scripts.csv_fields import MODIFIED_SPECIAL_CASE_FIELDS as MODIFIED_TAGS
+from scripts.csv_fields import MODIFIED_SPECIAL_CASE_LABELS
 from scripts.csv_fields import SPECIAL_CASE_REPORT_ITEM_FIELDS as TAGS
-from scripts.csv_files import as_stats_all
 from scripts.fig import smart_sample
+from scripts.fig.dataframes import as_stats_all_df
 
-FILES = as_stats_all
 PORTS = ("import", "export")
 LEVELS = ("ok", "skip", "unrec", "meh", "err")
 
 
-def read_as_stats(file: CsvFile):
-    return pd.read_csv(
-        file.path,
-        index_col="aut_num",
-        usecols=[f"{port}_{level}" for port in PORTS for level in LEVELS]  # type: ignore
-        + list(TAGS)
-        + ["aut_num"],
-        engine="pyarrow",
-    )
-
-
 def plot() -> tuple[Figure, Axes, pd.DataFrame]:
-    with futures.ProcessPoolExecutor() as executor:
-        df = (
-            pd.concat(
-                (d for d in executor.map(read_as_stats, FILES) if len(d) > 0),
-                copy=False,
-            )
-            .groupby("aut_num")
-            .sum(engine="pyarrow")  # type: ignore
-        )
+    df = as_stats_all_df(
+        [f"{port}_{level}" for port in PORTS for level in LEVELS]
+        + list(TAGS)
+        + ["aut_num"]
+    )
 
     d = pd.DataFrame(
         {
@@ -50,17 +35,27 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     )
     d["spec_rate"] = d["total_spec"] / d["total_report"]
     d["%non_spec"] = 100.0 - (d["spec_rate"] * 100.0)
-    for tag in TAGS:
-        d[f"%{tag}"] = df[tag] / d["total_spec"] * 100.0 * d["spec_rate"]
+    for tag in MODIFIED_TAGS:
+        d[f"%{tag}"] = (
+            sum(
+                df[matching_tag]
+                for matching_tag in TAGS
+                if re.match(f"^{tag}$", matching_tag)
+            )
+            / d["total_spec"]
+            * 100.0
+            * d["spec_rate"]
+        )
     d.dropna(inplace=True)
+
     d.sort_values(
-        by=[f"%{tag}" for tag in TAGS] + ["%non_spec"],
-        ascending=[False for _ in TAGS] + [True],
+        by=[f"%{tag}" for tag in MODIFIED_TAGS] + ["%non_spec"],
+        ascending=[False for _ in MODIFIED_TAGS] + [True],
         ignore_index=True,
         inplace=True,
     )
     indexes, values = smart_sample(
-        tuple(d[f"%{tag}"] for tag in TAGS),  # type: ignore
+        tuple(d[f"%{tag}"] for tag in MODIFIED_TAGS),  # type: ignore
         min_gap_frac=0.0003,
     )
 
@@ -71,23 +66,16 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     ax.stackplot(
         indexes,
         values,
-        labels=[
-            # FIXME: Should be changed.
-            "%Export Customer",
-            "%AS Is Origin",
-            "%as-set ∋ Origin",
-            "%Import Neighbor",
-            "%Uphill",
-            "%Uphill Tier-1",
-            # "%spec_import_peer_oifps",
-            # "%spec_import_customer_oifps",
-        ],
+        labels=MODIFIED_SPECIAL_CASE_LABELS,
     )
-    ax.set_xlabel("AS Ordered by Associated Special Case", fontsize=36)
-    ax.set_ylabel(f"Percentage of Special Case", fontsize=36)
+    ax.set_xlabel("ASes Ordered by Prevalent Special/Whitelisted Cases", fontsize=36)
+    ax.set_ylabel(
+        f"Percentage of Special/Whitelisted\nCases in Imports/Exports",
+        fontsize=34,
+    )
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(loc="lower center", fontsize=36)
+    ax.legend(loc="upper right", fontsize=32)
 
     # For checking.
     # fig.show()
@@ -96,8 +84,6 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
 
 
 def main():
-    download_csv_files_if_missing(FILES)
-
     fig, _, _ = plot()
 
     pdf_name = f"AS-all-special-case-percentages-stacked-area.pdf"

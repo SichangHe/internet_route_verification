@@ -1,11 +1,21 @@
+from typing import Final
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 plt.rcParams["axes.xmargin"] = 0
 plt.rcParams["axes.ymargin"] = 0
-plt.rcParams["font.size"] = 32
+plt.rcParams["font.size"] = 24
 plt.rcParams["pdf.fonttype"] = 42
 plt.rcParams["ps.fonttype"] = 42
+
+VERIFICATION_STATUSES: Final = (
+    "Verified",
+    "Skipped",
+    "Unrecorded",
+    "Special+Whitelisted",
+    "Unverified",
+)
 
 
 def smart_sample(same: tuple[pd.Series, ...], min_gap_frac: float = 0):

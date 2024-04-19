@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 
 from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_pair_stats_all
-from scripts.fig import smart_sample
+from scripts.fig import VERIFICATION_STATUSES, smart_sample
 
 FILES = as_pair_stats_all
 PORTS = ("import", "export")
@@ -67,7 +67,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
     dfs["exchange"] = d
     for (key, d), y_label in zip(
         dfs.items(),
-        ("Import", "Export", "Import/Export"),
+        ("Imports", "Exports", "Imports/Exports\n"),
     ):
         indexes, values = smart_sample(
             tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore
@@ -79,13 +79,13 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
         ax.stackplot(
             indexes,
             values,
-            labels=("%OK", "%Skip", "%Unrec", "%Special", "%Error"),
+            labels=VERIFICATION_STATUSES,
         )
-        ax.set_xlabel("AS Pair Ordered by Correctness", fontsize=36)
-        ax.set_ylabel(f"Percentage of {y_label}", fontsize=36)
+        ax.set_xlabel("AS Pairs Ordered by Correctness", fontsize=36)
+        ax.set_ylabel(f"Percentage of {y_label} per AS Pair", fontsize=36)
         ax.tick_params(axis="both", labelsize=32)
         ax.grid()
-        ax.legend(loc="best", fontsize=36)
+        ax.legend(loc="best", fontsize=32)
 
     # For checking.
     # figs["import"].show()

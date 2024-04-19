@@ -3,6 +3,7 @@
 import pandas as pd
 from scipy.stats import fit, zipf
 from scipy.stats._fit import FitResult
+
 from scripts.csv_files import as_set_graph_stats
 
 FILE = as_set_graph_stats

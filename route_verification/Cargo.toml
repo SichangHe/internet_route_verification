@@ -44,7 +44,7 @@ thiserror = "1.0"
 
 as_path_regex = { package = "route_verification_as_path_regex", path = "./as_path_regex", version = "0.1.0" }
 as_rel = { package = "route_verification_as_rel", path = "./as_rel", version = "0.1.0" }
-bgp = { package = "route_verification_bgp", path = "./bgp", version = "0.4.0" }
+bgp = { package = "route_verification_bgp", path = "./bgp", version = "0.5.0" }
 bgpmap = { package = "route_verification_bgpmap", path = "./bgpmap", version = "0.1.0" }
 bloom = { package = "route_verification_bloom", path = "./bloom", version = "0.1.1" }
 common_regex = { package = "route_verification_common_regex", path = "./common_regex", version = "0.1.0" }
@@ -56,7 +56,7 @@ lex = { package = "route_verification_lex", path = "./lex", version = "0.2.0" }
 parse = { package = "route_verification_parse", path = "./parse", version = "0.2.0" }
 shared_struct = { package = "route_verification_shared_struct", path = "./shared_struct", version = "0.1.1" }
 
-route_verification = { package = "route_verification", path = ".", version = "0.4.0" }
+route_verification = { package = "route_verification", path = ".", version = "0.5.0" }
 
 [workspace.package]
 description = "Parse RPSL in the IRR to verify observed BGP routes"
@@ -65,7 +65,7 @@ repository = "https://github.com/SichangHe/internet_route_verification"
 
 [package]
 name = "route_verification"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 
 description.workspace = true

@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification_bgp-v0.4.0...route_verification_bgp-v0.5.0) - 2024-04-19
+
+### Other
+- minor simplification
+- other only provider policies cases;de-prioritize uphill
+- collect `spec_import_customer` in `RouteStats`
+
 ## [0.4.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification_bgp-v0.3.0...route_verification_bgp-v0.4.0) - 2024-03-27
 
 ### Other

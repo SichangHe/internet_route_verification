@@ -57,7 +57,7 @@ def process_route_stats(file: CsvFile, y_label: str):
         labels=VERIFICATION_STATUSES,
     )
     ax.set_xlabel("Routes Ordered by Correctness", fontsize=36)
-    ax.set_ylabel(f"Percentage of {y_label} Status per Route", fontsize=36)
+    ax.set_ylabel(f"Percentage of {y_label} per Route", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="lower left", fontsize=32)

@@ -94,11 +94,10 @@ impl<'a> CheckFilter<'a> {
     /// - Exporting customers routes.
     #[inline]
     pub fn is_filter_export_customer(&self, num: u32, op: RangeOperator) -> bool {
-        if self.export && self.cmp.verbosity.check_customer && num == self.self_num {
-            self.filter_as_set(&customer_set(num), op).is_none()
-        } else {
-            false
-        }
+        self.export
+            && self.cmp.verbosity.check_customer
+            && num == self.self_num
+            && self.filter_as_set(&customer_set(num), op).is_none()
     }
 
     /// Check for this case:

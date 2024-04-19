@@ -13,7 +13,7 @@ VERIFICATION_STATUSES: Final = (
     "Verified",
     "Skipped",
     "Unrecorded",
-    "Special",
+    "Special+Whitelisted",
     "Unverified",
 )
 

@@ -64,8 +64,8 @@ MODIFIED_UNRECORDED_CASE_FIELDS: Final = (
 
 MODIFIED_UNRECORDED_CASE_LABELS: Final = (
     "aut-num",
-    "Import Rules",
-    "Export Rules",
+    "0 Import Rules",
+    "0 Export Rules",
     "as-set Routes",
     "as-set",
     "AS Routes",

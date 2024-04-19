@@ -82,7 +82,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
             labels=VERIFICATION_STATUSES,
         )
         ax.set_xlabel("AS Pairs Ordered by Correctness", fontsize=36)
-        ax.set_ylabel(f"Percentages of {y_label} in Routes", fontsize=36)
+        ax.set_ylabel(f"Percentage of {y_label} per AS Pair", fontsize=36)
         ax.tick_params(axis="both", labelsize=32)
         ax.grid()
         ax.legend(loc="best", fontsize=32)

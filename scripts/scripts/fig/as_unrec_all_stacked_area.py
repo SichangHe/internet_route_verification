@@ -72,7 +72,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     )
     ax.set_xlabel("ASes Ordered by Prevalent Unrecorded Subtype", fontsize=36)
     ax.set_ylabel(
-        f"Percentages of Unrecorded Cases\nin Imports/Exports in Routes",
+        f"Percentage of Unrecorded Cases\nin Imports/Exports per AS",
         fontsize=34,
     )
     ax.tick_params(axis="both", labelsize=32)

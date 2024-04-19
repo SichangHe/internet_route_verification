@@ -70,7 +70,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     )
     ax.set_xlabel("ASes Ordered by Prevalent Special/Whitelisted Cases", fontsize=36)
     ax.set_ylabel(
-        f"Percentages of Special/Whitelisted\nCases in Imports/Exports in Routes",
+        f"Percentage of Special/Whitelisted\nCases in Imports/Exports",
         fontsize=34,
     )
     ax.tick_params(axis="both", labelsize=32)

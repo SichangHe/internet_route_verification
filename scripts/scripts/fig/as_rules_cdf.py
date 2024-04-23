@@ -64,8 +64,8 @@ def plot() -> tuple[Figure, Axes]:
         "as_compatible_w_bgpq3"
     ]
     assert isinstance(bgpq3_compatible, pd.Series)
-    df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible)]
-    df_incompatible = df[~df["aut_num"].isin(bgpq3_compatible)]
+    df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
+    df_incompatible = df[~df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
 
     fig: Figure
     ax: Axes
@@ -109,6 +109,7 @@ def plot() -> tuple[Figure, Axes]:
             textcoords="offset points",
             xytext=(-35, -30),  # Modify this to move text around.
             ha="center",
+            zorder=100,
         )
     ax.set_xscale("log")
     ax.set_yscale("log")

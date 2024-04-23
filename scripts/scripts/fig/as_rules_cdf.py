@@ -7,9 +7,9 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts.csv_files import as_neighbors_vs_rules
+from scripts import download_csv_files_if_missing
+from scripts.csv_files import as_compatible_with_bgpq3, as_neighbors_vs_rules
 
-FILE = as_neighbors_vs_rules
 TIER1S = set(
     (
         174,
@@ -37,7 +37,7 @@ TIER1S = set(
 
 
 def plot() -> tuple[Figure, Axes]:
-    df_raw = pd.read_csv(FILE.path)
+    df_raw = pd.read_csv(as_neighbors_vs_rules.path)
 
     # Remove ASes not in IRR.
     df = df_raw.drop(df_raw[df_raw["import"] == -1].index)  # type: ignore
@@ -60,6 +60,13 @@ def plot() -> tuple[Figure, Axes]:
     cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
     cum_weights = np.concatenate((np.asarray((1,)), cum_weights))
 
+    bgpq3_compatible = pd.read_csv(as_compatible_with_bgpq3.path)[
+        "as_compatible_w_bgpq3"
+    ]
+    assert isinstance(bgpq3_compatible, pd.Series)
+    df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible)]
+    df_incompatible = df[~df["aut_num"].isin(bgpq3_compatible)]
+
     fig: Figure
     ax: Axes
     fig, ax = plt.subplots(figsize=(16, 9))
@@ -69,8 +76,22 @@ def plot() -> tuple[Figure, Axes]:
         cum_weights,
         drawstyle="steps-pre",
         linewidth=4,
-        label="CCDF",
+        label="All aut-num Objects",
+        zorder=5,
     )
+    ax.ecdf(
+        df_bgpq3_compatible["rules"],
+        complementary=True,
+        linewidth=2,
+        label="BGPq3-Compatible",
+    )
+    ax.ecdf(
+        df_incompatible["rules"],
+        complementary=True,
+        linewidth=2,
+        label="Incompatible",
+    )
+
     ax.scatter(
         tier1cdf_data,
         tier1cum_weights,
@@ -105,7 +126,7 @@ def plot() -> tuple[Figure, Axes]:
 
 
 def main():
-    FILE.download_if_missing()
+    download_csv_files_if_missing((as_neighbors_vs_rules, as_compatible_with_bgpq3))
     fig, _ = plot()
 
     pdf_name = "CDF-AS-rules.pdf"

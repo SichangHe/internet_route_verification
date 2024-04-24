@@ -3,10 +3,10 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from pandas.core.frame import com
 
 from scripts import download_csv_files_if_missing
 from scripts.csv_files import as_compatible_with_bgpq3, as_neighbors_vs_rules
@@ -51,15 +51,21 @@ def plot() -> tuple[Figure, Axes]:
     df["rules"] = df["import"] + df["export"]
 
     # CCDF plotting reference: `matplotlib/axes/_axes.py`.
-    cdf_data = np.asarray(df["rules"])
+    cdf_data: NDArray[np.floating] = np.asarray(df["rules"])
     cdf_order = np.argsort(cdf_data)
     cdf_data = cdf_data[cdf_order]
-    aut_num_sorted = np.asarray(df["aut_num"])[cdf_order]
+    aut_num_sorted: NDArray[np.integer] = np.asarray(df["aut_num"])[cdf_order]
     cum_weights = 1 - ((1 + np.arange(len(cdf_data))) / len(cdf_data))
 
     # Tier-1 and large cloud providers scatter plot data.
-    tier1labels, tier1cdf_data, tier1cum_weights = [], [], []
-    giant_labels, giant_cdf_data, giant_cum_weights = [], [], []
+    tier1labels: list[str] = []
+    tier1cdf_data: list[int] = []
+    tier1cum_weights: list[float] = []
+
+    giant_labels: list[str] = []
+    giant_cdf_data: list[int] = []
+
+    giant_cum_weights: list[float] = []
     tier1s_wo_aut_num = {aut_num for aut_num in TIER1S}
     tier1s_w0rule: set[int] = set()
     giants_wo_aut_num = {aut_num for aut_num in GIANTS}

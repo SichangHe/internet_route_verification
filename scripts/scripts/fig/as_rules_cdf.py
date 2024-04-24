@@ -58,12 +58,22 @@ def plot() -> tuple[Figure, Axes]:
 
     tier1labels, tier1cdf_data, tier1cum_weights = [], [], []
     giant_labels, giant_cdf_data, giant_cum_weights = [], [], []
+    tier1s_wo_aut_num = {aut_num for aut_num in TIER1S}
+    tier1s_w0rule: set[int] = set()
+    giants_wo_aut_num = {aut_num for aut_num in GIANTS}
+    giants_w0rule: set[int] = set()
     for aut_num, n_rules, cum_weight in zip(aut_num_sorted, cdf_data, cum_weights):
         if aut_num in TIER1S:
+            if n_rules == 0:
+                tier1s_w0rule.add(aut_num)
+            tier1s_wo_aut_num.remove(aut_num)
             tier1labels.append(f"AS{aut_num}")
             tier1cdf_data.append(n_rules)
             tier1cum_weights.append(cum_weight)
         elif aut_num in GIANTS:
+            giants_wo_aut_num.remove(aut_num)
+            if n_rules == 0:
+                giants_w0rule.add(aut_num)
             label = f"AS{aut_num} ({GIANTS[aut_num]})"
             try:
                 index = giant_cdf_data.index(n_rules)
@@ -72,6 +82,13 @@ def plot() -> tuple[Figure, Axes]:
                 giant_labels.append(label)
                 giant_cdf_data.append(n_rules)
                 giant_cum_weights.append(cum_weight)
+
+    print(
+        f"""Tier-1 ASes without aut-num: {tier1s_wo_aut_num}.
+Tier-1 ASes with 0 rule: {tier1s_w0rule}.
+Large cloud providers without aut-num: {giants_wo_aut_num}.
+Large cloud providers with 0 rule: {giants_w0rule}."""
+    )
 
     cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
     cum_weights = np.concatenate((np.asarray((1,)), cum_weights))

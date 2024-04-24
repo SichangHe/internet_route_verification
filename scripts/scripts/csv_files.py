@@ -1076,3 +1076,9 @@ transit_as_stats = CsvFile(
     "https://github.com/SichangHe/internet_route_verification/files/14917813/transit_as_stats2.csv",
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/134#issuecomment-2028748974>."""
+
+as_compatible_with_bgpq3 = CsvFile(
+    "as_compatible_with_bgpq3.csv",
+    "https://github.com/SichangHe/internet_route_verification/files/12906608/as_compatible_with_bgpq3.csv",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/issues/64>."""

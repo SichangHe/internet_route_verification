@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from pandas.core.frame import com
 
 from scripts import download_csv_files_if_missing
 from scripts.csv_files import as_compatible_with_bgpq3, as_neighbors_vs_rules
@@ -50,12 +51,13 @@ def plot() -> tuple[Figure, Axes]:
     df["rules"] = df["import"] + df["export"]
 
     # CCDF plotting reference: `matplotlib/axes/_axes.py`.
-    cdf_data = np.array(df["rules"])
+    cdf_data = np.asarray(df["rules"])
     cdf_order = np.argsort(cdf_data)
     cdf_data = cdf_data[cdf_order]
     aut_num_sorted = np.asarray(df["aut_num"])[cdf_order]
     cum_weights = 1 - ((1 + np.arange(len(cdf_data))) / len(cdf_data))
 
+    # Tier-1 and large cloud providers scatter plot data.
     tier1labels, tier1cdf_data, tier1cum_weights = [], [], []
     giant_labels, giant_cdf_data, giant_cum_weights = [], [], []
     tier1s_wo_aut_num = {aut_num for aut_num in TIER1S}
@@ -90,20 +92,45 @@ Large cloud providers without aut-num: {giants_wo_aut_num}.
 Large cloud providers with 0 rule: {giants_w0rule}."""
     )
 
-    cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
-    cum_weights = np.concatenate((np.asarray((1,)), cum_weights))
-
+    # BGPq3-compatible/incompatible ASes CDF data.
     bgpq3_compatible = pd.read_csv(as_compatible_with_bgpq3.path)[
         "as_compatible_w_bgpq3"
     ]
     assert isinstance(bgpq3_compatible, pd.Series)
+
     df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
+    compatible_cdf_data = np.asarray(df_bgpq3_compatible["rules"])
+    compatible_cdf_order = np.argsort(compatible_cdf_data)
+    compatible_cdf_data = compatible_cdf_data[compatible_cdf_order]
+    compatible_cum_weights = (
+        len(compatible_cdf_data) - (1 + np.arange(len(compatible_cdf_data)))
+    ) / len(cdf_data)
+    compatible_cdf_data = np.concatenate(
+        (compatible_cdf_data, np.asarray((compatible_cdf_data[-1],)))
+    )
+    compatible_cum_weights = np.concatenate((np.asarray((1,)), compatible_cum_weights))
+
     df_incompatible = df[~df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
+    incomp_cdf_data = np.asarray(df_incompatible["rules"])
+    incomp_cdf_order = np.argsort(incomp_cdf_data)
+    incomp_cdf_data = incomp_cdf_data[incomp_cdf_order]
+    incomp_cum_weights = (
+        len(incomp_cdf_data) - (1 + np.arange(len(incomp_cdf_data)))
+    ) / len(cdf_data)
+    incomp_cdf_data = np.concatenate(
+        (incomp_cdf_data, np.asarray((incomp_cdf_data[-1],)))
+    )
+    incomp_cum_weights = np.concatenate((np.asarray((1,)), incomp_cum_weights))
+
+    cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
+    cum_weights = np.concatenate((np.asarray((1,)), cum_weights))
 
     fig: Figure
     ax: Axes
     fig, ax = plt.subplots(figsize=(16, 9))
     fig.tight_layout()
+
+    # CCDF plots.
     ax.plot(
         cdf_data,
         cum_weights,
@@ -112,20 +139,22 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         label="All aut-num Objects",
         zorder=5,
     )
-    # TODO: Change to over all ASes.
-    ax.ecdf(
-        df_bgpq3_compatible["rules"],
-        complementary=True,
+    ax.plot(
+        compatible_cdf_data,
+        compatible_cum_weights,
+        drawstyle="steps-pre",
         linewidth=2,
         label="BGPq3-Compatible",
     )
-    ax.ecdf(
-        df_incompatible["rules"],
-        complementary=True,
+    ax.plot(
+        incomp_cdf_data,
+        incomp_cum_weights,
+        drawstyle="steps-pre",
         linewidth=2,
-        label="Incompatible",
+        label="BGPq3-Incompatible",
     )
 
+    # Tier-1 and large cloud providers scatter plots.
     ax.scatter(
         tier1cdf_data,
         tier1cum_weights,
@@ -173,8 +202,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     ax.set_ylabel("Complementary Cumulative\nFraction of ASes", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend()
-    # ax.legend(loc="best", fontsize=36)
+    ax.legend(fontsize=32)
 
     # For checking.
     # fig.show()

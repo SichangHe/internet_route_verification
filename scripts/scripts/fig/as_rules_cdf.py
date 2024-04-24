@@ -193,11 +193,18 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     )
     for label, x, y in zip(giant_labels, giant_cdf_data, giant_cum_weights):
         ax.annotate(
-            label,
+            "↙",
             (x, y),
-            c="purple",
             textcoords="offset points",
-            xytext=(-8, 10),  # Modify this to move text around.
+            xytext=(-5, 10),  # Modify this to move text around.
+            ha="left",
+            zorder=100,
+        )
+        ax.annotate(
+            f"‾‾{label}",
+            (x, y),
+            textcoords="offset points",
+            xytext=(11, 6),  # Modify this to move text around.
             ha="left",
             zorder=100,
         )

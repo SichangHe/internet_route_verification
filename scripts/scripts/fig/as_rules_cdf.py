@@ -10,30 +10,36 @@ from matplotlib.figure import Figure
 from scripts import download_csv_files_if_missing
 from scripts.csv_files import as_compatible_with_bgpq3, as_neighbors_vs_rules
 
-TIER1S = set(
-    (
-        174,
-        209,
-        286,
-        # 701,
-        1239,
-        1299,
-        # 2828,
-        2914,
-        3257,
-        3320,
-        3356,
-        3491,
-        5511,
-        # 6453,
-        # 6461,
-        6762,
-        6830,
-        # 7018,
-        12956,
-    )
-)
-"""ASes without aut-num objects are commented out."""
+TIER1S = {
+    174,
+    209,
+    286,
+    701,
+    1239,
+    1299,
+    2828,
+    2914,
+    3257,
+    3320,
+    3356,
+    3491,
+    5511,
+    6453,
+    6461,
+    6762,
+    6830,
+    7018,
+    12956,
+}
+
+GIANTS = {
+    8075: "Microsoft",
+    15169: "Google",
+    16509: "AWS",
+    32934: "Facebook",
+    36351: "Softlayer/IBM",
+    13335: "Cloudflare",
+}
 
 
 def plot() -> tuple[Figure, Axes]:
@@ -51,11 +57,21 @@ def plot() -> tuple[Figure, Axes]:
     cum_weights = 1 - ((1 + np.arange(len(cdf_data))) / len(cdf_data))
 
     tier1labels, tier1cdf_data, tier1cum_weights = [], [], []
+    giant_labels, giant_cdf_data, giant_cum_weights = [], [], []
     for aut_num, n_rules, cum_weight in zip(aut_num_sorted, cdf_data, cum_weights):
         if aut_num in TIER1S:
             tier1labels.append(f"AS{aut_num}")
             tier1cdf_data.append(n_rules)
             tier1cum_weights.append(cum_weight)
+        elif aut_num in GIANTS:
+            label = f"AS{aut_num} ({GIANTS[aut_num]})"
+            try:
+                index = giant_cdf_data.index(n_rules)
+                giant_labels[index] += f", {label}"
+            except ValueError:
+                giant_labels.append(label)
+                giant_cdf_data.append(n_rules)
+                giant_cum_weights.append(cum_weight)
 
     cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
     cum_weights = np.concatenate((np.asarray((1,)), cum_weights))
@@ -79,6 +95,7 @@ def plot() -> tuple[Figure, Axes]:
         label="All aut-num Objects",
         zorder=5,
     )
+    # TODO: Change to over all ASes.
     ax.ecdf(
         df_bgpq3_compatible["rules"],
         complementary=True,
@@ -107,10 +124,32 @@ def plot() -> tuple[Figure, Axes]:
             label,
             (x, y),
             textcoords="offset points",
-            xytext=(-35, -30),  # Modify this to move text around.
-            ha="center",
+            xytext=(8, -30),  # Modify this to move text around.
+            ha="right",
             zorder=100,
         )
+
+    ax.scatter(
+        giant_cdf_data,
+        giant_cum_weights,
+        c="purple",
+        s=200,
+        marker="^",
+        linewidth=2,
+        label="Large Cloud Providers",
+        zorder=12,
+    )
+    for label, x, y in zip(giant_labels, giant_cdf_data, giant_cum_weights):
+        ax.annotate(
+            label,
+            (x, y),
+            c="purple",
+            textcoords="offset points",
+            xytext=(-8, 10),  # Modify this to move text around.
+            ha="left",
+            zorder=100,
+        )
+
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("Number of Import/Export Rules", fontsize=36)

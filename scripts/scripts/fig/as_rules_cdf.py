@@ -3,10 +3,10 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.typing import NDArray
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from numpy.typing import NDArray
 
 from scripts import download_csv_files_if_missing
 from scripts.csv_files import as_compatible_with_bgpq3, as_neighbors_vs_rules
@@ -181,24 +181,34 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
             zorder=100,
         )
 
-    ax.scatter(
-        giant_cdf_data,
-        giant_cum_weights,
-        c="purple",
-        s=200,
-        marker="^",
-        linewidth=2,
+    ax.scatter(  # Dummy plot to add legend entry.
+        [],
+        [],
+        c="blueviolet",
+        s=400,
+        linewidth=4,
+        marker=r"$\leftarrow$",
         label="Large Cloud Providers",
-        zorder=12,
     )
     for label, x, y in zip(giant_labels, giant_cdf_data, giant_cum_weights):
         ax.annotate(
+            "",
+            (x, y),
+            textcoords="offset points",
+            xytext=(30, 10),  # Modify this to move tail around.
+            arrowprops={
+                "width": 4,
+                "headwidth": 16,
+                "facecolor": "blueviolet",
+                "edgecolor": "blueviolet",
+            },
+            zorder=12,
+        )
+        ax.annotate(
             label,
             (x, y),
-            c="purple",
             textcoords="offset points",
-            xytext=(-8, 10),  # Modify this to move text around.
-            ha="left",
+            xytext=(35, 0),  # Modify this to move text around.
             zorder=100,
         )
 

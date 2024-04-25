@@ -47,6 +47,9 @@ def plot() -> tuple[Figure, Axes]:
     df_raw = pd.read_csv(as_neighbors_vs_rules.path)
 
     # Remove ASes not in IRR.
+    n_wo_aut_num = len(df_raw[df_raw["import"] == -1])
+    percentage = n_wo_aut_num * 100 / len(df_raw)
+    print(f"Dropping {n_wo_aut_num} ({percentage:.1f}%) ASes without aut-num.")
     df = df_raw.drop(df_raw[df_raw["import"] == -1].index)  # type: ignore
     df["rules"] = df["import"] + df["export"]
 
@@ -103,6 +106,12 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         "as_compatible_w_bgpq3"
     ]
     assert isinstance(bgpq3_compatible, pd.Series)
+
+    n_wo_rule = len(df[df["rules"] == 0])
+    percentage = n_wo_rule * 100 / len(df)
+    print(
+        f"Dropping {n_wo_rule} ({percentage:.1f}%) aut-num objects with 0 rule for BGPq3-compatible/incompatible stats."
+    )
 
     df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
     compatible_cdf_data = np.asarray(df_bgpq3_compatible["rules"])

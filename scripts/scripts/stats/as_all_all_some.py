@@ -35,7 +35,7 @@ def main() -> None:
         df_some[tag] = df[df[f"import_{tag}"] + df[f"export_{tag}"] > 0].dropna()
         count = df_some[tag].__len__()
         percentage = count * 100 / n_as
-        print(f"{count} have {tag}, {percentage:.2f}%.")
+        print(f"{count} have {tag}, {percentage:.1f}%.")
 
     for port in PORTS:
         print()
@@ -45,7 +45,7 @@ def main() -> None:
         n_dne = df_all[f"{port}_dne"].__len__()
         percentage = n_dne / n_as * 100
         n_e = n_as - n_dne
-        print(f"{n_dne} have no {port}, {percentage:.2f}%; {n_e} have {port}.")
+        print(f"{n_dne} have no {port}, {percentage:.1f}%; {n_e} have {port}.")
 
         for tag in TAGS:
             df_all[f"{port}_{tag}"] = df[
@@ -55,7 +55,7 @@ def main() -> None:
             count = df_all[f"{port}_{tag}"].__len__()
             percentage = count / n_e * 100
             print(
-                f"{count} all {tag} in {port}, {percentage:.2f}% among ASes with {port}."
+                f"{count} all {tag} in {port}, {percentage:.1f}% among ASes with {port}."
             )
 
         print()
@@ -64,7 +64,7 @@ def main() -> None:
             count = df_some[f"{port}_{tag}"].__len__()
             percentage = count / n_e * 100
             print(
-                f"{count} have {tag} in {port}, {percentage:.2f}% among ASes with {port}."
+                f"{count} have {tag} in {port}, {percentage:.1f}% among ASes with {port}."
             )
 
 

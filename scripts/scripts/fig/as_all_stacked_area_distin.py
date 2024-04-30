@@ -8,25 +8,21 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+from scripts.csv_fields import WHITELIST_REPORT_ITEM_FIELDS
 from scripts.fig import smart_sample
 from scripts.fig.dataframes import as_stats_all_df
 
 PORTS = ("import", "export")
 TAGS = ("ok", "skip", "unrec", "meh", "err")
-WHITELIST_TAGS = [
-    "spec_uphill",
-    "spec_uphill_tier1",
-    "spec_tier1_pair",
-]
 
 
 def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
     df = as_stats_all_df(
         ["aut_num"]
         + [f"{port}_{tag}" for port in PORTS for tag in TAGS]
-        + WHITELIST_TAGS
+        + list(WHITELIST_REPORT_ITEM_FIELDS)
     )
-    df["whitelisted"] = sum(df[tag] for tag in WHITELIST_TAGS)
+    df["whitelisted"] = sum(df[tag] for tag in WHITELIST_REPORT_ITEM_FIELDS)
     df["special"] = sum(df[f"{port}_meh"] for port in PORTS) - df["whitelisted"]
 
     d = pd.DataFrame(

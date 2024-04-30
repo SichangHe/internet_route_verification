@@ -1082,3 +1082,10 @@ as_compatible_with_bgpq3 = CsvFile(
     "https://github.com/SichangHe/internet_route_verification/files/12906608/as_compatible_with_bgpq3.csv",
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/64>."""
+
+route_objects_defined_multiple_times = CsvFile(
+    "route_objects_defined_multiple_times.json.gz",
+    "https://github.com/SichangHe/internet_route_verification/files/14734281/route_objects_defined_multiple_times.json.gz",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/issues/138#issuecomment-2016682503>.
+Not a CSV file, but a similar JSON file."""

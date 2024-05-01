@@ -12,6 +12,7 @@ from scripts.csv_fields import MODIFIED_SPECIAL_CASE_FIELDS as MODIFIED_TAGS
 from scripts.csv_fields import MODIFIED_SPECIAL_CASE_LABELS
 from scripts.csv_fields import SPECIAL_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.fig import smart_sample
+from scripts.fig.colors import COLORS6
 from scripts.fig.dataframes import as_stats_all_df
 
 PORTS = ("import", "export")
@@ -66,6 +67,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     ax.stackplot(
         indexes,
         values,
+        colors=COLORS6,  # type: ignore[reportArgumentType]
         labels=MODIFIED_SPECIAL_CASE_LABELS,
     )
     ax.set_xlabel("ASes Ordered by Prevalent Special/Whitelisted Cases", fontsize=36)

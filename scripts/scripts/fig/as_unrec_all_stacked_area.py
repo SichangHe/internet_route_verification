@@ -8,12 +8,11 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts.csv_fields import (
-    UNRECORDED_CASE_REPORT_ITEM_FIELDS as TAGS,
-    MODIFIED_UNRECORDED_CASE_FIELDS as MODIFIED_TAGS,
-    MODIFIED_UNRECORDED_CASE_LABELS,
-)
+from scripts.csv_fields import MODIFIED_UNRECORDED_CASE_FIELDS as MODIFIED_TAGS
+from scripts.csv_fields import MODIFIED_UNRECORDED_CASE_LABELS
+from scripts.csv_fields import UNRECORDED_CASE_REPORT_ITEM_FIELDS as TAGS
 from scripts.fig import smart_sample
+from scripts.fig.colors import COLORS7
 from scripts.fig.dataframes import as_stats_all_df
 
 PORTS = ("import", "export")
@@ -68,6 +67,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     ax.stackplot(
         indexes,
         values,
+        colors=reversed(COLORS7),  # type: ignore[reportArgumentType]
         labels=MODIFIED_UNRECORDED_CASE_LABELS,
     )
     ax.set_xlabel("ASes Ordered by Prevalent Unrecorded Subtype", fontsize=36)

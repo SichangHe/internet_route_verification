@@ -1,3 +1,5 @@
+from typing import Final
+
 import numpy as np
 
 R = 0.2126
@@ -98,7 +100,7 @@ def hue_grayscale_to_srgb(hue: float, grayscale: float):
     return tuple(linear_rgb_to_srgb(color) for color in (r, g, b))
 
 
-COLORS6 = tuple(
+COLORS6: Final = tuple(
     hue_grayscale_to_srgb(hue, grayscale)
     for hue, grayscale in zip(
         [60, 180, 120, 240, 0, 300],
@@ -106,4 +108,12 @@ COLORS6 = tuple(
     )
 )
 
-COLORS5_OUT_OF6 = COLORS6[:3] + COLORS6[4:]
+COLORS5_OUT_OF6: Final = COLORS6[:3] + COLORS6[4:]
+
+COLORS7: Final = tuple(
+    hue_grayscale_to_srgb(hue, grayscale)
+    for hue, grayscale in zip(
+        [60, 180, 120, 240, 0, 30, 300],
+        np.linspace(0.96, 0.04, 7),
+    )
+)

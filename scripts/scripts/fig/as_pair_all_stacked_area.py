@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_pair_stats_all
 from scripts.fig import VERIFICATION_STATUSES, smart_sample
+from scripts.fig.colors import COLORS5_OUT_OF6
 
 FILES = as_pair_stats_all
 PORTS = ("import", "export")
@@ -79,6 +80,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
         ax.stackplot(
             indexes,
             values,
+            colors=COLORS5_OUT_OF6,
             labels=VERIFICATION_STATUSES,
         )
         ax.set_xlabel("AS Pairs Ordered by Correctness", fontsize=36)

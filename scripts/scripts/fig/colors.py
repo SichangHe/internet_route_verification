@@ -14,11 +14,17 @@ def linear_rgb_to_srgb(color: float) -> float:
     return 1.055 * color ** (1 / 2.4) - 0.055
 
 
+def srgb_to_linear_rgb(color: float) -> float:
+    if color <= 0.04045:
+        return color / 12.92
+    return ((color + 0.055) / 1.055) ** 2.4
+
+
 def hue_grayscale_to_linear_rgb(hue: float, grayscale: float):
     """
     Convert Hue and grayscale to linear RGB in range [0, 1].
     :h: Hue (0-360) with wrap-around.
-    :grayscale: Grayscale (0-1).
+    :grayscale: Grayscale (0-1) for linear RGB.
 
     Saturation is fixed to 1.
 
@@ -80,14 +86,15 @@ def hue_grayscale_to_srgb(hue: float, grayscale: float):
     """
     Convert Hue and grayscale to sRGB in range [0, 1].
     :h: Hue (0-360) with wrap-around.
-    :grayscale: Grayscale (0-1).
+    :grayscale: Grayscale (0-1) for sRGB.
 
     Saturation is fixed to 1.
 
     References:
     <https://en.wikipedia.org/wiki/SRGB#From_CIE_XYZ_to_sRGB>
     """
-    r, g, b = hue_grayscale_to_linear_rgb(hue, grayscale)
+    p = srgb_to_linear_rgb(grayscale)
+    r, g, b = hue_grayscale_to_linear_rgb(hue, p)
     return tuple(linear_rgb_to_srgb(color) for color in (r, g, b))
 
 
@@ -95,6 +102,8 @@ COLORS6 = tuple(
     hue_grayscale_to_srgb(hue, grayscale)
     for hue, grayscale in zip(
         [60, 180, 120, 240, 0, 300],
-        np.linspace(0.9, 0.05, 6),
+        np.linspace(0.96, 0.2, 6),
     )
 )
+
+COLORS5_OUT_OF6 = COLORS6[:3] + COLORS6[4:]

@@ -13,6 +13,7 @@ from scripts.csv_files import (
     route_all_total_stats,
 )
 from scripts.fig import VERIFICATION_STATUSES
+from scripts.fig.colors import COLORS5_OUT_OF6
 
 FILES = (route_all_import_stats, route_all_export_stats, route_all_total_stats)
 PORTS = ("import", "export")
@@ -54,6 +55,7 @@ def process_route_stats(file: CsvFile, y_label: str):
     ax.stackplot(
         indexes,
         values,
+        colors=COLORS5_OUT_OF6,
         labels=VERIFICATION_STATUSES,
     )
     ax.set_xlabel("Routes Ordered by Correctness", fontsize=36)

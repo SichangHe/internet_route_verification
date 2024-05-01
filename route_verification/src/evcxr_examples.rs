@@ -21,6 +21,7 @@ mod count_asn_in_peering;
 mod count_path_sets;
 mod count_router_info;
 mod filter_as;
+mod last_modified;
 mod object_referred_in_rules;
 mod route_stats;
 mod specific_line;
@@ -52,11 +53,15 @@ use rayon::prelude::*;
 use route_verification::as_rel::*;
 use route_verification::bgp::stats::*;
 use route_verification::bgp::*;
+use route_verification::fs::open_file_w_correct_encoding;
 use route_verification::ir::*;
-use route_verification::lex::{expressions, lines_continued, RpslExpr};
+use route_verification::irr::split_commas;
+use route_verification::lex::{
+    expressions, io_wrapper_lines, lines_continued, rpsl_objects, RpslExpr,
+};
 use std::{
     env,
-    fs::{read_to_string, File},
+    fs::{read_dir, read_to_string, File},
     io::{prelude::*, BufReader, BufWriter},
     ops::Add,
     time::Instant,

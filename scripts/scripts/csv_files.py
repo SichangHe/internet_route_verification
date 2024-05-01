@@ -1089,3 +1089,9 @@ route_objects_defined_multiple_times = CsvFile(
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/138#issuecomment-2016682503>.
 Not a CSV file, but a similar JSON file."""
+
+last_modified = CsvFile(
+    "last_modified.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/releases/download/data-130/last_modified.csv.gz",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/issues/130>."""

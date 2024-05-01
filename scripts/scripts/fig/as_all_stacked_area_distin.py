@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 
 from scripts.csv_fields import WHITELIST_REPORT_ITEM_FIELDS
 from scripts.fig import smart_sample
+from scripts.fig.colors import COLORS6
 from scripts.fig.dataframes import as_stats_all_df
 
 PORTS = ("import", "export")
@@ -57,7 +58,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
     ax.stackplot(
         indexes,
         values,
-        colors=["C0", "C1", "C2", "C9", "C3", "C4"],
+        colors=COLORS6,  # type: ignore[reportArgumentType]
         labels=(
             "Verified",
             "Skipped",

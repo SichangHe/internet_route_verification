@@ -10,6 +10,7 @@ from numpy.typing import NDArray
 
 from scripts import download_csv_files_if_missing
 from scripts.csv_files import as_compatible_with_bgpq3, as_neighbors_vs_rules
+from scripts.fig.colors import hue_grayscale_to_srgb
 
 TIER1S = {
     174,
@@ -151,6 +152,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         cum_weights,
         drawstyle="steps-pre",
         linewidth=4,
+        color=hue_grayscale_to_srgb(330, 0.2),
         label="All aut-num Objects",
         zorder=5,
     )
@@ -158,14 +160,16 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         compatible_cdf_data,
         compatible_cum_weights,
         drawstyle="steps-pre",
-        linewidth=2,
+        linewidth=3,
+        color=hue_grayscale_to_srgb(180, 0.6),
         label="BGPq3-Compatible",
     )
     ax.plot(
         incomp_cdf_data,
         incomp_cum_weights,
         drawstyle="steps-pre",
-        linewidth=2,
+        linewidth=3,
+        color=hue_grayscale_to_srgb(60, 0.9),
         label="BGPq3-Incompatible",
     )
 
@@ -193,7 +197,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     ax.scatter(  # Dummy plot to add legend entry.
         [],
         [],
-        c="blueviolet",
+        c="blue",
         s=400,
         linewidth=4,
         marker=r"$\leftarrow$",
@@ -208,8 +212,8 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
             arrowprops={
                 "width": 4,
                 "headwidth": 16,
-                "facecolor": "blueviolet",
-                "edgecolor": "blueviolet",
+                "facecolor": "blue",
+                "edgecolor": "blue",
             },
             zorder=12,
         )

@@ -39,7 +39,7 @@ MODIFIED_SPECIAL_CASE_FIELDS: Final = (
     "spec_import_customer",
     "spec_as_.*origin.*",
     "spec_.*_only_provider_policies",
-    # "spec_tier1_pair",
+    "spec_tier1_pair",
     "spec_uphill_tier1",
     "spec_uphill",
 )
@@ -49,7 +49,7 @@ MODIFIED_SPECIAL_CASE_LABELS: Final = (
     "Import Customer",
     "Missing Route",
     "Only Provider",
-    # "Tier-1 Peering", # Invisible
+    "Tier-1 Peering",
     "Uphill Tier-1",
     "Uphill",
 )

@@ -141,7 +141,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         drawstyle="steps-pre",
         linewidth=4,
         color=hue_grayscale_to_srgb(330, 0.2),
-        label=r"All $\emph{\textsf{aut-num}}$ Objects",
+        label="All $aut$-$num$ Objects",
         zorder=5,
     )
     ax.plot(

@@ -69,13 +69,13 @@ MODIFIED_UNRECORDED_CASE_FIELDS: Final = (
 )
 
 MODIFIED_UNRECORDED_CASE_LABELS: Final = (
-    "aut-num",
-    "0 Import Rules",
-    "0 Export Rules",
-    "as-set Routes",
-    "as-set",
-    "AS Routes",
-    "route-set",
+    r"Missing $aut$-$num$",
+    r"0 $import$ Rule",
+    r"0 $export$ Rule",
+    r"$as$-$set$ ∋ 0-$route$ AS",
+    r"Missing $as$-$set$",
+    r"0-$route$ AS",
+    r"Missing $route$-$set$",
     # "peering-set", # Invisible
     # "filter-set", # Invisible
 )

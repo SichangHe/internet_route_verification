@@ -101,7 +101,8 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         cum_weights,
         drawstyle="steps-pre",
         linewidth=4,
-        color=hue_grayscale_to_srgb(330, 0.2),
+        color=hue_grayscale_to_srgb(60, 0.92) + (0.9,),
+        linestyle="-.",
         label="All",
         zorder=5,
     )
@@ -110,7 +111,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         compatible_cum_weights,
         drawstyle="steps-pre",
         linewidth=4,
-        color=hue_grayscale_to_srgb(60, 0.88),
+        color=hue_grayscale_to_srgb(240, 0.2),
         label="BGPq3",
     )
 
@@ -138,7 +139,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     ax.scatter(  # Dummy plot to add legend entry.
         [],
         [],
-        c="blue",
+        c="green",
         s=400,
         linewidth=4,
         marker=r"$\leftarrow$",
@@ -153,8 +154,8 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
             arrowprops={
                 "width": 4,
                 "headwidth": 16,
-                "facecolor": "blue",
-                "edgecolor": "blue",
+                "facecolor": "green",
+                "edgecolor": "green",
             },
             zorder=12,
         )

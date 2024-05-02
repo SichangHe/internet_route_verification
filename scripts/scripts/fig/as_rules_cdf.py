@@ -126,18 +126,6 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     )
     compatible_cum_weights = np.concatenate((np.asarray((1,)), compatible_cum_weights))
 
-    df_incompatible = df[~df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
-    incomp_cdf_data = np.asarray(df_incompatible["rules"])
-    incomp_cdf_order = np.argsort(incomp_cdf_data)
-    incomp_cdf_data = incomp_cdf_data[incomp_cdf_order]
-    incomp_cum_weights = (
-        len(incomp_cdf_data) - (1 + np.arange(len(incomp_cdf_data)))
-    ) / len(cdf_data)
-    incomp_cdf_data = np.concatenate(
-        (incomp_cdf_data, np.asarray((incomp_cdf_data[-1],)))
-    )
-    incomp_cum_weights = np.concatenate((np.asarray((1,)), incomp_cum_weights))
-
     cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
     cum_weights = np.concatenate((np.asarray((1,)), cum_weights))
 
@@ -153,24 +141,16 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         drawstyle="steps-pre",
         linewidth=4,
         color=hue_grayscale_to_srgb(330, 0.2),
-        label="All aut-num Objects",
+        label=r"All $\emph{\textsf{aut-num}}$ Objects",
         zorder=5,
     )
     ax.plot(
         compatible_cdf_data,
         compatible_cum_weights,
         drawstyle="steps-pre",
-        linewidth=3,
-        color=hue_grayscale_to_srgb(180, 0.6),
+        linewidth=4,
+        color=hue_grayscale_to_srgb(60, 0.88),
         label="BGPq3-Compatible",
-    )
-    ax.plot(
-        incomp_cdf_data,
-        incomp_cum_weights,
-        drawstyle="steps-pre",
-        linewidth=3,
-        color=hue_grayscale_to_srgb(60, 0.9),
-        label="BGPq3-Incompatible",
     )
 
     # Tier-1 and large cloud providers scatter plots.
@@ -231,7 +211,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     ax.set_ylabel("Complementary Cumulative\nFraction of ASes", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(fontsize=32)
+    ax.legend(fontsize=32, loc="lower left")
 
     # For checking.
     # fig.show()

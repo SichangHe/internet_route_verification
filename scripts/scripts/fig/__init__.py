@@ -6,8 +6,10 @@ import pandas as pd
 plt.rcParams["axes.xmargin"] = 0
 plt.rcParams["axes.ymargin"] = 0
 plt.rcParams["font.size"] = 24
+plt.rcParams["font.family"] = "Helvetica"
 plt.rcParams["pdf.fonttype"] = 42
 plt.rcParams["ps.fonttype"] = 42
+plt.rcParams["text.usetex"] = True
 
 VERIFICATION_STATUSES: Final = (
     "Verified",

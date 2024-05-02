@@ -76,7 +76,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
     ax.set_ylabel(f"Percentage of Imports/Exports\nper AS", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(loc="lower left", fontsize=32)
+    ax.legend(loc="lower left", fontsize=30)
 
     # For checking.
     # fig.show()

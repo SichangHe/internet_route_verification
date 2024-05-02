@@ -93,6 +93,12 @@ impl Interpreter {
     }
 }
 
+impl Default for Interpreter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug, Eq, Error, PartialEq)]
 pub enum InterpretErr {
     #[error("tilde found, unsupported")]

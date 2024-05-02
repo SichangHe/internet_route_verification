@@ -1095,3 +1095,9 @@ last_modified = CsvFile(
     "https://github.com/SichangHe/internet_route_verification/releases/download/data-130/last_modified.csv.gz",
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/130>."""
+
+bgpq3_compatible_rules = CsvFile(
+    "bgpq3_compatible_rules.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/files/15190015/bgpq3_compatible_rules.csv.gz",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/issues/137#issuecomment-2090699322>."""

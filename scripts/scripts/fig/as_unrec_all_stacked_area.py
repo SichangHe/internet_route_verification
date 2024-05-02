@@ -70,11 +70,10 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         colors=reversed(COLORS7),  # type: ignore[reportArgumentType]
         labels=MODIFIED_UNRECORDED_CASE_LABELS,
     )
-    ax.set_xlabel("ASes Ordered by Prevalent Unrecorded Subtype", fontsize=36)
-    ax.set_ylabel(
-        f"Percentage of Unrecorded Cases\nin Imports/Exports per AS",
-        fontsize=34,
+    ax.set_xlabel(
+        "ASes with Unrecorded Cases, Ordered by\nPrevalent Subtypes", fontsize=36
     )
+    ax.set_ylabel(f"Percentage of Imports/Exports\nper AS", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="lower left", fontsize=32)

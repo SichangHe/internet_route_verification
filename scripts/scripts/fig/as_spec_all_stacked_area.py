@@ -70,11 +70,11 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         colors=COLORS7,  # type: ignore[reportArgumentType]
         labels=MODIFIED_SPECIAL_CASE_LABELS,
     )
-    ax.set_xlabel("ASes Ordered by Prevalent Special/Whitelisted Cases", fontsize=36)
-    ax.set_ylabel(
-        f"Percentage of Special/Whitelisted\nCases in Imports/Exports",
-        fontsize=34,
+    ax.set_xlabel(
+        "ASes with Special or Whitelisted Cases, Ordered by\nPrevalent Subtypes",
+        fontsize=36,
     )
+    ax.set_ylabel(f"Percentage of Imports/Exports\nper AS", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="upper right", fontsize=32)

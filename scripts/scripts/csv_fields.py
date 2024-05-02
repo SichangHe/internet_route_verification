@@ -47,7 +47,7 @@ MODIFIED_SPECIAL_CASE_FIELDS: Final = (
 MODIFIED_SPECIAL_CASE_LABELS: Final = (
     "Export Self",
     "Import Customer",
-    "Missing Route",
+    "Missing $route$",
     "Only Provider",
     "Tier-1 Peering",
     "Uphill Tier-1",
@@ -70,8 +70,8 @@ MODIFIED_UNRECORDED_CASE_FIELDS: Final = (
 
 MODIFIED_UNRECORDED_CASE_LABELS: Final = (
     r"Missing $aut$-$num$",
-    r"0 $import$ Rule",
-    r"0 $export$ Rule",
+    r"0 $import$ Rules",
+    r"0 $export$ Rules",
     r"$as$-$set$ ∋ 0-$route$ AS",
     r"Missing $as$-$set$",
     r"0-$route$ AS",

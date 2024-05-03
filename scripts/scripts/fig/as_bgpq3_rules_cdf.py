@@ -112,7 +112,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         drawstyle="steps-pre",
         linewidth=4,
         color=hue_grayscale_to_srgb(240, 0.2),
-        label="BGPq3",
+        label="BGPq3-Compatible",
     )
 
     # Tier-1 and large cloud providers scatter plots.
@@ -169,7 +169,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
 
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("Number of Import/Export Rules", fontsize=36)
+    ax.set_xlabel("Number of $import$ and $export$ Rules", fontsize=36)
     ax.set_ylabel("Complementary Cumulative\nFraction of ASes", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()

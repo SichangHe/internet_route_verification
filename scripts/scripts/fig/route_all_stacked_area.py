@@ -75,7 +75,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
     for key, file, y_label in zip(
         ("import", "export", "exchange"),
         FILES,
-        ("Imports", "Exports", "Imports/Exports\n"),
+        ("Imports", "Exports", "Imports and\nExports"),
     ):
         fig, ax, df = process_route_stats(file, y_label)
         dfs[key], figs[key], axs[key] = df, fig, ax

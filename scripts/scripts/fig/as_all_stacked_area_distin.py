@@ -63,13 +63,13 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
             "Verified",
             "Skipped",
             "Unrecorded",
-            "Special",
+            "Relaxed",
             "Whitelisted",
             "Unverified",
         ),
     )
     ax.set_xlabel("ASes Ordered by Correctness", fontsize=36)
-    ax.set_ylabel("Percentage of Imports/Exports\nper AS", fontsize=36)
+    ax.set_ylabel("Percentage of Imports and\nExports per AS", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="lower center", bbox_to_anchor=(0.6, 0.0), fontsize=32)

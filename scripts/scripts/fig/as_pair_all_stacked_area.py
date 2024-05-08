@@ -68,7 +68,7 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
     dfs["exchange"] = d
     for (key, d), y_label in zip(
         dfs.items(),
-        ("Imports", "Exports", "Imports/Exports\n"),
+        ("Imports", "Exports", "Imports and\nExports"),
     ):
         indexes, values = smart_sample(
             tuple(d[f"%{tag}"] for tag in TAGS), min_gap_frac=0.0002  # type: ignore

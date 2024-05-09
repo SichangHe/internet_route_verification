@@ -1,42 +1,25 @@
 """Run at `scripts/` with `python3 -m scripts.fig.as_pair_all_stacked_area`.
 """
 
-from concurrent import futures
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts import CsvFile, download_csv_files_if_missing
 from scripts.csv_files import as_pair_stats_all
 from scripts.fig import VERIFICATION_STATUSES, smart_sample
 from scripts.fig.colors import COLORS5_OUT_OF6
+from scripts.fig.dataframes import as_pair_stats_all_df
 
 FILES = as_pair_stats_all
 PORTS = ("import", "export")
 TAGS = ("ok", "skip", "unrec", "meh", "err")
 
 
-def read_as_pair_stats(file: CsvFile):
-    return pd.read_csv(
-        file.path,
-        index_col=["from", "to"],
-        usecols=["from", "to"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS],  # type: ignore
-        engine="pyarrow",
-    )
-
-
 def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]:
-    with futures.ProcessPoolExecutor() as executor:
-        df = (
-            pd.concat(
-                (d for d in executor.map(read_as_pair_stats, FILES) if len(d) > 0),
-                copy=False,
-            )
-            .groupby(["from", "to"])
-            .sum(engine="pyarrow")  # type: ignore
-        )
+    df = as_pair_stats_all_df(
+        ["from", "to"] + [f"{port}_{tag}" for port in PORTS for tag in TAGS]
+    )
 
     dfs: dict[str, pd.DataFrame] = {}
     figs: dict[str, Figure] = {}
@@ -96,8 +79,6 @@ def plot() -> tuple[dict[str, Figure], dict[str, Axes], dict[str, pd.DataFrame]]
 
 
 def main():
-    download_csv_files_if_missing(FILES)
-
     figs, _, _ = plot()
 
     for key, fig in figs.items():

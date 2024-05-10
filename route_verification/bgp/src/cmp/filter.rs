@@ -6,6 +6,7 @@ use super::*;
 pub struct CheckFilter<'a> {
     pub cmp: &'a Compare,
     pub query: &'a QueryIr,
+    pub accept_num: u32,
     pub self_num: u32,
     pub export: bool,
     pub prev_path: &'a [AsPathEntry],
@@ -24,14 +25,14 @@ impl<'a> CheckFilter<'a> {
             RouteSet(name, op) => self.filter_route_set(name, *op, depth),
             AsNum(num, op) => self.filter_as_num(*num, *op),
             AsSet(name, op) => self.filter_as_set(name, *op),
-            AsPathRE(expr) => self.filter_as_regex(expr, depth),
+            AsPathRE(expr) => self.filter_as_regex(expr),
+            PeerAS => self.filter_as_num(self.accept_num, RangeOperator::NoOp),
             And { left, right } => self.filter_and(left, right, depth).to_any(),
             Or { left, right } => self.filter_or(left, right, depth),
             Not(filter) => self.filter_not(filter, depth),
             Group(filter) => self.check_filter(filter, depth),
             Community(community) => self.filter_community(community),
             Unknown(unknown) => self.bad_any_report(|| RpslUnknownFilter(unknown.into())),
-            Invalid(reason) => self.invalid_filter(reason),
         }
     }
 
@@ -240,7 +241,7 @@ impl<'a> CheckFilter<'a> {
     }
 
     /// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
-    fn filter_as_regex(&self, expr: &str, depth: isize) -> AnyReport {
+    fn filter_as_regex(&self, expr: &str) -> AnyReport {
         let path = self.prev_path.iter();
         let path = match path
             .map(|p| match p {
@@ -258,7 +259,7 @@ impl<'a> CheckFilter<'a> {
             expr,
             report: BadAnyReport(vec![]),
         }
-        .check(path, depth)
+        .check(path)
     }
 
     fn filter_and(&self, left: &'a Filter, right: &'a Filter, depth: isize) -> AllReport {
@@ -297,10 +298,6 @@ impl<'a> CheckFilter<'a> {
         } else {
             empty_skip_any_report()
         }
-    }
-
-    fn invalid_filter(&self, reason: &str) -> AnyReport {
-        self.bad_any_report(|| RpslInvalidFilter(reason.into()))
     }
 
     /// `Err` contains all the skips in an [`AnyReport`].

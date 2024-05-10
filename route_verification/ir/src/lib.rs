@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 use anyhow::{bail, Context, Error, Result};
 use common_regex::{set::*, *};
 use ipnet::IpNet;
-use log::error;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -23,7 +22,7 @@ pub use {
     address_prefix::{match_ips, AddrPfxRange, RangeOperator},
     aut_num::AutNum,
     aut_sys::{is_as_set, is_pseudo_set, parse_as_name, parse_aut_num_name, AsName},
-    filter::{is_any, is_filter_set, peer_as_filter, Filter},
+    filter::{is_any, is_filter_set, Filter},
     intermediate_repr::{merge_irs, Ir},
     mp_import::{Casts, Entry, Versions},
     peering::{is_peering_set, parse_single_as_expr, AsExpr, Peering, PeeringAction},

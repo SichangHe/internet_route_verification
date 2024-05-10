@@ -220,7 +220,7 @@ pub fn parse_lexed_filter_set(
         filters: lexed
             .filters
             .into_iter()
-            .map(|f| parse_filter(f, &[], counts))
+            .map(|f| parse_filter(f, counts))
             .collect(),
     };
     Ok((lexed.name, filter_set))

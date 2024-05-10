@@ -39,7 +39,7 @@ pub fn parse_entry(entry: mp_import::Entry, counts: &mut Counts) -> Entry {
         mp_filter,
     } = entry;
     let mp_peerings = parse_mp_peerings(mp_peerings);
-    let mp_filter = parse_filter(mp_filter, &mp_peerings, counts);
+    let mp_filter = parse_filter(mp_filter, counts);
     Entry {
         mp_peerings,
         mp_filter,

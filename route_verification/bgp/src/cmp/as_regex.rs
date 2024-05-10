@@ -11,7 +11,7 @@ pub struct AsRegex<'a> {
 }
 
 impl<'a> AsRegex<'a> {
-    pub fn check(&mut self, path: Vec<u32>, depth: isize) -> AnyReport {
+    pub fn check(&mut self, path: Vec<u32>) -> AnyReport {
         let converted = match self.interpreter.run(self.expr) {
             Ok(c) => c,
             Err(HasTilde) => {
@@ -25,14 +25,7 @@ impl<'a> AsRegex<'a> {
             Ok(c) => c,
             Err(_) => return self.invalid_err(),
         };
-        let peer_as_filter = self
-            .interpreter
-            .has_peer_as()
-            .then(|| peer_as_filter(self.c.mp_peerings, &mut Default::default()));
-        let replacements: Vec<_> = path
-            .iter()
-            .map(|n| self.asn_chars(*n, peer_as_filter.as_ref(), depth - 1))
-            .collect();
+        let replacements = path.iter().map(|n| self.asn_chars(*n)).collect::<Vec<_>>();
         for chars in replacements.iter().multi_cartesian_product() {
             let haystack: String = chars.into_iter().collect();
             if converted_regex.is_match(&haystack) {
@@ -47,7 +40,7 @@ impl<'a> AsRegex<'a> {
 
     /// chars corresponding to `asn`.
     /// Unrecorded ASNs are assigned `¿` to avoid being matched.
-    pub fn asn_chars(&mut self, asn: u32, filter: Option<&Filter>, depth: isize) -> Vec<char> {
+    pub fn asn_chars(&mut self, asn: u32) -> Vec<char> {
         let mut result: Vec<_> = self.interpreter.get_asn(asn).into_iter().collect();
         for (set, c) in self.interpreter.as_sets_with_char() {
             match self.c.set_has_member(set, asn) {
@@ -56,12 +49,8 @@ impl<'a> AsRegex<'a> {
                 Err(r) => self.report |= r.unwrap(),
             }
         }
-        if let Some(filter) = filter {
-            match self.c.check_filter(filter, depth) {
-                Some(skips @ SkipAnyReport(_)) => self.report |= skips,
-                Some(_) => (),
-                None => result.push(self.interpreter.as_peering_char()),
-            }
+        if asn == self.c.accept_num {
+            result.push(self.interpreter.peer_as_char());
         }
         if result.is_empty() {
             vec!['¿']

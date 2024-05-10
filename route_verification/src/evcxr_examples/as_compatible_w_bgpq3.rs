@@ -12,13 +12,13 @@ fn as_compatible_with_bgpq3(query: QueryIr) -> Result<()> {
             | Filter::AddrPrefixSet(_) => true,
             Filter::FilterSet(_)
             | Filter::AsPathRE(_)
+            | Filter::PeerAS
             | Filter::And { left: _, right: _ }
             | Filter::Or { left: _, right: _ }
             | Filter::Not(_)
             | Filter::Group(_)
             | Filter::Community(_)
-            | Filter::Unknown(_)
-            | Filter::Invalid(_) => false,
+            | Filter::Unknown(_) => false,
         }
     }
 

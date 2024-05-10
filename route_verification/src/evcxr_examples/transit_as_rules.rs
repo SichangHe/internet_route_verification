@@ -85,9 +85,9 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
                 | Filter::AddrPrefixSet(_)
                 | Filter::RouteSet(_, _)
                 | Filter::AsPathRE(_)
+                | Filter::PeerAS
                 | Filter::Community(_)
-                | Filter::Unknown(_)
-                | Filter::Invalid(_) => {}
+                | Filter::Unknown(_) => {}
             }
         }
         fn record_entry(&mut self, entry: &Entry, query: &QueryIr) {

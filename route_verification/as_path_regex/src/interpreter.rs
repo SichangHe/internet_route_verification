@@ -31,7 +31,7 @@ impl Interpreter {
         Ok(&self.expr)
     }
 
-    pub fn as_peering_char(&self) -> char {
+    pub fn peer_as_char(&self) -> char {
         self.peer_as_char
     }
 

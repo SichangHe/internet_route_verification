@@ -5,15 +5,11 @@ use super::*;
 use RangeOperator::NoOp;
 
 /// Parse a basic <filter> component.
-pub fn parse_path_attribute(
-    attr: String,
-    mp_peerings: &[PeeringAction],
-    counts: &mut Counts,
-) -> Filter {
+pub fn parse_path_attribute(attr: String, counts: &mut Counts) -> Filter {
     if is_any(&attr) {
         Filter::Any
-    } else if regex_is_match!(r"^peeras$"i, &attr) {
-        peer_as_filter(mp_peerings, counts)
+    } else if is_peer_as(&attr) {
+        Filter::PeerAS
     } else if is_filter_set(&attr) {
         Filter::FilterSet(attr)
     } else if let Some(filter) = try_parse_route_set(&attr) {
@@ -33,46 +29,12 @@ pub fn is_any(attr: &str) -> bool {
     regex_is_match!(r"^(as-)?any$"i, attr)
 }
 
-pub fn is_filter_set(attr: &str) -> bool {
-    regex!(formatcp!("^{}$", FILTER_SET)).is_match(attr)
+pub fn is_peer_as(attr: &str) -> bool {
+    regex_is_match!(r"^peeras$"i, &attr)
 }
 
-/// Process a `PeerAS` filter.
-/// PeerAS can be used instead of the AS number of the peer AS.
-/// <https://www.rfc-editor.org/rfc/rfc2622#page-19>.
-pub fn peer_as_filter(mp_peerings: &[PeeringAction], counts: &mut Counts) -> Filter {
-    match (mp_peerings.len(), mp_peerings.first()) {
-        (
-            1,
-            Some(PeeringAction {
-                mp_peering:
-                    Peering {
-                        remote_as: AsExpr::Single(as_name),
-                        remote_router: _,
-                        local_router: _,
-                    },
-                actions: _,
-            }),
-        ) => match as_name {
-            AsName::Any => Filter::Any,
-            AsName::Num(num) => Filter::AsNum(*num, NoOp),
-            AsName::Set(name) => Filter::AsSet(name.into(), NoOp),
-            AsName::Invalid(reason) => {
-                let err = format!("PeerAs point to invalid AS name: {reason}.");
-                error!("{err}");
-                counts.peer_as_point += 1;
-                Filter::Invalid(err)
-            }
-        },
-        _ => {
-            let err = format!(
-                "Using PeerAs but mp-peerings {mp_peerings:?} are not a single AS expression"
-            );
-            error!("peer_as_filter: {err})");
-            counts.complex_peer_as += 1;
-            Filter::Invalid(err)
-        }
-    }
+pub fn is_filter_set(attr: &str) -> bool {
+    regex!(formatcp!("^{}$", FILTER_SET)).is_match(attr)
 }
 
 pub fn try_parse_route_set(attr: &str) -> Option<Filter> {
@@ -154,6 +116,8 @@ pub enum Filter {
     /// >    matches the set of routes which traverses a sequence of ASes
     /// >    matched by the AS-path regular expression.
     AsPathRE(String),
+    /// > PeerAS can be used instead of the AS number of the peer AS.
+    PeerAS,
     And {
         left: Box<Filter>,
         right: Box<Filter>,
@@ -166,7 +130,6 @@ pub enum Filter {
     Group(Box<Filter>),
     Community(Call),
     Unknown(String),
-    Invalid(String),
 }
 
 impl std::fmt::Debug for Filter {
@@ -201,6 +164,7 @@ impl std::fmt::Debug for Filter {
                 r.finish()
             }
             AsPathRE(arg0) => f.debug_tuple("AsPathRE").field(arg0).finish(),
+            PeerAS => write!(f, "PeerAS"),
             And { left, right } => f
                 .debug_struct("And")
                 .field("left", left)
@@ -215,7 +179,6 @@ impl std::fmt::Debug for Filter {
             Group(arg0) => f.debug_tuple("Group").field(arg0).finish(),
             Community(arg0) => f.debug_tuple("Community").field(arg0).finish(),
             Unknown(arg0) => f.debug_tuple("Unknown").field(arg0).finish(),
-            Invalid(arg0) => f.debug_tuple("Invalid").field(arg0).finish(),
         }
     }
 }

@@ -47,6 +47,7 @@ impl<'a> Compliance<'a> {
         let filter_report = CheckFilter {
             cmp: self.cmp,
             query: self.query,
+            accept_num: self.accept_num,
             self_num: self.self_num,
             export: self.export,
             prev_path: self.prev_path,

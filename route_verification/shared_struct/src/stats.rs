@@ -17,10 +17,6 @@ pub struct Counts {
     pub parse_filter_set: usize,
     /// Invalid routes when parsing AS Routes.
     pub parse_as_route: usize,
-    /// PeerAS points to invalid AS name.
-    pub peer_as_point: usize,
-    /// Using PeerAS but `mp-peering` is not a single AS expression.
-    pub complex_peer_as: usize,
 }
 
 impl std::ops::Add for Counts {
@@ -38,8 +34,6 @@ impl std::ops::Add for Counts {
             parse_peering_set: self.parse_peering_set + rhs.parse_peering_set,
             parse_filter_set: self.parse_filter_set + rhs.parse_filter_set,
             parse_as_route: self.parse_as_route + rhs.parse_as_route,
-            peer_as_point: self.peer_as_point + rhs.peer_as_point,
-            complex_peer_as: self.complex_peer_as + rhs.complex_peer_as,
         }
     }
 }
@@ -57,8 +51,6 @@ impl std::fmt::Display for Counts {
             parse_peering_set,
             parse_filter_set,
             parse_as_route,
-            peer_as_point,
-            complex_peer_as,
         } = self;
         [
             (lex_skip, "skips during lexing"),
@@ -71,8 +63,6 @@ impl std::fmt::Display for Counts {
             (parse_peering_set, "invalid Peering Set names"),
             (parse_filter_set, "invalid Filter Set names"),
             (parse_as_route, "invalid AS Route"),
-            (peer_as_point, "PeerAS points to invalid AS name"),
-            (complex_peer_as, "complex PeerAS"),
         ]
         .into_iter()
         .filter(|(field, _)| **field > 0)

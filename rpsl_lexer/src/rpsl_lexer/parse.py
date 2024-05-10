@@ -14,7 +14,7 @@ def lex_with(lexer: ParserElement, string: str) -> dict:
 
 
 def clean_action(
-    actions_lexed: Iterable[dict[str, dict | list]]
+    actions_lexed: Iterable[dict[str, dict | list]],
 ) -> dict[str, str | list[str] | list[dict[str, str | list[str]]]]:
     """Clean up a stream of <action>s
     -> {[<assignee1>...]: str | list[str], [community]: list[{

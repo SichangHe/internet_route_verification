@@ -2,8 +2,8 @@ from typing import Iterable
 
 from pyparsing import ParseException, ParserElement
 
-from .afi import afi_set_intersection_difference, merge_afi_dict
-from .lex import action, afi, as_expr, mp_filter, mp_peering
+from rpsl_lexer.afi import afi_set_intersection_difference, merge_afi_dict
+from rpsl_lexer.lex import action, afi, as_expr, mp_filter, mp_peering
 
 
 def lex_with(lexer: ParserElement, string: str) -> dict:

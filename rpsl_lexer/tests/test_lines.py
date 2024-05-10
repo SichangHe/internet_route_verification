@@ -1,4 +1,4 @@
-from ..lines import lines_continued
+from rpsl_lexer.lines import lines_continued
 
 RAW_LINES_EXAMPLES = [
     """aut-num:        AS1880

@@ -1,11 +1,11 @@
 import sys
 
-from . import red
-from .lex import mp_filter
-from .lines import expressions
-from .parse import clean_mp_filter, lex_with
-from .piped import stdin_lines, write_obj
-from .rpsl_object import FilterSet
+from rpsl_lexer import red
+from rpsl_lexer.lex import mp_filter
+from rpsl_lexer.lines import expressions
+from rpsl_lexer.parse import clean_mp_filter, lex_with
+from rpsl_lexer.piped import stdin_lines, write_obj
+from rpsl_lexer.rpsl_object import FilterSet
 
 
 def parse_filter_set():

@@ -1,0 +1,28 @@
+[project]
+name = "rpsl-lexer"
+version = "0.2.0"
+description = "RPSL lexer for Internet Route Verification."
+authors = [
+    { name = "Steven Hé (Sīchàng)", email = "stevensichanghe@gmail.com" }
+]
+dependencies = [
+    "pyparsing>=3.1.2",
+]
+readme = "../README.md"
+requires-python = ">= 3.10"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.2.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rpsl_lexer"]

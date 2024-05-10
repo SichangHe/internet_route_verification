@@ -1,6 +1,6 @@
 from pyparsing import ParseResults
 
-from ..lex import action, as_expr, mp_filter, mp_import, mp_peering
+from rpsl_lexer.lex import action, as_expr, mp_filter, mp_import, mp_peering
 
 MP_IMPORT_EXAMPLES = [
     "afi ipv6.unicast from AS9002 accept ANY",

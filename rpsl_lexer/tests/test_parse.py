@@ -1,4 +1,5 @@
-from ..parse import import_export, parse_mp_peering
+from rpsl_lexer.parse import import_export, parse_mp_peering
+
 from .test_lex import (
     LEXED_MP_EXPORT_EXAMPLES,
     LEXED_MP_IMPORT_EXAMPLES,

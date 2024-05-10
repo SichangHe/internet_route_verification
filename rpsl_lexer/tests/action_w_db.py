@@ -4,8 +4,8 @@ from typing import Generator
 
 from pyparsing import ParseException
 
-from ..lex import action, mp_import
-from ..lines import io_wrapper_lines, lines_continued
+from rpsl_lexer.lex import action, mp_import
+from rpsl_lexer.lines import io_wrapper_lines, lines_continued
 from .mp_peering_w_db import get_import_factors
 
 

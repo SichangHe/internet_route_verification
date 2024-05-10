@@ -1,7 +1,7 @@
 from io import TextIOWrapper
 from random import choices
 
-from ..lines import io_wrapper_lines, lines_continued
+from rpsl_lexer.lines import io_wrapper_lines, lines_continued
 from .mp_import_w_db import parse_mp_import
 
 

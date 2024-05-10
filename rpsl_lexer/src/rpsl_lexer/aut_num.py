@@ -1,10 +1,10 @@
 import sys
 
-from .lex import mp_import
-from .lines import expressions
-from .parse import import_export, lex_with
-from .piped import stdin_lines, write_obj
-from .rpsl_object import AutNum
+from rpsl_lexer.lex import mp_import
+from rpsl_lexer.lines import expressions
+from rpsl_lexer.parse import import_export, lex_with
+from rpsl_lexer.piped import stdin_lines, write_obj
+from rpsl_lexer.rpsl_object import AutNum
 
 
 def parse_mp_import(

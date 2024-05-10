@@ -4,8 +4,8 @@ from typing import Generator
 
 from pyparsing import ParseException
 
-from ..lex import mp_import, mp_peering
-from ..lines import io_wrapper_lines, lines_continued
+from rpsl_lexer.lex import mp_import, mp_peering
+from rpsl_lexer.lines import io_wrapper_lines, lines_continued
 
 
 def import_factors_in_flat(afi_import_expression: dict) -> Generator[dict, None, None]:

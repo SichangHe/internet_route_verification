@@ -1,8 +1,8 @@
 from io import TextIOWrapper
 from random import choices
 
-from ..lex import mp_import
-from ..lines import io_wrapper_lines, lines_continued
+from rpsl_lexer.lex import mp_import
+from rpsl_lexer.lines import io_wrapper_lines, lines_continued
 
 
 def parse_mp_export(line: str, verbose: bool = False):

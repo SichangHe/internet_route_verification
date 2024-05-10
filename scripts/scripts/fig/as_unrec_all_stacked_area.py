@@ -70,6 +70,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         colors=reversed(COLORS7),  # type: ignore[reportArgumentType]
         labels=MODIFIED_UNRECORDED_CASE_LABELS,
     )
+    ax.fill_between([], [], [], label="Not Unrecorded", color="white")
     ax.set_xlabel(
         "ASes with Unrecorded Cases, Ordered by\nPrevalent Subtypes", fontsize=36
     )

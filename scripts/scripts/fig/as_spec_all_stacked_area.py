@@ -70,6 +70,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         colors=COLORS6,  # type: ignore[reportArgumentType]
         labels=MODIFIED_SPECIAL_CASE_LABELS,
     )
+    ax.fill_between([], [], [], label="Not Special-Cased", color="white")
     ax.set_xlabel(
         "ASes with Special Cases, Ordered by Prevalent Subtypes",
         fontsize=36,

@@ -24,7 +24,7 @@ pub fn spawn_aut_num_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Result<A
 
 fn aut_num_worker(recv: Receiver<RPSLObject>) -> Result<AutNumWorkerOutput> {
     let mut aut_num_child =
-        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_lexer.aut_num"]))?;
+        PipedChild::new(Command::new("python").args(["-m", "rpsl_lexer.aut_num"]))?;
 
     let mut aut_nums = Vec::new();
     let mut pseduo_as_sets = BTreeMap::new();
@@ -91,7 +91,7 @@ pub fn spawn_peering_set_worker(
 
 fn peering_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<PeeringSet>> {
     let mut peering_set_child =
-        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_lexer.peering_set"]))?;
+        PipedChild::new(Command::new("python").args(["-m", "rpsl_lexer.peering_set"]))?;
 
     let mut peering_sets = Vec::new();
     while let Ok(obj) = recv.recv() {
@@ -123,7 +123,7 @@ pub fn spawn_filter_set_worker() -> Result<(Sender<RPSLObject>, JoinHandle<Resul
 
 fn filter_set_worker(recv: Receiver<RPSLObject>) -> Result<Vec<FilterSet>> {
     let mut filter_set_child =
-        PipedChild::new(Command::new("pypy3").args(["-m", "rpsl_lexer.filter_set"]))?;
+        PipedChild::new(Command::new("python").args(["-m", "rpsl_lexer.filter_set"]))?;
 
     let mut filter_sets = Vec::new();
     while let Ok(obj) = recv.recv() {

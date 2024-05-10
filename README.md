@@ -20,6 +20,8 @@ TODO: update this README.
 
 ## Produce a parsed dump using both lexer and parser
 
+TODO: We use Rye now, so we can just initialize the virtual environment and run `python`.
+
 - Put the database file at `data/ripe.db`.
 - Make sure `pypy3` is in the `PATH`.
 - Make sure you have `rpsl-lexer` installed and

@@ -18,6 +18,7 @@ mod as_w_routes_wo_aut_num;
 mod as_w_single_rs_export;
 mod bgpq3_compatible_rules;
 mod collect_source;
+mod community_filter;
 mod count_asn_in_peering;
 mod count_path_sets;
 mod count_router_info;

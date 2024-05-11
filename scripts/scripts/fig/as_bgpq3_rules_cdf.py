@@ -103,7 +103,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         linewidth=4,
         color=hue_grayscale_to_srgb(60, 0.92) + (0.9,),
         linestyle="-.",
-        label="All",
+        label="All Rules",
         zorder=5,
     )
     ax.plot(
@@ -112,7 +112,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         drawstyle="steps-pre",
         linewidth=4,
         color=hue_grayscale_to_srgb(240, 0.2),
-        label="BGPq3-Compatible",
+        label="BGPq3-Compatible Rules",
     )
 
     # Tier-1 and large cloud providers scatter plots.
@@ -169,11 +169,16 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
 
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("Number of $import$ and $export$ Rules", fontsize=36)
-    ax.set_ylabel("Complementary Cumulative\nFraction of ASes", fontsize=36)
+    ax.set_xlabel(
+        "Number of $import$ and $export$ Rules per $aut$-$num$ Object", fontsize=36
+    )
+    ax.set_ylabel(
+        "Complementary Cumulative\nFraction of $aut$-$num$ Objects",
+        fontsize=36,
+    )
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
-    ax.legend(fontsize=32, loc="lower left")
+    ax.legend(fontsize=30, loc="lower left")
 
     # For checking.
     # fig.show()

@@ -42,27 +42,45 @@ def hue_grayscale_to_linear_rgb(hue: float, grayscale: float):
 
     if h_ > 5:  # r > b > g
         kx, ky, kz = R, B, G
-        rgb = lambda: (x, z, y)
+
+        def rgb():
+            return x, z, y
+
         k = 6 - h_
     elif h_ < 1:  # r > g > b
         kx, ky, kz = R, G, B
-        rgb = lambda: (x, y, z)
+
+        def rgb():
+            return x, y, z
+
         k = h_
     elif h_ < 2:  # g > r > b
         kx, ky, kz = G, R, B
-        rgb = lambda: (y, x, z)
+
+        def rgb():
+            return y, x, z
+
         k = 2 - h_
     elif h_ < 3:  # g > b > r
         kx, ky, kz = G, B, R
-        rgb = lambda: (z, x, y)
+
+        def rgb():
+            return z, x, y
+
         k = h_ - 2
     elif h_ < 4:  # b > g > r
         kx, ky, kz = B, G, R
-        rgb = lambda: (z, y, x)
+
+        def rgb():
+            return z, y, x
+
         k = 4 - h_
     else:  # b > r > g
         kx, ky, kz = B, R, G
-        rgb = lambda: (y, z, x)
+
+        def rgb():
+            return y, z, x
+
         k = h_ - 4
 
     # Because saturation is 1,

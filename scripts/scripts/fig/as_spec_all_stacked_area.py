@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.fig.as_spec_all_stacked_area`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.fig.as_spec_all_stacked_area`."""
 
 import re
 
@@ -75,7 +74,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         "ASes with Special Cases, Ordered by Prevalent Subtypes",
         fontsize=36,
     )
-    ax.set_ylabel(f"Percentage of Imports and\nExports per AS", fontsize=36)
+    ax.set_ylabel("Percentage of Imports and\nExports per AS", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="upper right", fontsize=32)
@@ -89,7 +88,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
 def main():
     fig, _, _ = plot()
 
-    pdf_name = f"AS-all-special-case-percentages-stacked-area.pdf"
+    pdf_name = "AS-all-special-case-percentages-stacked-area.pdf"
     fig.savefig(pdf_name, bbox_inches="tight")
     fig.set_size_inches(12, 9)
     fig.savefig(pdf_name.replace(".pdf", "-squared.pdf"), bbox_inches="tight")

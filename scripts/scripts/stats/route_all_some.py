@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.stats.route_all_some`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.stats.route_all_some`."""
 
 import pandas as pd
 

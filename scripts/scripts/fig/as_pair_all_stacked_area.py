@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.fig.as_pair_all_stacked_area`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.fig.as_pair_all_stacked_area`."""
 
 import matplotlib.pyplot as plt
 import pandas as pd

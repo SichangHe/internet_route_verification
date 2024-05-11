@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.fig.as_rules_cdf`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.fig.as_rules_cdf`."""
 
 import matplotlib.pyplot as plt
 import numpy as np

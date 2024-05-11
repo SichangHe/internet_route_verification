@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.stats.as_rules_corr`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.stats.as_rules_corr`."""
 
 import pandas as pd
 

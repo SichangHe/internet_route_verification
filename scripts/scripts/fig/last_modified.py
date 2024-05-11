@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.fig.last_modified`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.fig.last_modified`."""
 
 import matplotlib.pyplot as plt
 import numpy as np

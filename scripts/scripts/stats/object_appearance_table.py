@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.stats.object_appearance_table`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.stats.object_appearance_table`."""
 
 import pandas as pd
 
@@ -64,7 +63,7 @@ def main():
         for column, length in zip(columns, lengths)
     ]
     rows = zip(*padded_columns)
-    row_strs = (f" & ".join(row) + r" \\" for row in rows)
+    row_strs = (" & ".join(row) + r" \\" for row in rows)
     print("\n".join(row_strs))
 
 

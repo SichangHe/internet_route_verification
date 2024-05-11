@@ -49,7 +49,7 @@ def main() -> None:
             d = df[df[tag] == df["total_unrec"]]
             count = len(d)
             counts[f"unrec_all_{tag}"] += count
-            counts[f"unrec_all_same"] += count
+            counts["unrec_all_same"] += count
 
             d = df[df[tag] > 0]
             counts[f"some_{tag}"] += len(d)

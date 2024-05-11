@@ -42,7 +42,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         labels=[f"%{tag}" for tag in TAGS],
     )
     ax.set_xlabel("Route", fontsize=16)
-    ax.set_ylabel(f"Percentage of Special Case", fontsize=16)
+    ax.set_ylabel("Percentage of Special Case", fontsize=16)
     ax.tick_params(axis="both", labelsize=14)
     ax.grid()
     ax.legend(loc="lower center", fontsize=14)
@@ -57,7 +57,7 @@ def main():
     FILE.download_if_missing()
     fig, _, _ = plot()
 
-    pdf_name = f"route-special-case-percentages-stacked-area.pdf"
+    pdf_name = "route-special-case-percentages-stacked-area.pdf"
     fig.savefig(pdf_name, bbox_inches="tight")
     fig.set_size_inches(8, 6)
     fig.savefig(pdf_name.replace(".pdf", "-squared.pdf"), bbox_inches="tight")

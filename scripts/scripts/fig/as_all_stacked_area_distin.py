@@ -83,7 +83,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
 def main():
     fig, _, _, _ = plot()
 
-    pdf_name = f"AS-all-distin-percentages-stacked-area.pdf"
+    pdf_name = "AS-all-distin-percentages-stacked-area.pdf"
     fig.savefig(pdf_name, bbox_inches="tight")
     fig.set_size_inches(12, 9)
     fig.savefig(pdf_name.replace(".pdf", "-squared.pdf"), bbox_inches="tight")

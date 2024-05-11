@@ -39,7 +39,7 @@ def main() -> None:
             d = df[df[tag] == df["total_meh"]]
             count = len(d)
             counts[f"meh_all_{tag}"] += count
-            counts[f"meh_all_same"] += count
+            counts["meh_all_same"] += count
 
             d = df[df[tag] > 0]
             counts[f"some_{tag}"] += len(d)

@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.fig.as_unrec_stacked_area`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.fig.as_unrec_stacked_area`."""
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -69,7 +68,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame]:
         ],
     )
     ax.set_xlabel("ASes Ordered by Associated Unrecorded Cases", fontsize=36)
-    ax.set_ylabel(f"Percentages of Unrecorded Cases", fontsize=36)
+    ax.set_ylabel("Percentages of Unrecorded Cases", fontsize=36)
     ax.tick_params(axis="both", labelsize=32)
     ax.grid()
     ax.legend(loc="lower center", fontsize=32)
@@ -84,7 +83,7 @@ def main():
     FILE.download_if_missing()
     fig, _, _ = plot()
 
-    pdf_name = f"AS-unrec-case-percentages-stacked-area.pdf"
+    pdf_name = "AS-unrec-case-percentages-stacked-area.pdf"
     fig.savefig(pdf_name, bbox_inches="tight")
     fig.set_size_inches(12, 9)
     fig.savefig(pdf_name.replace(".pdf", "-squared.pdf"), bbox_inches="tight")

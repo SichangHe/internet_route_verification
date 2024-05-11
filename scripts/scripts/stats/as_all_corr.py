@@ -1,5 +1,4 @@
-"""Run at `scripts/` with `python3 -m scripts.stats.as_all_corr`.
-"""
+"""Run at `scripts/` with `python3 -m scripts.stats.as_all_corr`."""
 
 from concurrent import futures
 

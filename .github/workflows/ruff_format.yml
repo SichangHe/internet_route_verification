@@ -1,0 +1,14 @@
+on:
+  push:
+    paths:
+      - ".github/workflows/ruff_format.yml"
+      - "**.py"
+jobs:
+  ruff:
+    name: Python formatting check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@v1
+        with:
+          args: 'format --check'

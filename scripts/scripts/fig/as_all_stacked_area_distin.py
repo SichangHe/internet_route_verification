@@ -36,8 +36,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
     d.dropna(inplace=True)
     d.sort_values(
         by=[
-            f"%{tag}"
-            for tag in ("ok", "err", "skip", "unrec", "special", "safelisted")
+            f"%{tag}" for tag in ("ok", "err", "skip", "unrec", "special", "safelisted")
         ],
         ascending=[False, True, False, False, False, False],
         ignore_index=True,

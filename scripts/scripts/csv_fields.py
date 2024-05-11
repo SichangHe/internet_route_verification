@@ -14,7 +14,7 @@ SPECIAL_CASE_REPORT_ITEM_FIELDS: Final = (
     "spec_other_only_provider_policies",
 )
 
-WHITELIST_REPORT_ITEM_FIELDS: Final = (
+SAFELIST_REPORT_ITEM_FIELDS: Final = (
     "spec_uphill",
     "spec_uphill_tier1",
     "spec_tier1_pair",

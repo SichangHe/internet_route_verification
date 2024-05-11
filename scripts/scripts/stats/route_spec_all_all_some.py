@@ -46,7 +46,7 @@ def main() -> None:
 
         del df
 
-    print(f"{n_route} routes in total, {n_meh} have special/whitelisted cases.")
+    print(f"{n_route} routes in total, {n_meh} have special cases.")
     for tag in TAGS:
         percentage = counts[f"all_{tag}"] * 100 / n_route
         print(f"{counts[f"all_{tag}"]} all {tag}, {percentage:.1f}%.")
@@ -56,11 +56,11 @@ def main() -> None:
     for tag in TAGS:
         percentage = counts[f"meh_all_{tag}"] * 100 / n_route
         print(
-            f"{counts[f"meh_all_{tag}"]} all {tag} among special/whitelisted cases, {percentage:.1f}%."
+            f"{counts[f"meh_all_{tag}"]} all {tag} among special cases, {percentage:.1f}%."
         )
     percentage = counts["meh_all_same"] * 100 / n_route
     print(
-        f"{counts["meh_all_same"]} all same subtype among special/whitelisted case, {percentage:.1f}%.\n"
+        f"{counts["meh_all_same"]} all same subtype among special case, {percentage:.1f}%.\n"
     )
 
     for tag in TAGS:

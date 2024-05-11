@@ -8,7 +8,7 @@ import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from scripts.csv_fields import WHITELIST_REPORT_ITEM_FIELDS
+from scripts.csv_fields import SAFELIST_REPORT_ITEM_FIELDS
 from scripts.fig import smart_sample
 from scripts.fig.colors import COLORS6
 from scripts.fig.dataframes import as_stats_all_df
@@ -21,23 +21,23 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
     df = as_stats_all_df(
         ["aut_num"]
         + [f"{port}_{tag}" for port in PORTS for tag in TAGS]
-        + list(WHITELIST_REPORT_ITEM_FIELDS)
+        + list(SAFELIST_REPORT_ITEM_FIELDS)
     )
-    df["whitelisted"] = sum(df[tag] for tag in WHITELIST_REPORT_ITEM_FIELDS)
-    df["special"] = sum(df[f"{port}_meh"] for port in PORTS) - df["whitelisted"]
+    df["safelisted"] = sum(df[tag] for tag in SAFELIST_REPORT_ITEM_FIELDS)
+    df["special"] = sum(df[f"{port}_meh"] for port in PORTS) - df["safelisted"]
 
     d = pd.DataFrame(
         {"total": sum(df[f"{port}_{tag}"] for tag in TAGS for port in PORTS)}
     )
     for tag in TAGS:
         d[f"%{tag}"] = sum(df[f"{port}_{tag}"] for port in PORTS) * 100 / d["total"]
-    for tag in ("special", "whitelisted"):
+    for tag in ("special", "safelisted"):
         d[f"%{tag}"] = df[tag] * 100 / d["total"]
     d.dropna(inplace=True)
     d.sort_values(
         by=[
             f"%{tag}"
-            for tag in ("ok", "err", "skip", "unrec", "special", "whitelisted")
+            for tag in ("ok", "err", "skip", "unrec", "special", "safelisted")
         ],
         ascending=[False, True, False, False, False, False],
         ignore_index=True,
@@ -47,7 +47,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
     indexes, values = smart_sample(
         tuple(
             d[f"%{tag}"]
-            for tag in ("ok", "skip", "unrec", "special", "whitelisted", "err")
+            for tag in ("ok", "skip", "unrec", "special", "safelisted", "err")
         ),  # type: ignore[reportArgumentType]
         min_gap_frac=0.0003,
     )
@@ -64,7 +64,7 @@ def plot() -> tuple[Figure, Axes, pd.DataFrame, pd.DataFrame]:
             "Skipped",
             "Unrecorded",
             "Relaxed",
-            "Whitelisted",
+            "Safelisted",
             "Unverified",
         ),
     )

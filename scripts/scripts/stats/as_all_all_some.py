@@ -3,7 +3,7 @@
 Adopted from `as_all_some`.
 """
 
-from scripts.csv_fields import WHITELIST_REPORT_ITEM_FIELDS
+from scripts.csv_fields import SAFELIST_REPORT_ITEM_FIELDS
 from scripts.fig.dataframes import as_stats_all_df
 
 PORTS = ("import", "export")
@@ -14,10 +14,10 @@ def main() -> None:
     df = as_stats_all_df(
         [f"{port}_{tag}" for tag in TAGS for port in PORTS]
         + ["aut_num"]
-        + list(WHITELIST_REPORT_ITEM_FIELDS)
+        + list(SAFELIST_REPORT_ITEM_FIELDS)
     )
-    df["whitelisted"] = sum(df[tag] for tag in WHITELIST_REPORT_ITEM_FIELDS)
-    df["special"] = sum(df[f"{port}_meh"] for port in PORTS) - df["whitelisted"]
+    df["safelisted"] = sum(df[tag] for tag in SAFELIST_REPORT_ITEM_FIELDS)
+    df["special"] = sum(df[f"{port}_meh"] for port in PORTS) - df["safelisted"]
     n_as = len(df)
     print(f"{n_as} ASes in total.")
 
@@ -30,7 +30,7 @@ def main() -> None:
         percentage = count * 100 / n_as
         print(f"{count} all {tag}, {percentage:.1f}%.")
         count_all += count
-    for tag in ("special", "whitelisted"):
+    for tag in ("special", "safelisted"):
         df_all[tag] = df[df[tag] == df["total"]]
         count = df_all[tag].__len__()
         percentage = count * 100 / n_as
@@ -45,7 +45,7 @@ def main() -> None:
         count = df_some[tag].__len__()
         percentage = count * 100 / n_as
         print(f"{count} have {tag}, {percentage:.1f}%.")
-    for tag in ("special", "whitelisted"):
+    for tag in ("special", "safelisted"):
         df_some[tag] = df[df[tag] > 0]
         count = df_some[tag].__len__()
         percentage = count * 100 / n_as

@@ -47,7 +47,8 @@ def counted_smart_sample(same: tuple[pd.Series], counts: pd.Series):
 def process_route_stats(file: CsvFile, y_label: str):
     df = pd.read_csv(file.path, engine="pyarrow")
     indexes, values = counted_smart_sample(
-        tuple(df[f"%{tag}"] for tag in TAGS), df["count"]  # type: ignore
+        tuple(df[f"%{tag}"] for tag in TAGS),  # type: ignore[reportArgumentType]
+        df["count"],  # type: ignore[reportArgumentType]
     )
 
     fig, ax = plt.subplots(figsize=(16, 9))

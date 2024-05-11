@@ -16,7 +16,9 @@ ALL_TAGS = TAGS + MODIFIED_TAGS
 
 def main() -> None:
     df = as_pair_stats_all_df(
-        ["from", "to"] + [f"{port}_{tag}" for tag in LEVELS for port in PORTS] + list(TAGS)
+        ["from", "to"]
+        + [f"{port}_{tag}" for tag in LEVELS for port in PORTS]
+        + list(TAGS)
     )
     n_as_pair = len(df)
     print(f"{n_as_pair} AS pairs in total.")

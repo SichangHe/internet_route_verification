@@ -16,7 +16,7 @@ LEVELS = ("ok", "skip", "unrec", "meh", "err")
 
 def main() -> None:
     download_csv_files_if_missing(route_stats_all)
-    usecols = [f"{port}_{tag}" for tag in LEVELS for port in PORTS] + list(TAGS) 
+    usecols = [f"{port}_{tag}" for tag in LEVELS for port in PORTS] + list(TAGS)
 
     n_route = 0
     n_meh = 0
@@ -37,7 +37,7 @@ def main() -> None:
             counts["all_same"] += count
 
             d = df[df[tag] == df["total_meh"]]
-            count  = len(d)
+            count = len(d)
             counts[f"meh_all_{tag}"] += count
             counts[f"meh_all_same"] += count
 
@@ -55,9 +55,13 @@ def main() -> None:
 
     for tag in TAGS:
         percentage = counts[f"meh_all_{tag}"] * 100 / n_route
-        print(f"{counts[f"meh_all_{tag}"]} all {tag} among special/whitelisted cases, {percentage:.1f}%.")
+        print(
+            f"{counts[f"meh_all_{tag}"]} all {tag} among special/whitelisted cases, {percentage:.1f}%."
+        )
     percentage = counts["meh_all_same"] * 100 / n_route
-    print(f"{counts["meh_all_same"]} all same subtype among special/whitelisted case, {percentage:.1f}%.\n")
+    print(
+        f"{counts["meh_all_same"]} all same subtype among special/whitelisted case, {percentage:.1f}%.\n"
+    )
 
     for tag in TAGS:
         percentage = counts[f"some_{tag}"] * 100 / n_route

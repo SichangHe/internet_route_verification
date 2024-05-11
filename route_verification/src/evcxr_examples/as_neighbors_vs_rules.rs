@@ -58,7 +58,7 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         entry.export = an.exports.len() as i32;
     });
 
-    let mut file = BufWriter::new(File::create("as_neighbors_vs_rules.csv")?);
+    let mut file = BufWriter::new(File::create("as_neighbors_vs_rules5.csv")?);
     file.write_all(b"aut_num,provider,peer,customer,import,export\n")?;
     for (
         an,

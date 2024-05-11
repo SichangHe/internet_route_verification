@@ -1,8 +1,8 @@
 from scripts import CsvFile
 
 as_neighbors_vs_rules = CsvFile(
-    "as_neighbors_vs_rules4.csv",
-    "https://github.com/SichangHe/internet_route_verification/files/13895627/as_neighbors_vs_rules4.csv",
+    "as_neighbors_vs_rules5.csv.gz",
+    "https://github.com/SichangHe/internet_route_verification/files/15281144/as_neighbors_vs_rules5.csv.gz",
 )
 """From <https://github.com/SichangHe/internet_route_verification/pull/120>."""
 as_pair_stats = CsvFile(

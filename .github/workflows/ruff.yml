@@ -1,6 +1,8 @@
 on:
-  - push
-  - pull_request
+  push:
+    paths:
+      - ".github/workflows/ruff.yml"
+      - "**.py"
 jobs:
   ruff:
     name: Python formatting check

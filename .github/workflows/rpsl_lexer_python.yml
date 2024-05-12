@@ -15,7 +15,7 @@ jobs:
           enable-cache: true
           working-directory: rpsl_lexer/
       - run: |
-          rye pin cpython@3.11.8
+          rye config --set-bool behavior.use-uv=true
           rye sync
         working-directory: rpsl_lexer/
       - run: rye test

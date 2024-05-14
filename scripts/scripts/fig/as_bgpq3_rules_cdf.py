@@ -73,7 +73,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     n_wo_rule = len(df[df["simple_rules"] == 0])
     percentage = n_wo_rule * 100 / len(df)
     print(
-        f"{n_wo_rule} ({percentage:.1f}%) aut-num objects have 0 BGPq3-compatible rules."
+        f"{n_wo_rule} ({percentage:.1f}%) aut-num objects have 0 BGPq4-compatible rules."
     )
 
     compatible_cdf_data = np.asarray(df["simple_rules"])
@@ -112,7 +112,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         drawstyle="steps-pre",
         linewidth=4,
         color=hue_grayscale_to_srgb(240, 0.2),
-        label="BGPq3-Compatible Rules",
+        label="BGPq4-Compatible Rules",
     )
 
     # Tier-1 and large cloud providers scatter plots.

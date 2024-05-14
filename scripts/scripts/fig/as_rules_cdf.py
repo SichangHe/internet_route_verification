@@ -110,7 +110,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     n_wo_rule = len(df[df["rules"] == 0])
     percentage = n_wo_rule * 100 / len(df)
     print(
-        f"Dropping {n_wo_rule} ({percentage:.1f}%) aut-num objects with 0 rule for BGPq3-compatible/incompatible stats."
+        f"Dropping {n_wo_rule} ({percentage:.1f}%) aut-num objects with 0 rule for BGPq4-compatible/incompatible stats."
     )
 
     df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
@@ -149,7 +149,7 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         drawstyle="steps-pre",
         linewidth=4,
         color=hue_grayscale_to_srgb(60, 0.88),
-        label="BGPq3-Compatible",
+        label="BGPq4-Compatible",
     )
 
     # Tier-1 and large cloud providers scatter plots.

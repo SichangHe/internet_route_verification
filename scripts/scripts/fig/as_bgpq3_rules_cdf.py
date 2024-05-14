@@ -20,6 +20,14 @@ def plot() -> tuple[Figure, Axes]:
 
     df["rules"] = df["import"] + df["export"]
     df["simple_rules"] = df["simple_import"] + df["simple_export"]
+    df["complex_rules"] = df["rules"] - df["simple_rules"]
+
+    n_total_rule = sum(df["rules"])
+    n_simple_rule = sum(df["simple_rules"])
+    n_complex_rule = sum(df["complex_rules"])
+    print(
+        f"Total: {n_simple_rule} simple rules ({n_simple_rule * 100 / n_total_rule:.1f}%) + {n_complex_rule} complex rules ({n_complex_rule * 100 / n_total_rule:.1f}%) = {n_total_rule} rules."
+    )
 
     # CCDF plotting reference: `matplotlib/axes/_axes.py`.
     cdf_data: NDArray[np.floating] = np.asarray(df["rules"])
@@ -87,6 +95,17 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
     )
     compatible_cum_weights = np.concatenate((np.asarray((1,)), compatible_cum_weights))
 
+    complex_cdf_data = np.asarray(df["complex_rules"])
+    complex_cdf_order = np.argsort(complex_cdf_data)
+    complex_cdf_data = complex_cdf_data[complex_cdf_order]
+    complex_cum_weights = (
+        len(complex_cdf_data) - (1 + np.arange(len(complex_cdf_data)))
+    ) / len(cdf_data)
+    complex_cdf_data = np.concatenate(
+        (complex_cdf_data, np.asarray((complex_cdf_data[-1],)))
+    )
+    complex_cum_weights = np.concatenate((np.asarray((1,)), complex_cum_weights))
+
     cdf_data = np.concatenate((cdf_data, np.asarray((cdf_data[-1],))))
     cum_weights = np.concatenate((np.asarray((1,)), cum_weights))
 
@@ -113,6 +132,15 @@ Large cloud providers with 0 rule: {giants_w0rule}."""
         linewidth=4,
         color=hue_grayscale_to_srgb(240, 0.2),
         label="BGPq4-Compatible Rules",
+    )
+    ax.plot(
+        complex_cdf_data,
+        complex_cum_weights,
+        drawstyle="steps-pre",
+        linewidth=4,
+        color=hue_grayscale_to_srgb(330, 0.56),
+        linestyle="--",
+        label="BGPq4-Incompatible Rules",
     )
 
     # Tier-1 and large cloud providers scatter plots.

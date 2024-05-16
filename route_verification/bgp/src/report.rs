@@ -1,7 +1,5 @@
 use std::ops::{BitAnd, BitOr, BitOrAssign};
 
-use ::lex::Call;
-
 use super::*;
 
 mod all;

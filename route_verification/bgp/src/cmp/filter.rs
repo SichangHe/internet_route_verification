@@ -1,4 +1,3 @@
-use ::lex::Call;
 use ir::{Filter::*, *};
 
 use super::*;

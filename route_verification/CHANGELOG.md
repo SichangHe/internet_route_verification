@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.5.0...route_verification-v0.6.0) - 2024-05-14
+
+### Other
+- filter percentages [#159](https://github.com/SichangHe/internet_route_verification/pull/159)
+- remember to bump all RIB stats index
+- new AS rules stats
+- count community filter [#158](https://github.com/SichangHe/internet_route_verification/pull/158)
+- RIB stats for all4
+- `pypy3` → `python` in Rust to use with rye
+- resolve PeerAS at run time
+- make new clippy happy
+- BGPq3-compatible rules CDF plot [#137](https://github.com/SichangHe/internet_route_verification/pull/137)
+- basic last-modified stats&CDF [#130](https://github.com/SichangHe/internet_route_verification/pull/130)
+- update filter AS script after verbosity changes
+
 ## [0.4.1](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.4.0...route_verification-v0.4.1) - 2024-04-19
 
 ### Fixed

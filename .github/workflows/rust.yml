@@ -9,14 +9,14 @@ jobs:
     name: Rust checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Cache Rust registry based on lock file
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/registry/cache/
           key: rust-${{ hashFiles('route_verification/Cargo.lock') }}
-      - uses: mozilla-actions/sccache-action@v0.0.3
+      - uses: mozilla-actions/sccache-action@v0.0.4
       - run: |
           cd route_verification/
           cargo test --workspace

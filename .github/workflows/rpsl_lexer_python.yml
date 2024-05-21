@@ -14,9 +14,7 @@ jobs:
         with:
           enable-cache: true
           working-directory: rpsl_lexer/
-      - run: |
-          rye config --set-bool behavior.use-uv=true
-          rye sync
+      - run: rye sync
         working-directory: rpsl_lexer/
       - run: rye test
         working-directory: rpsl_lexer/

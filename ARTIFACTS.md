@@ -1,5 +1,34 @@
 # Artifacts
 
+Follow the instructions below to reproduce the artifacts.
+
+## Setup
+
+1. Get yourself a UNIX environment. Try WSL if you are on Windows.
+
+1. Make sure you have these CLI tools:
+
+    ```text
+    rg
+    ```
+
+1. Make sure you have Python 3.11+ and PyPy3.11+, and they are on path.
+    You may create virtual environments as you like.
+
+1. Clone and enter this repository:
+
+    ```sh
+    git clone --depth=1 https://github.com/SichangHe/internet_route_verification.git
+    cd internet_route_verification
+    ```
+
+1. Download the source data from [Raw data used, for
+    reproducibility](https://github.com/SichangHe/internet_route_verification/releases/tag/raw-data)
+    and follow the instruction there to unpack them to
+    the correct directory structure.
+
+## Results to reproduce
+
 - [ ] abstract & intro & sec 5 & appendix B Limitations:
     parse and interpret 99.99% of RPSL policies.
     We leave the handling of 60 rules whose filters contain AS-path regex with

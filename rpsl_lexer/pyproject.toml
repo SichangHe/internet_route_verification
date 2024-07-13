@@ -1,6 +1,6 @@
 [project]
 name = "rpsl-lexer"
-version = "0.2.0"
+version = "0.3.0"
 description = "RPSL lexer for Internet Route Verification."
 authors = [
     { name = "Steven Hé (Sīchàng)", email = "stevensichanghe@gmail.com" }

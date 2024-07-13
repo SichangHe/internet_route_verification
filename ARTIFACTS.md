@@ -9,7 +9,7 @@ Follow the instructions below to reproduce the artifacts.
 1. Make sure you have these CLI tools:
 
     ```text
-    git rg
+    git rg bgpdump
     ```
 
 1. Make sure you
@@ -53,6 +53,77 @@ Follow the instructions below to reproduce the artifacts.
     ```sh
     cargo r --release -- parse_ordered ../data/irrs/priority/apnic.db.* ../data/irrs/priority/afrinic.db ../data/irrs/priority/arin.db ../data/irrs/priority/lacnic.db ../data/irrs/priority/ripe.db ../data/irrs/backup/radb.db ../data/irrs/backup/altdb.db ../data/irrs/backup/idnic.db ../data/irrs/backup/jpirr.db ../data/irrs/backup/level3.db ../data/irrs/backup/nttcom.db ../data/irrs/backup/reach.db ../data/irrs/backup/tc.db ../parsed_all/ | tee parse_out.txt
     ```
+
+1. To reproduce the BGP dump analysis results obtained from the Evcxr shell,
+    `cd` to `./` and start Evcxr:
+
+    ```sh
+    evcxr
+    ```
+
+    Inside the shell,
+    paste in two blocks of code from
+    `./route_verification/src/evcxr_examples.rs`.
+    The first block goes from `:opt 3` to the end of the block of `use`;
+    it imports the dependencies.
+    The second block is the content of `parse_bgp_lines`,
+    excluding the `Ok(())`; it loads the data.
+    This takes a while and does not need supervision,
+    so just leave it there and do something else.
+
+    <details>
+    <summary>The code to copy, repeated here.</summary>
+
+    ```rust
+    :opt 3
+    :dep anyhow
+    :dep dashmap
+    :dep hashbrown
+    :dep route_verification = { path = "route_verification" }
+    :dep rayon
+    :dep itertools
+    :dep serde_json
+    // */
+    use anyhow::Result;
+    use dashmap::{DashMap, DashSet};
+    use hashbrown::{HashMap, HashSet};
+    use itertools::multiunzip;
+    use rayon::prelude::*;
+    use route_verification::as_rel::*;
+    use route_verification::bgp::stats::*;
+    use route_verification::bgp::*;
+    use route_verification::fs::open_file_w_correct_encoding;
+    use route_verification::ir::*;
+    use route_verification::irr::split_commas;
+    use route_verification::lex::{
+        expressions, io_wrapper_lines, lines_continued, rpsl_objects, RpslExpr,
+    };
+    use std::{
+        env,
+        fs::{read_dir, read_to_string, File},
+        io::{prelude::*, BufReader, BufWriter},
+        ops::Add,
+        time::Instant,
+    };
+
+    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
+    let parsed = Ir::pal_read("parsed_all")?;
+    println!(
+        "{}",
+        serde_json::to_string(parsed.aut_nums.get(&33549).unwrap())?
+    );
+    let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
+    println!("{:#?}", query.aut_nums.iter().next());
+    let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+    ```
+
+    We do not need Polars.
+
+    </details>
+
+    > Tip:
+    > When copying contents of functions in
+    > `./route_verification/src/evcxr_examples/`, always omit `Ok(())`.
 
 ## Results to reproduce
 
@@ -225,7 +296,8 @@ Follow the instructions below to reproduce the artifacts.
     > we ignore 54 rules with BGP community attributes in their filters.
 
     In the Evcxr shell,
-    follow the instruction in `./src/evcxr_examples/community_filter.rs`,
+    follow the instruction in
+    `./route_verification/src/evcxr_examples/community_filter.rs`,
     then evaluate the variable `count`
     ([#158](https://github.com/SichangHe/internet_route_verification/issues/158)).
 

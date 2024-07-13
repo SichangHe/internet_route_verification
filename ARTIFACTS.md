@@ -9,11 +9,19 @@ Follow the instructions below to reproduce the artifacts.
 1. Make sure you have these CLI tools:
 
     ```text
-    rg
+    git rg
     ```
 
-1. Make sure you have Python 3.11+ and PyPy3.11+, and they are on path.
-    You may create virtual environments as you like.
+1. Make sure you
+    [have a Rust toolchain installed](https://www.rust-lang.org/tools/install).
+
+1. Make sure you have the Evcxr REPL installed. If not, install it with:
+
+    ```sh
+    cargo install evcxr_repl
+    ```
+
+1. Make sure you [have Rye installed](https://rye.astral.sh/).
 
 1. Clone and enter this repository:
 
@@ -22,20 +30,32 @@ Follow the instructions below to reproduce the artifacts.
     cd internet_route_verification
     ```
 
+    Henceforth, we will call this directory `./`.
+
+## Data preparation
+
 1. Download the source data from [Raw data used, for
     reproducibility](https://github.com/SichangHe/internet_route_verification/releases/tag/raw-data)
     and follow the instruction there to unpack them to
     the correct directory structure.
 
+1. To reproduce the IR from the RPSL data,
+    `cd` to `./route_verification/` and set up the Rye environment:
+
+    ```sh
+    rye sync
+    ```
+
+    Then, at `./route_verification/`,
+    run the command below to produce the IR at `./parsed_all/` and
+    the log at `parse_out.txt`:
+
+    ```sh
+    cargo r --release -- parse_ordered ../data/irrs/priority/apnic.db.* ../data/irrs/priority/afrinic.db ../data/irrs/priority/arin.db ../data/irrs/priority/lacnic.db ../data/irrs/priority/ripe.db ../data/irrs/backup/radb.db ../data/irrs/backup/altdb.db ../data/irrs/backup/idnic.db ../data/irrs/backup/jpirr.db ../data/irrs/backup/level3.db ../data/irrs/backup/nttcom.db ../data/irrs/backup/reach.db ../data/irrs/backup/tc.db ../parsed_all/ | tee parse_out.txt
+    ```
+
 ## Results to reproduce
 
-- [ ] abstract & intro & sec 5 & appendix B Limitations:
-    parse and interpret 99.99% of RPSL policies.
-    We leave the handling of 60 rules whose filters contain AS-path regex with
-    ASN ranges (21 rules) or samepattern unary postfix operators (e.g., ~*,
-    39 rules) as future work.
-    we ignore 54 rules with BGP community attributes in their filters.
-    <https://github.com/SichangHe/internet_route_verification/issues/106>
 - [ ] intro: 53.2% of ASes not declaring any policies.
     <https://github.com/SichangHe/internet_route_verification/issues/161>
 - [ ] intro:
@@ -176,8 +196,39 @@ Follow the instructions below to reproduce the artifacts.
     We also assess the verification status of the first hop in ASpaths…
     Unfortunately, the results are similar (not shown).
     <https://github.com/SichangHe/internet_route_verification/issues/141>
-- [ ] appendix B:
+- [ ] Appendix B Nonstandard features:
     two cases of non-standard but common syntax used by operators (4724 times…)
+- [ ] Appendix B Limitations:
+
+    > We leave the handling of
+    > 60 rules whose filters contain AS-path regex with ASN ranges (21 rules)
+
+    Run at `./data/irrs/`
+    ([#106](https://github.com/SichangHe/internet_route_verification/issues/106)):
+
+    ```sh
+    rg --no-ignore -c '<.*\[\s*AS\d+\s*-\s*AS\d+\s*\].*>'
+    ```
+
+    <!-- FIXME: This says 19 instead of 21. The text is outdated. -->
+
+    > or samepattern unary postfix operators (e.g., ~*, 39 rules)
+    > as future work.
+
+    Run at `./data/irrs/`
+    ([#113](https://github.com/SichangHe/internet_route_verification/issues/113)):
+
+    ```sh
+    rg --no-ignore -c '<.*~.*>'
+    ```
+
+    > we ignore 54 rules with BGP community attributes in their filters.
+
+    In the Evcxr shell,
+    follow the instruction in `./src/evcxr_examples/community_filter.rs`,
+    then evaluate the variable `count`
+    ([#158](https://github.com/SichangHe/internet_route_verification/issues/158)).
+
 - [ ] appendix C:
     <https://github.com/SichangHe/internet_route_verification/issues/83>
 - [ ] appendix D: Figure 5.

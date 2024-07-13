@@ -1,0 +1,23 @@
+[project]
+name = "route-verification"
+version = "0.0.0"
+description = "Helper package for installing dependencies of route-verification"
+authors = [
+    { name = "Steven Hé (Sīchàng)", email = "stevensichanghe@gmail.com" },
+]
+dependencies = []
+requires-python = ">= 3.10"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = ["rpsl-lexer>=0.3.0"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

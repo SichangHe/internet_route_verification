@@ -42,13 +42,23 @@ and follow the instruction there to unpack them to
 the correct directory structure.
 
 > [!NOTE]\
-> The source data contain two parts.
+> The source data contain three parts.
 > The RIBs (Routing Information Bases)
 > are originally downloaded using `./download_ribs.py`.
 > The IRR (Internet Route Registry)
-> dumps are downloaded from the FTP servers listed in `README.md`;
-> they are irreproducible because they are from the pass and
+> dumps are downloaded from the FTP servers listed in `./README.md`;
+> they are irreproducible because they are from the past and
 > IRRs do not keep archives.
+> The AS-relationship Database is originally downloaded from
+> [CAIDA's AS-relationship
+> dataset](https://data.caida.org/datasets/2013-asrank-data-supplement/).
+
+<!-- TODO: Comply with CAIDA's AUA. -->
+
+> [!TIP]\
+> If your editor is sufficiently Vim-like,
+> you can open directories in this document by pressing <kbd>gf</kbd> on
+> their paths.
 
 ### Generating the Intermediate Representation (IR)
 
@@ -68,7 +78,7 @@ enabled, you need to activate the virtual environment created by Rye.
 
 Then, at `./route_verification/`,
 run the command below to produce the IR at `./parsed_all/` and
-the log at `parse_out.txt`:
+the log at `./route_verification/parse_out.txt`:
 
 ```sh
 time cargo r --release -- parse_ordered \
@@ -211,9 +221,24 @@ In Shell-Evcxr,
 follow the instructions in
 `./route_verification/src/evcxr_examples/as_neighbors_vs_rules.rs`.
 
+[#60](https://github.com/SichangHe/internet_route_verification/issues/60).
+
+### Generating `as_compatible_with_bgpq3`
+
+In Shell-Evcxr,
+follow the instructions in
+`./route_verification/src/evcxr_examples/as_compatible_w_bgpq3.rs`.
+<!-- TODO: This requires Polars. -->
+
+[#64](https://github.com/SichangHe/internet_route_verification/issues/64).
+
 <!-- TODO: Other CSV. -->
 
 ## Results to reproduce
+
+> [!NOTE]\
+> After some reproduction steps,
+> we attach the corresponding GitHub issue number for reference.
 
 - [x] INTRODUCTION:
 
@@ -274,7 +299,7 @@ follow the instructions in
     > Table 1
 
     The order is the IRR-Order.
-    The total counts are in `parse_out.txt`.
+    The total counts are in `./route_verification/parse_out.txt`.
     The sizes are obtained by running the script at `./data/irrs/priority/` and
     `./data/irrs/backup/`:
 
@@ -286,26 +311,65 @@ follow the instructions in
 
     [#126](https://github.com/SichangHe/internet_route_verification/issues/126).
 
-    35.4% of aut-nums contain no rules,
-    <https://github.com/SichangHe/internet_route_verification/issues/60>,
-    10.9% define at least 10 rules, and 0.13% (101 aut-nums)
-    define over 1000 rules.
-    <https://github.com/SichangHe/internet_route_verification/issues/122>
+    > 35.4% of aut-nums contain no rules, 10.9% define at least 10 rules,
+    > and 0.13% (101 aut-nums) define over 1000 rules.
 
-- [ ] sec 4:
-    no significant correlation between how many rules an AS defines and
-    how many neighbors, customers, peers,
-    or providers it has in CAIDA’s AS-relationship database.
-    <https://github.com/SichangHe/internet_route_verification/issues/19>.
-    <https://github.com/SichangHe/internet_route_verification/issues/95>.
-    <https://github.com/SichangHe/internet_route_verification/issues/109>
-- [ ] sec 4: Almost all (98.1%)
-    peering definitions comprise a single ASN or ANY.
-    <https://github.com/SichangHe/internet_route_verification/issues/107>.
-    <https://github.com/SichangHe/internet_route_verification/issues/64>
-- [ ] sec 4: Most (95.0%)
-    ASes with rules only specify simple filters compatible with BGPq4.
-    <https://github.com/SichangHe/internet_route_verification/issues/64>
+    Run this script in Shell-IPython:
+
+    ```python
+    from scripts.csv_files import *
+    import pandas as pd
+    df_raw = pd.read_csv(as_neighbors_vs_rules.path)
+    df = df_raw.drop(df_raw[df_raw["import"] == -1].index)
+    df["rules"] = df["import"] + df["export"]
+    n_all = len(df)
+    n_wo_rule = len(df[df["rules"] == 0])
+    print(f"{n_wo_rule} aut-nums ({n_wo_rule * 100.0 / n_all:.1f}%) contain no rules.")
+    n_over_1000 = len(df[df["rules"] >= 1000])
+    print(f"{n_over_1000} aut-nums ({n_over_1000 * 100.0 / n_all:.2f}%) define over 1000 rules.")
+    ```
+
+    [#137](https://github.com/SichangHe/internet_route_verification/issues/137).
+    <!-- FIXME: It now says 35.2%. -->
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > no significant correlation between how many rules an AS defines and
+    > how many neighbors, customers, peers,
+    > or providers it has in CAIDA’s AS-relationship database.
+
+    Run this script in Shell-IPython:
+
+    ```python
+    from scripts.stats.as_all_corr import main
+    main()
+    ```
+
+    [#19](https://github.com/SichangHe/internet_route_verification/issues/19),
+    [#95](https://github.com/SichangHe/internet_route_verification/issues/95),
+    and especially
+    [#109](https://github.com/SichangHe/internet_route_verification/issues/109).
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Almost all (98.1%) peering definitions comprise a single ASN or ANY.
+
+    In Shell-Evcxr,
+    follow the instructions in
+    `./route_verification/src/evcxr_examples/count_asn_in_peering.rs`.
+    <!-- FIXME: It now says 98.4%. -->
+
+    [#107](https://github.com/SichangHe/internet_route_verification/issues/107).
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Most (95.0%)
+    > ASes with rules only specify simple filters compatible with BGPq4.
+
+    TODO: Python script?
+
+    [#64](https://github.com/SichangHe/internet_route_verification/issues/64).
+
 - [ ] sec 4:
     Table 2 shows that 60.4% of aut-num and 31.7% of
     as-set objects are referenced in filter definitions.

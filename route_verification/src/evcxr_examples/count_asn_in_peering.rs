@@ -48,4 +48,9 @@ fn asn_in_peerings(query: QueryIr) {
 
     println!("{total_import} total imports, {single_any_import} single Any imports, {single_asn_import} single ASN imports, {complex_import} complex imports.");
     println!("{total_export} total exports, {single_any_export} single Any exports, {single_asn_export} single ASN exports, {complex_export} complex exports.");
+    let single_asn_or_any_percentage =
+        ((single_any_import + single_asn_import + single_any_export + single_asn_export) * 100)
+            as f64
+            / (total_import + total_export) as f64;
+    println!("{single_asn_or_any_percentage:.1}% of peerings are single ASN or ANY.");
 }

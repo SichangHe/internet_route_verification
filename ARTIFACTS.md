@@ -39,11 +39,27 @@ Follow the instructions below to reproduce the artifacts.
     and follow the instruction there to unpack them to
     the correct directory structure.
 
+    > The source data contain two parts.
+    > The RIBs (Routing Information Bases)
+    > are originally downloaded using `./download_ribs.py`.
+    > The IRR (Internet Route Registry)
+    > dumps are downloaded from the FTP servers listed in `README.md`;
+    > they are irreproducible because they are from the pass and
+    > IRRs do not keep archives.
+
 1. To reproduce the IR from the RPSL data,
     `cd` to `./route_verification/` and set up the Rye environment:
 
     ```sh
     rye sync
+    ```
+
+    If you do not have the
+    [Rye global shim](https://rye.astral.sh/guide/shims/) enabled,
+    you need to activate the virtual environment created by Rye.
+
+    ```sh
+    . .venv/bin/activate # Or `activate.zsh`, etc., corresponding to your shell.
     ```
 
     Then, at `./route_verification/`,
@@ -124,6 +140,10 @@ Follow the instructions below to reproduce the artifacts.
     > Tip:
     > When copying contents of functions in
     > `./route_verification/src/evcxr_examples/`, always omit `Ok(())`.
+
+1. To reproduce the intermediate data the scripts in
+    `./scripts/scripts/` download automatically from GitHub,
+    `cd` to `scripts/` and… <!-- TODO: Then what? -->
 
 ## Results to reproduce
 

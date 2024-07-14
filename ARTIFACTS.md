@@ -71,13 +71,16 @@ Follow the instructions below to reproduce the artifacts.
     ```
 
 1. To reproduce the BGP dump analysis results obtained from the Evcxr shell,
-    `cd` to `./` and start Evcxr:
+    launch a separate shell at `./` and start Evcxr:
 
     ```sh
     evcxr
     ```
 
-    Inside the shell,
+    Keep this shell open.
+    We will call it Shell-Evcxr and run Rust scripts in it.
+
+    Inside the Shell-Evcxr,
     paste in two blocks of code from
     `./route_verification/src/evcxr_examples.rs`.
     The first block goes from `:opt 3` to the end of the block of `use`;
@@ -141,9 +144,45 @@ Follow the instructions below to reproduce the artifacts.
     > When copying contents of functions in
     > `./route_verification/src/evcxr_examples/`, always omit `Ok(())`.
 
-1. To reproduce the intermediate data the scripts in
-    `./scripts/scripts/` download automatically from GitHub,
-    `cd` to `scripts/` and… <!-- TODO: Then what? -->
+1. To reproduce some of the result analysis done in the IPython shell,
+    launch a separate shell at `./scripts/` and set up the Rye environment:
+
+    ```sh
+    rye sync
+    ```
+
+    Activate the virtual environment:
+
+    ```sh
+    . .venv/bin/activate # Or `activate.zsh`, etc., corresponding to your shell.
+    ```
+
+    Then, launch IPython:
+
+    ```sh
+    ipython
+    ```
+
+    Keep this shell open.
+    We will call it Shell-Ipython and run Python scripts in it.
+
+## Generating intermediate results in CSV
+
+`./scripts/scripts/csv_files.py` downloads these intermediate results
+automatically from GitHub, so you do not need to generate them to proceed.
+However, if you would like to generate some of these CSV files,
+please follow the instructions below.
+
+After generating files using Shell-Evcxr, the files are written to `./`,
+so you may need to Gzip and move the generated files to `./scripts/`.
+
+### Generating `as_neighbors_vs_rules`
+
+In Shell-Evcxr,
+follow the instructions in
+`./route_verification/src/evcxr_examples/as_neighbors_vs_rules.rs`.
+
+<!-- TODO: Other CSV. -->
 
 ## Results to reproduce
 
@@ -315,7 +354,7 @@ Follow the instructions below to reproduce the artifacts.
 
     > we ignore 54 rules with BGP community attributes in their filters.
 
-    In the Evcxr shell,
+    In Shell-Evcxr,
     follow the instruction in
     `./route_verification/src/evcxr_examples/community_filter.rs`,
     then evaluate the variable `count`

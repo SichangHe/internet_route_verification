@@ -71,8 +71,27 @@ run the command below to produce the IR at `./parsed_all/` and
 the log at `parse_out.txt`:
 
 ```sh
-cargo r --release -- parse_ordered ../data/irrs/priority/apnic.db.* ../data/irrs/priority/afrinic.db ../data/irrs/priority/arin.db ../data/irrs/priority/lacnic.db ../data/irrs/priority/ripe.db ../data/irrs/backup/radb.db ../data/irrs/backup/altdb.db ../data/irrs/backup/idnic.db ../data/irrs/backup/jpirr.db ../data/irrs/backup/level3.db ../data/irrs/backup/nttcom.db ../data/irrs/backup/reach.db ../data/irrs/backup/tc.db ../parsed_all/ | tee parse_out.txt
+time cargo r --release -- parse_ordered \
+    ../data/irrs/priority/apnic.db.* \
+    ../data/irrs/priority/afrinic.db \
+    ../data/irrs/priority/arin.db \
+    ../data/irrs/priority/lacnic.db \
+    ../data/irrs/priority/ripe.db \
+    ../data/irrs/backup/idnic.db \
+    ../data/irrs/backup/jpirr.db \
+    ../data/irrs/backup/radb.db \
+    ../data/irrs/backup/nttcom.db \
+    ../data/irrs/backup/level3.db \
+    ../data/irrs/backup/tc.db \
+    ../data/irrs/backup/reach.db \
+    ../data/irrs/backup/altdb.db \
+    ../parsed_all/ | tee parse_out.txt
 ```
+
+<!-- FIXME: Current data have slightly different ordering. -->
+
+The time taken, Time-IR, is the time to parse the IRR data into the IR.
+The parsing order, IRR-Order, is the order in Table 1.
 
 ### Shell-Evcxr setup
 
@@ -220,31 +239,59 @@ follow the instructions in
 
     </details>
 
-- [ ] INTRODUCTION:
-    a large portion of interconnections present in BGP routes (40.4%)
-    cannot be verified using the RPSL due to missing information.
-    <https://github.com/SichangHe/internet_route_verification/issues/162>
-- [ ] intro: For interconnections covered in the RPSL,
-    we observe a high fraction (29.3%) of strict matches.
-    We explain most mismatches (19.0%)
-    by
-    six common mistakes we identified
-    <https://github.com/SichangHe/internet_route_verification/issues/162>
-- [ ] sec 3: RPSLyzer parses the 13 IRRs listed in Table 1,
-    totaling 7.1 GiB of data, and exports the IR,
-    all in under five minutes on an Apple M1
-- [ ] sec 4: Table 1.
-    <https://github.com/SichangHe/internet_route_verification/issues/126>.
+- [x] INTRODUCTION:
+
+    > a large portion of interconnections present in BGP routes (40.4%)
+    > cannot be verified using the RPSL due to missing information.
+
+    And:
+
+    > For interconnections covered in the RPSL,
+    > we observe a high fraction (29.3%) of strict matches.
+    > We explain most mismatches (19.0%) by six common mistakes we identified
+
+    Run in Shell-IPython:
+
+    ```python
+    from scripts.stats.imports_exports import main
+    main()
+    ```
+
+    The corresponding results are `total unrec`, `total ok`, and `total meh`.
+
+    [#162](https://github.com/SichangHe/internet_route_verification/issues/162).
+
+- [x] 3 PARSING THE RPSL:
+
+    > RPSLyzer parses the 13 IRRs listed in Table 1, totaling 7.1 GiB of data,
+    > and exports the IR, all in under five minutes on an Apple M1.
+
+    This size is the size of `./data/irrs/`. The parsing time is Time-IR.
+    <!-- FIXME: The size is 6.9 GiB after we deduplicated backups. -->
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Table 1
+
+    The order is the IRR-Order.
+    The total counts are in `parse_out.txt`.
+    The sizes are obtained by running the script at `./data/irrs/priority/` and
+    `./data/irrs/backup/`:
 
     ```sh
     ls -l | awk 'BEGIN { printf "%-50s %10s MiB\n", "File", "Size" } NR>1 { size=$5/1024/1024; printf "%-50s %10.3f MiB\n", $9, size }'
     ```
+
+    <!-- TODO: Find the script to count for each IRR. -->
+
+    [#126](https://github.com/SichangHe/internet_route_verification/issues/126).
 
     35.4% of aut-nums contain no rules,
     <https://github.com/SichangHe/internet_route_verification/issues/60>,
     10.9% define at least 10 rules, and 0.13% (101 aut-nums)
     define over 1000 rules.
     <https://github.com/SichangHe/internet_route_verification/issues/122>
+
 - [ ] sec 4:
     no significant correlation between how many rules an AS defines and
     how many neighbors, customers, peers,

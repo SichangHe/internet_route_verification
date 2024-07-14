@@ -34,137 +34,147 @@ Follow the instructions below to reproduce the artifacts.
 
 ## Data preparation
 
-1. Download the source data from [Raw data used, for
-    reproducibility](https://github.com/SichangHe/internet_route_verification/releases/tag/raw-data)
-    and follow the instruction there to unpack them to
-    the correct directory structure.
+### Downloading the source data
 
-    > The source data contain two parts.
-    > The RIBs (Routing Information Bases)
-    > are originally downloaded using `./download_ribs.py`.
-    > The IRR (Internet Route Registry)
-    > dumps are downloaded from the FTP servers listed in `README.md`;
-    > they are irreproducible because they are from the pass and
-    > IRRs do not keep archives.
+Download the source data from [Raw data used, for
+reproducibility](https://github.com/SichangHe/internet_route_verification/releases/tag/raw-data)
+and follow the instruction there to unpack them to
+the correct directory structure.
 
-1. To reproduce the IR from the RPSL data,
-    `cd` to `./route_verification/` and set up the Rye environment:
+> [!NOTE]\
+> The source data contain two parts.
+> The RIBs (Routing Information Bases)
+> are originally downloaded using `./download_ribs.py`.
+> The IRR (Internet Route Registry)
+> dumps are downloaded from the FTP servers listed in `README.md`;
+> they are irreproducible because they are from the pass and
+> IRRs do not keep archives.
 
-    ```sh
-    rye sync
-    ```
+### Generating the Intermediate Representation (IR)
 
-    If you do not have the
-    [Rye global shim](https://rye.astral.sh/guide/shims/) enabled,
-    you need to activate the virtual environment created by Rye.
+To reproduce the IR from the RPSL data,
+`cd` to `./route_verification/` and set up the Rye environment:
 
-    ```sh
-    . .venv/bin/activate # Or `activate.zsh`, etc., corresponding to your shell.
-    ```
+```sh
+rye sync
+```
 
-    Then, at `./route_verification/`,
-    run the command below to produce the IR at `./parsed_all/` and
-    the log at `parse_out.txt`:
+If you do not have the [Rye global shim](https://rye.astral.sh/guide/shims/)
+enabled, you need to activate the virtual environment created by Rye.
 
-    ```sh
-    cargo r --release -- parse_ordered ../data/irrs/priority/apnic.db.* ../data/irrs/priority/afrinic.db ../data/irrs/priority/arin.db ../data/irrs/priority/lacnic.db ../data/irrs/priority/ripe.db ../data/irrs/backup/radb.db ../data/irrs/backup/altdb.db ../data/irrs/backup/idnic.db ../data/irrs/backup/jpirr.db ../data/irrs/backup/level3.db ../data/irrs/backup/nttcom.db ../data/irrs/backup/reach.db ../data/irrs/backup/tc.db ../parsed_all/ | tee parse_out.txt
-    ```
+```sh
+. .venv/bin/activate # Or `activate.zsh`, etc., corresponding to your shell.
+```
 
-1. To reproduce the BGP dump analysis results obtained from the Evcxr shell,
-    launch a separate shell at `./` and start Evcxr:
+Then, at `./route_verification/`,
+run the command below to produce the IR at `./parsed_all/` and
+the log at `parse_out.txt`:
 
-    ```sh
-    evcxr
-    ```
+```sh
+cargo r --release -- parse_ordered ../data/irrs/priority/apnic.db.* ../data/irrs/priority/afrinic.db ../data/irrs/priority/arin.db ../data/irrs/priority/lacnic.db ../data/irrs/priority/ripe.db ../data/irrs/backup/radb.db ../data/irrs/backup/altdb.db ../data/irrs/backup/idnic.db ../data/irrs/backup/jpirr.db ../data/irrs/backup/level3.db ../data/irrs/backup/nttcom.db ../data/irrs/backup/reach.db ../data/irrs/backup/tc.db ../parsed_all/ | tee parse_out.txt
+```
 
-    Keep this shell open.
-    We will call it Shell-Evcxr and run Rust scripts in it.
+### Shell-Evcxr setup
 
-    Inside the Shell-Evcxr,
-    paste in two blocks of code from
-    `./route_verification/src/evcxr_examples.rs`.
-    The first block goes from `:opt 3` to the end of the block of `use`;
-    it imports the dependencies.
-    The second block is the content of `parse_bgp_lines`,
-    excluding the `Ok(())`; it loads the data.
-    This takes a while and does not need supervision,
-    so just leave it there and do something else.
+To reproduce the BGP dump analysis results obtained from the Evcxr shell,
+launch a separate shell at `./` and start Evcxr:
 
-    <details>
-    <summary>The code to copy, repeated here.</summary>
+```sh
+evcxr
+```
 
-    ```rust
-    :opt 3
-    :dep anyhow
-    :dep dashmap
-    :dep hashbrown
-    :dep route_verification = { path = "route_verification" }
-    :dep rayon
-    :dep itertools
-    :dep serde_json
-    // */
-    use anyhow::Result;
-    use dashmap::{DashMap, DashSet};
-    use hashbrown::{HashMap, HashSet};
-    use itertools::multiunzip;
-    use rayon::prelude::*;
-    use route_verification::as_rel::*;
-    use route_verification::bgp::stats::*;
-    use route_verification::bgp::*;
-    use route_verification::fs::open_file_w_correct_encoding;
-    use route_verification::ir::*;
-    use route_verification::irr::split_commas;
-    use route_verification::lex::{
-        expressions, io_wrapper_lines, lines_continued, rpsl_objects, RpslExpr,
-    };
-    use std::{
-        env,
-        fs::{read_dir, read_to_string, File},
-        io::{prelude::*, BufReader, BufWriter},
-        ops::Add,
-        time::Instant,
-    };
+Keep this shell open. We will call it Shell-Evcxr and run Rust scripts in it.
 
-    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
-    let parsed = Ir::pal_read("parsed_all")?;
-    println!(
-        "{}",
-        serde_json::to_string(parsed.aut_nums.get(&33549).unwrap())?
-    );
-    let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
-    println!("{:#?}", query.aut_nums.iter().next());
-    let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
-    ```
+Inside the Shell-Evcxr,
+paste in two blocks of code from `./route_verification/src/evcxr_examples.rs`.
+The first block goes from `:opt 3` to the end of the block of `use`;
+it imports the dependencies.
+The second block is the content of `parse_bgp_lines`, excluding the `Ok(())`;
+it loads the data.
+This takes a while and does not need supervision,
+so just leave it there and do something else.
 
-    We do not need Polars.
+<details>
+<summary>The code to copy, repeated here.</summary>
 
-    </details>
+```rust
+:opt 3
+:dep anyhow
+:dep dashmap
+:dep hashbrown
+:dep route_verification = { path = "route_verification" }
+:dep rayon
+:dep itertools
+:dep serde_json
+// */
+use anyhow::Result;
+use dashmap::{DashMap, DashSet};
+use hashbrown::{HashMap, HashSet};
+use itertools::multiunzip;
+use rayon::prelude::*;
+use route_verification::as_rel::*;
+use route_verification::bgp::stats::*;
+use route_verification::bgp::*;
+use route_verification::fs::open_file_w_correct_encoding;
+use route_verification::ir::*;
+use route_verification::irr::split_commas;
+use route_verification::lex::{
+    expressions, io_wrapper_lines, lines_continued, rpsl_objects, RpslExpr,
+};
+use std::{
+    env,
+    fs::{read_dir, read_to_string, File},
+    io::{prelude::*, BufReader, BufWriter},
+    ops::Add,
+    time::Instant,
+};
 
-    > Tip:
-    > When copying contents of functions in
-    > `./route_verification/src/evcxr_examples/`, always omit `Ok(())`.
+let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
+let parsed = Ir::pal_read("parsed_all")?;
+println!(
+    "{}",
+    serde_json::to_string(parsed.aut_nums.get(&33549).unwrap())?
+);
+let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
+println!("{:#?}", query.aut_nums.iter().next());
+let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+```
 
-1. To reproduce some of the result analysis done in the IPython shell,
-    launch a separate shell at `./scripts/` and set up the Rye environment:
+We do not need Polars.
 
-    ```sh
-    rye sync
-    ```
+</details>
 
-    Activate the virtual environment:
+> [!TIP]\
+> When copying contents of functions in
+> `./route_verification/src/evcxr_examples/`, always omit `Ok(())`.
 
-    ```sh
-    . .venv/bin/activate # Or `activate.zsh`, etc., corresponding to your shell.
-    ```
+### Shell-IPython setup
 
-    Then, launch IPython:
+To reproduce some of the result analysis done in the IPython shell,
+launch a separate shell at `./scripts/` and set up the Rye environment:
 
-    ```sh
-    ipython
-    ```
+```sh
+rye sync
+```
 
-    Keep this shell open.
-    We will call it Shell-Ipython and run Python scripts in it.
+Activate the virtual environment:
+
+```sh
+. .venv/bin/activate # Or `activate.zsh`, etc., corresponding to your shell.
+```
+
+Then, launch IPython:
+
+```sh
+ipython
+```
+
+Keep this shell open.
+We will call it Shell-IPython and run Python scripts in it.
+
+> [!Tip]\
+> IPython garbage collection is wonky,
+> so you may want to restart it when your memory usage blows up.
 
 ## Generating intermediate results in CSV
 
@@ -186,9 +196,31 @@ follow the instructions in
 
 ## Results to reproduce
 
-- [ ] intro: 53.2% of ASes not declaring any policies.
-    <https://github.com/SichangHe/internet_route_verification/issues/161>
-- [ ] intro:
+- [x] INTRODUCTION:
+
+    > 53.2% of ASes not declaring any policies.
+
+    Run the script in
+    [#161](https://github.com/SichangHe/internet_route_verification/issues/161)
+    in Shell-IPython.
+
+    <details><summary>The code to copy, repeated here.</summary>
+
+    ```python
+    from scripts.csv_files import *
+    import pandas as pd
+    df = pd.read_csv(as_neighbors_vs_rules.path)
+    n_all = len(df)
+    df["rules"] = df["import"] + df["export"]
+    df_w_rule = df[df["rules"] > 0]
+    n_w_rule = len(df_w_rule)
+    percentage = f"{n_w_rule * 100.0 / n_all:.1f}"
+    percentage
+    ```
+
+    </details>
+
+- [ ] INTRODUCTION:
     a large portion of interconnections present in BGP routes (40.4%)
     cannot be verified using the RPSL due to missing information.
     <https://github.com/SichangHe/internet_route_verification/issues/162>

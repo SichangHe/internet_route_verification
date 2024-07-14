@@ -289,7 +289,7 @@ Follow the instructions below to reproduce the artifacts.
     <https://github.com/SichangHe/internet_route_verification/issues/141>
 - [ ] Appendix B Nonstandard features:
     two cases of non-standard but common syntax used by operators (4724 times…)
-- [ ] Appendix B Limitations:
+- [x] Appendix B Limitations:
 
     > We leave the handling of
     > 60 rules whose filters contain AS-path regex with ASN ranges (21 rules)

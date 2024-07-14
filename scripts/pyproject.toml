@@ -1,15 +1,29 @@
-# To help LSP find project root.
-[tool.poetry]
+[project]
 name = "scripts"
-version = "0.1.0"
-description = ""
-authors = ["Steven Hé (Sīchàng) <sichang.he@dukekunshan.edu.cn>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-
+version = "0.0.0"
+authors = [
+    { name = "Steven Hé (Sīchàng)", email = "stevensichanghe@gmail.com" },
+]
+dependencies = [
+    "fitter>=1.7.1",
+    "matplotlib>=3.9.1",
+    "pandas>=2.2.2",
+    "pandas-stubs>=2.2.2.240603",
+    "requests>=2.32.3",
+    "scipy>=1.14.0",
+]
+requires-python = ">= 3.11"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts"]

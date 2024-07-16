@@ -39,11 +39,13 @@ fn as_compatible_with_bgpq3(query: QueryIr) -> Result<()> {
         .map(|(num, _)| *num)
         .collect();
 
-    let mut df = DataFrame::new(vec![Series::new("as_compatible_w_bgpq3", ans)])?;
-    println!("{df}");
-    println!("{}", df.describe(None)?);
-
-    CsvWriter::new(File::create("as_compatible_with_bgpq3.csv")?).finish(&mut df)?;
+    let mut file = BufWriter::new(File::create("as_compatible_with_bgpq3.csv")?);
+    file.write_all(b"as_compatible_w_bgpq3\n");
+    for an in ans {
+        file.write_all(format!("{an}\n").as_bytes())?;
+    }
+    file.flush()?;
+    drop(file);
 
     Ok(())
 }

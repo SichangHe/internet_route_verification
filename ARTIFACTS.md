@@ -228,8 +228,6 @@ follow the instructions in
 In Shell-Evcxr,
 follow the instructions in
 `./route_verification/src/evcxr_examples/as_compatible_w_bgpq3.rs`.
-<!-- TODO: This requires Polars. -->
-
 [#64](https://github.com/SichangHe/internet_route_verification/issues/64).
 
 <!-- TODO: Other CSV. -->
@@ -366,9 +364,28 @@ follow the instructions in
     > Most (95.0%)
     > ASes with rules only specify simple filters compatible with BGPq4.
 
-    TODO: Python script?
+    Run this script in Shell-IPython:
+
+    ```python
+    from scripts.csv_files import *
+    import pandas as pd
+    df_raw = pd.read_csv(as_neighbors_vs_rules.path)
+    df_raw["rules"] = df_raw["import"] + df_raw["export"]
+    df = df_raw.drop(df_raw[df_raw["rules"] <= 0].index)
+    n_have_rule = len(df)
+    bgpq3_compatible = pd.read_csv(as_compatible_with_bgpq3.path)["as_compatible_w_bgpq3"]
+    df_bgpq3_compatible = df[df["aut_num"].isin(bgpq3_compatible) & (df["rules"] > 0)]
+    n_bgpq3_compatible = len(df_bgpq3_compatible)
+    print(
+        f"{n_bgpq3_compatible} ASes ({n_bgpq3_compatible * 100.0 / n_have_rule:.1f}%) are compatible with BGPq3 with the ASes that have rules."
+    )
+    ```
+
+    > [!NOTE]\
+    > ASes compatible with BGPq3 are also compatible with BGPq4.
 
     [#64](https://github.com/SichangHe/internet_route_verification/issues/64).
+    <!-- FIXME: It now says 94.5%. -->
 
 - [ ] sec 4:
     Table 2 shows that 60.4% of aut-num and 31.7% of

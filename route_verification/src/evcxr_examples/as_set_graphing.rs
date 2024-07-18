@@ -2,7 +2,7 @@ use super::*;
 
 /// Fully flatten each AS Set to all of its members.
 /// Copy from the `:dep` line after running code from [`parse_bgp_lines`].
-fn as_sets_graph_stats(query: Ir) {
+fn as_sets_graph_stats(ir: Ir) {
     use graph as route_verification_graph;
     /*
     :dep route_verification_graph = { path = "route_verification/graph" }
@@ -44,7 +44,7 @@ fn as_sets_graph_stats(query: Ir) {
     }
 
     let start = Instant::now();
-    let as_set_graph_stats: HashMap<String, (ASSetGraphStats, bool)> = query
+    let as_set_graph_stats: HashMap<String, (ASSetGraphStats, bool)> = ir
         .as_sets
         .par_iter()
         .map(|(name, set)| {
@@ -52,7 +52,7 @@ fn as_sets_graph_stats(query: Ir) {
             let mut as_set_graph =
                 ASSetGraph::with_capacity(set.set_members.len() * 32 + set.members.len());
             let node_index = as_set_graph.get_or_insert(as_num_or_set.clone());
-            extend(&mut as_set_graph, as_num_or_set, set, &query.as_sets);
+            extend(&mut as_set_graph, as_num_or_set, set, &ir.as_sets);
 
             let stats = as_set_graph.count_stats(node_index);
             let has_cycle = as_set_graph.has_cycle();

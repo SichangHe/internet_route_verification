@@ -2,7 +2,7 @@ use super::*;
 
 /// Generate statistics for AS neighbors vs rules.
 /// Copy the content after running code from [`parse_bgp_lines`].
-fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) {
+fn as_neighbors_vs_rules(query: QueryIr, db: AsRelDb) {
     struct NeighborRuleStats {
         provider: i32,
         peer: i32,

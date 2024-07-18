@@ -82,7 +82,7 @@ fn count_sets_and_singles_in_as_paths_in_all_ribs() {
         })
         .unwrap();
     println!(
-        "Total: {n_set} sets in the AS-path of {n_path_w_set} routes ({:.1}%), and {n_single} single entries ({:.1}%), out of {total} routes.",
+        "Total: {n_set} sets in the AS-path of {n_path_w_set} routes ({:.2}%), and {n_single} single entries ({:.2}%), out of {total} routes.",
         (n_set * 100) as f64 / (total as f64),
         (n_single * 100) as f64 / (total as f64)
     );

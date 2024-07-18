@@ -592,33 +592,52 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     The information is from generating `*_stats_all` (see above).
     [#157](https://github.com/SichangHe/internet_route_verification/issues/157).
 
-- [ ] sec 5.1: More than half (6664, 64.4%)
-    of transit ASes specify themselves as an export rule’s filter.
+- [ ] 5.1 Special Cases:
+
+    > More than half (6664, 64.4%)
+    > of transit ASes specify themselves as an export rule’s filter.
+
+    And:
+
+    > 3090 (29.8%)
+    > transit ASes specify a customer AS C in both an import rule’s peering and
+    > filter.
+
+    And:
+
+    > A few (46, 0.44%) transit ASes only specify rules for their providers.
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
 
     ```python
     from scripts.stats.transit_as import main
     main()
     ```
 
-    <https://github.com/SichangHe/internet_route_verification/issues/134>
-- [ ] sec 5.1: 3090 (29.8%)
-    transit ASes specify a customer AS C in both an import rule’s peering and
-    filter.
-    <https://github.com/SichangHe/internet_route_verification/issues/134>
-- [ ] sec 5.1: A few (46, 0.44%)
-    transit ASes only specify rules for their providers.
-    <https://github.com/SichangHe/internet_route_verification/issues/134>
-- [ ] sec 5.1: A few (46, 0.44%)
-    transit ASes only specify rules for their providers.
-    <https://github.com/SichangHe/internet_route_verification/issues/134>
-- [ ] sec 5.2: Figure 2
-- [ ] sec 5.2: The majority (61,725, 74.4%)
-    of ASes have all imports and exports with identical statuses.
-    We identified 14.2% of ASes with 100% of propagation verified (yellow),
-    51.6% lacking RPSL information (“unrecorded”, green),
-    0.34% that only use relaxed filters (blue),
-    and 6.9% with only safelisted relationships (red).
+    </details>
+
+    [#134](https://github.com/SichangHe/internet_route_verification/issues/134).
+
+- [ ] 5.2 Verification Results:
+
+    > Figure 2: Route verification status for each AS.
+
+    Follow the instructions in
+    `./scripts/scripts/fig/as_all_stacked_area_distin.py`.
+
+- [ ] 5.2 Verification Results:
+
+    > The majority (61,725, 74.4%)
+    > of ASes have all imports and exports with identical statuses.
+    > We identified 14.2% of ASes with 100% of propagation verified (yellow),
+    > 51.6% lacking RPSL information (“unrecorded”, green),
+    > 0.34% that only use relaxed filters (blue),
+    > and 6.9% with only safelisted relationships (red).
+
     <https://github.com/SichangHe/internet_route_verification/issues/90>
+    <!-- TODO: The issue is stale, the script is `as_all_all_some`. -->
+
 - [ ] sec 5.2: ASes with skipped verifications only constitute 0.03% of ASes.
     <https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2085134606>
 - [ ] sec 5.2: Out of the 54.9% of ASes with unrecorded cases,

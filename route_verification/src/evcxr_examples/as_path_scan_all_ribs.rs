@@ -1,5 +1,7 @@
 use super::*;
 
+/// Count how many sets and single entries are in AS-paths of all the RIBs.
+/// Copy the content.
 fn count_sets_and_singles_in_as_paths_in_all_ribs() {
     let rib_files = std::fs::read_dir("data/ribs")
         .unwrap()
@@ -11,7 +13,7 @@ fn count_sets_and_singles_in_as_paths_in_all_ribs() {
             }
         })
         .collect::<Vec<_>>();
-    assert_eq!(rib_files.len(), 59);
+    assert_eq!(rib_files.len(), 60);
 
     let counts: Vec<_> = rib_files
         .par_iter()
@@ -79,5 +81,9 @@ fn count_sets_and_singles_in_as_paths_in_all_ribs() {
             )
         })
         .unwrap();
-    println!("Total: {n_set} sets and {n_single} single entries in the AS-path of {n_path_w_set} routes out of {total}.");
+    println!(
+        "Total: {n_set} sets in the AS-path of {n_path_w_set} routes ({:.1}%), and {n_single} single entries ({:.1}%), out of {total} routes.",
+        (n_set * 100) as f64 / (total as f64),
+        (n_single * 100) as f64 / (total as f64)
+    );
 }

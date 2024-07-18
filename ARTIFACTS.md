@@ -158,12 +158,12 @@ use std::{
 };
 
 let db = AsRelDb::load_bz("data/20230701.as-rel.bz2").unwrap();
-let parsed = Ir::pal_read("parsed_all").unwrap();
+let ir = Ir::pal_read("parsed_all").unwrap();
 println!(
     "{}",
-    serde_json::to_string(parsed.aut_nums.get(&33549).unwrap()).unwrap()
+    serde_json::to_string(ir.aut_nums.get(&33549).unwrap()).unwrap()
 );
-let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
+let query: QueryIr = QueryIr::from_ir_and_as_relationship(ir.clone(), &db);
 println!("{:#?}", query.aut_nums.iter().next());
 let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2").unwrap();
 ```
@@ -171,6 +171,14 @@ let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2").unwr
 We do not need Polars.
 
 </details>
+
+> [!TIP]\
+> If your editor is sufficiently Vim-like,
+> you can copy the content of a function with <kbd>yi{</kbd>.
+
+> [!NOTE]\
+> Evcxr compiles all input Rust code, a slow process,
+> so it takes a while before Evcxr has any reaction.
 
 ### Shell-IPython setup
 
@@ -249,6 +257,12 @@ It does not generate a CSV file but a JSON file.
 The results are written to `./route_verification/stat_route_objects/` and
 could be moved to `./scripts/` manually.
 [#138](https://github.com/SichangHe/internet_route_verification/issues/138)
+
+### Generating `as_set_graph_stats`
+
+In Shell-Evcxr,
+follow the instructions in
+`./route_verification/src/evcxr_examples/as_set_graphing.rs`.
 
 <!-- TODO: Other CSV. -->
 
@@ -462,13 +476,31 @@ could be moved to `./scripts/` manually.
 
     [#138](https://github.com/SichangHe/internet_route_verification/issues/138)
 
-- [ ] sec 4: Among 53,268 as-set objects across all IRRs, 7754 (14.6%)
-    have no members. 17,434 (32.7%) as-sets contain only one member AS.
-    A few (772, 1.4%) extremely large as-sets have more than 10,000 members.
-    <https://github.com/SichangHe/internet_route_verification/issues/114>.
-    We find that 13,602 (25.5%) of as-sets recursively contain other as-sets,
-    among which 3050 (22.4%) form loops and 3129 (23.0%) have depth 5 or more.
-    <https://github.com/SichangHe/internet_route_verification/issues/114#issuecomment-1903153622>
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Among 53,268 as-set objects across all IRRs, 7754 (14.6%)
+    > have no members. 17,434 (32.7%) as-sets contain only one member AS.
+    > A few (772, 1.4%) extremely large as-sets have more than 10,000 members.
+
+    And:
+
+    > We find that 13,602 (25.5%) of as-sets recursively contain other as-sets,
+    > among which 3050 (22.4%) form loops and 3129 (23.0%)
+    > have depth 5 or more.
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.as_set_size_fitting import main
+    main()
+    ```
+
+    </details>
+
+    [#114](https://github.com/SichangHe/internet_route_verification/issues/114).
+    <!-- FIXME: It says 59596 as-sets now, the results might shift. -->
+
 - [ ] sec 4: RPSLyzer found 663 syntax errors, 12 invalid as-set names,
     and 17 invalid route-set names.
     <https://github.com/SichangHe/internet_route_verification/issues/57>

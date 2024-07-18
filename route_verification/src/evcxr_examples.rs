@@ -100,12 +100,12 @@ fn parse_bgp_lines() {
     env::set_var("POLARS_TABLE_WIDTH", "160");
 
     let db = AsRelDb::load_bz("data/20230701.as-rel.bz2").unwrap();
-    let parsed = Ir::pal_read("parsed_all").unwrap();
+    let ir = Ir::pal_read("parsed_all").unwrap();
     println!(
         "{}",
-        serde_json::to_string(parsed.aut_nums.get(&33549).unwrap()).unwrap()
+        serde_json::to_string(ir.aut_nums.get(&33549).unwrap()).unwrap()
     );
-    let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
+    let query: QueryIr = QueryIr::from_ir_and_as_relationship(ir.clone(), &db);
     println!("{:#?}", query.aut_nums.iter().next());
     let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2").unwrap();
 }

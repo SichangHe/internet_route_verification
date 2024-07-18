@@ -264,15 +264,68 @@ In Shell-Evcxr,
 follow the instructions in
 `./route_verification/src/evcxr_examples/as_set_graphing.rs`.
 
+### Generating `*_stats_all`
+
+At `./route_verification/rib_stats`, run:
+
+```sh
+cargo r --release
+```
+
+This generates `as_stats_all`, `as_pair_stats_all`, `route_stats_all`,
+and `route_first_hop_stats_all` at `./route_verification/rib_stats/`.
+This script is very computationally expensive, so you only want to run it once.
+<!-- FIXME: This script generates `all4/`, but we are still using `all3/` CSV files. -->
+
+<details>
+<summary>
+You may want to monitor the RAM usage of this to reproduce the result below.
+</summary>
+
+After launching the script,
+go to `top` or a similar tool to find its PID and assign that to
+`WATCHED_PID` in another shell. Then, run:
+
+```sh
+while ps -p $WATCHED_PID --no-headers --format "rss" >> ram.txt; do
+    sleep 30
+done
+```
+
+Or, in fish:
+
+```fish
+while ps -p $WATCHED_PID --no-headers --format "rss" >> ram.txt
+    sleep 30
+end
+```
+
+This will write the RAM usage to `ram.txt` every 30 seconds.
+You can change the interval,
+but keep in mind that the script may go on for hours and blow up your log file.
+
+To find the largest number in `ram.txt`:
+
+```sh
+awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
+```
+
+</details>
+
+[#157](https://github.com/SichangHe/internet_route_verification/issues/157).
+
 <!-- TODO: Other CSV. -->
 
 ## Results to reproduce
+
+> [!TIP]\
+> You can use the checkboxes in this file to track your progress.
 
 > [!NOTE]\
 > After some of the instructions,
 > we attach the corresponding GitHub issue number for reference.
 
-- [x] INTRODUCTION:
+- [ ] INTRODUCTION:
 
     > 53.2% of ASes not declaring any policies.
 
@@ -296,7 +349,7 @@ follow the instructions in
 
     </details>
 
-- [x] INTRODUCTION:
+- [ ] INTRODUCTION:
 
     > a large portion of interconnections present in BGP routes (40.4%)
     > cannot be verified using the RPSL due to missing information.
@@ -318,7 +371,7 @@ follow the instructions in
 
     [#162](https://github.com/SichangHe/internet_route_verification/issues/162).
 
-- [x] 3 PARSING THE RPSL:
+- [ ] 3 PARSING THE RPSL:
 
     > RPSLyzer parses the 13 IRRs listed in Table 1, totaling 7.1 GiB of data,
     > and exports the IR, all in under five minutes on an Apple M1.
@@ -501,22 +554,44 @@ follow the instructions in
     [#114](https://github.com/SichangHe/internet_route_verification/issues/114).
     <!-- FIXME: It says 59596 as-sets now, the results might shift. -->
 
-- [ ] sec 4: RPSLyzer found 663 syntax errors, 12 invalid as-set names,
-    and 17 invalid route-set names.
-    <https://github.com/SichangHe/internet_route_verification/issues/57>
-- [ ] sec 4: Common syntax errors include out-of-place text,
-    such as broken comma-separated lists, misplaced comments,
-    invalid RPSL keywords in import and export rules, or plain typos.
-    <https://github.com/SichangHe/internet_route_verification/discussions/39>
-- [ ] sec 5:
-    We ignore 0.06% of routes that are direct exports from
-    the collector’s peer ASes and 0.03% of
-    routes whose AS-paths contain BGP AS-sets.
-    <https://github.com/SichangHe/internet_route_verification/issues/111>
-- [ ] sec 5:
-    Verifying the 779.3 million routes in all 60 BGP dumps took 2 h 49 m and
-    less than 2 GiB of RAM.
-    <https://github.com/SichangHe/internet_route_verification/issues/157>
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > RPSLyzer found 663 syntax errors, 12 invalid as-set names,
+    > and 17 invalid route-set names.
+
+    The information is from the log of
+    generating the Intermediate Representation (see above).
+    [#57](https://github.com/SichangHe/internet_route_verification/issues/57).
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Common syntax errors include out-of-place text,
+    > such as broken comma-separated lists, misplaced comments,
+    > invalid RPSL keywords in import and export rules, or plain typos.
+
+    See
+    [#39](https://github.com/SichangHe/internet_route_verification/discussions/39).
+
+- [ ] 5 VERIFYING AS-PATHS:
+
+    > We ignore 0.06% of routes that are direct exports from
+    > the collector’s peer ASes and 0.03% of
+    > routes whose AS-paths contain BGP AS-sets.
+
+    In Shell-Evcxr,
+    follow the instructions in
+    `./route_verification/src/evcxr_examples/as_path_scan_all_ribs.rs`
+
+    [#111](https://github.com/SichangHe/internet_route_verification/issues/111).
+
+- [ ] 5 VERIFYING AS-PATHS:
+
+    > Verifying the 779.3 million routes in all 60 BGP dumps took 2 h 49 m and
+    > less than 2 GiB of RAM.
+
+    The information is from generating `*_stats_all` (see above).
+    [#157](https://github.com/SichangHe/internet_route_verification/issues/157).
+
 - [ ] sec 5.1: More than half (6664, 64.4%)
     of transit ASes specify themselves as an export rule’s filter.
 
@@ -586,7 +661,7 @@ follow the instructions in
     <https://github.com/SichangHe/internet_route_verification/issues/141>
 - [ ] Appendix B Nonstandard features:
     two cases of non-standard but common syntax used by operators (4724 times…)
-- [x] Appendix B Limitations:
+- [ ] Appendix B Limitations:
 
     > We leave the handling of
     > 60 rules whose filters contain AS-path regex with ASN ranges (21 rules)

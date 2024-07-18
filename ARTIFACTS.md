@@ -118,10 +118,9 @@ Inside the Shell-Evcxr,
 paste in two blocks of code from `./route_verification/src/evcxr_examples.rs`.
 The first block goes from `:opt 3` to the end of the block of `use`;
 it imports the dependencies.
-The second block is the content of `parse_bgp_lines`, excluding the `Ok(())`;
-it loads the data.
-This takes a while and does not need supervision,
-so just leave it there and do something else.
+The second block is the content of `parse_bgp_lines`; it loads the data.
+This takes a while and does not need monitoring, so,
+just leave it there and do something else.
 
 <details>
 <summary>The code to copy, repeated here.</summary>
@@ -158,24 +157,20 @@ use std::{
     time::Instant,
 };
 
-let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
-let parsed = Ir::pal_read("parsed_all")?;
+let db = AsRelDb::load_bz("data/20230701.as-rel.bz2").unwrap();
+let parsed = Ir::pal_read("parsed_all").unwrap();
 println!(
     "{}",
-    serde_json::to_string(parsed.aut_nums.get(&33549).unwrap())?
+    serde_json::to_string(parsed.aut_nums.get(&33549).unwrap()).unwrap()
 );
 let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
 println!("{:#?}", query.aut_nums.iter().next());
-let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
+let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2").unwrap();
 ```
 
 We do not need Polars.
 
 </details>
-
-> [!TIP]\
-> When copying contents of functions in
-> `./route_verification/src/evcxr_examples/`, always omit `Ok(())`.
 
 ### Shell-IPython setup
 

@@ -2,7 +2,7 @@ use super::*;
 
 /// Fully flatten each AS Set to all of its members.
 /// Copy from the `:dep` line after running code from [`parse_bgp_lines`].
-fn as_sets_graph_stats(query: Ir) -> Result<()> {
+fn as_sets_graph_stats(query: Ir) {
     use graph as route_verification_graph;
     /*
     :dep route_verification_graph = { path = "route_verification/graph" }
@@ -67,8 +67,11 @@ fn as_sets_graph_stats(query: Ir) -> Result<()> {
     );
 
     {
-        let mut as_set_graph_stats_file = BufWriter::new(File::create("as_set_graph_stats.csv")?);
-        as_set_graph_stats_file.write_all(b"as_set,n_sets,n_nums,depth,has_cycle\n")?;
+        let mut as_set_graph_stats_file =
+            BufWriter::new(File::create("as_set_graph_stats.csv").unwrap());
+        as_set_graph_stats_file
+            .write_all(b"as_set,n_sets,n_nums,depth,has_cycle\n")
+            .unwrap();
         for (
             set,
             (
@@ -92,8 +95,6 @@ fn as_sets_graph_stats(query: Ir) -> Result<()> {
             as_set_graph_stats_file.write_all(has_cycle.to_string().as_bytes());
             as_set_graph_stats_file.write_all(b"\n");
         }
-        as_set_graph_stats_file.flush()?;
+        as_set_graph_stats_file.flush().unwrap();
     }
-
-    Ok(())
 }

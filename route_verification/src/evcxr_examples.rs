@@ -76,42 +76,38 @@ use std::{
 // */
 use polars::prelude::*;
 // */
-fn read_parsed_rpsl() -> Result<()> {
+fn read_parsed_rpsl() {
     let start = Instant::now();
-    let parsed = Ir::pal_read("parsed_all")?;
+    let parsed = Ir::pal_read("parsed_all").unwrap();
     println!("Read IR in {}ms.", start.elapsed().as_millis());
     let query = QueryIr::from_ir(parsed);
 
     let start = Instant::now();
-    let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt")?)
+    let bgp_file: Vec<String> = BufReader::new(File::open("data/bgp_routes_eg.txt").unwrap())
         .lines()
         .map(|l| l.unwrap())
         .collect();
     println!("Read BGP file in {}ms.", start.elapsed().as_millis());
 
-    Compare::with_line_dump(&bgp_file[2])?.check(&query)
+    Compare::with_line_dump(&bgp_file[2]).unwrap().check(&query)
     // Exclude `;` when copying.
     ;
-
-    Ok(())
 }
 
-fn parse_bgp_lines() -> Result<()> {
+fn parse_bgp_lines() {
     // <https://pola-rs.github.io/polars/polars/index.html#config-with-env-vars>
     env::set_var("POLARS_FMT_MAX_COLS", "32");
     env::set_var("POLARS_TABLE_WIDTH", "160");
 
-    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2")?;
-    let parsed = Ir::pal_read("parsed_all")?;
+    let db = AsRelDb::load_bz("data/20230701.as-rel.bz2").unwrap();
+    let parsed = Ir::pal_read("parsed_all").unwrap();
     println!(
         "{}",
-        serde_json::to_string(parsed.aut_nums.get(&33549).unwrap())?
+        serde_json::to_string(parsed.aut_nums.get(&33549).unwrap()).unwrap()
     );
     let query: QueryIr = QueryIr::from_ir_and_as_relationship(parsed, &db);
     println!("{:#?}", query.aut_nums.iter().next());
-    let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2")?;
-
-    Ok(())
+    let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2").unwrap();
 }
 
 /// Generate all the reports.

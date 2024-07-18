@@ -1,8 +1,8 @@
 use super::*;
 
 /// Generate statistics for routes.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn gen_route_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn gen_route_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) {
     let start = Instant::now();
     let stats: Vec<RouteStats<u16>> = bgp_lines
         .par_iter_mut()
@@ -14,7 +14,7 @@ fn gen_route_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Res
         start.elapsed().as_millis()
     );
 
-    let mut file = BufWriter::new(File::create("route_stats.csv")?);
+    let mut file = BufWriter::new(File::create("route_stats.csv").unwrap());
     file.write_all(csv_header().trim_end_matches(',').as_bytes());
     file.write_all(b"\n");
     let comma = b","[0];
@@ -22,8 +22,6 @@ fn gen_route_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Res
         file.write_all(&s.as_csv_bytes());
         file.write_all(b"\n");
     }
-    file.flush()?;
+    file.flush().unwrap();
     drop(file);
-
-    Ok(())
 }

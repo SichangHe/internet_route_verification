@@ -6,7 +6,7 @@ use super::*;
 /// ```no_run
 /// transit_as_rules(&query, &db)
 /// ```
-fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
+fn transit_as_rules(query: &QueryIr, db: &AsRelDb) {
     let mut transit_ases: Vec<u32> = db
         .source2dest
         .iter()
@@ -106,18 +106,18 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
         }
     }
 
-    let mut file = BufWriter::new(File::create("transit_as_stats2.csv")?);
+    let mut file = BufWriter::new(File::create("transit_as_stats2.csv").unwrap());
     file.write_all(b"as_num,import_provider,import_peer,import_customer,import_other,import_both_provider,import_both_peer,import_both_customer,import_both_other,import_peering_provider,import_filter_provider,import_peering_peer,import_filter_peer,import_peering_customer,import_filter_customer,import_peering_other,import_filter_other,export_provider,export_peer,export_customer,export_other,export_self,export_peering_provider,export_filter_provider,export_peering_peer,export_filter_peer,export_peering_customer,export_filter_customer,export_peering_other,export_filter_other,export_peering_self,export_filter_self\n");
 
     macro_rules! write_comma_num {
         ($num:expr) => {
-            file.write_all(b",")?;
-            file.write_all($num.to_string().as_bytes())?;
+            file.write_all(b",").unwrap();
+            file.write_all($num.to_string().as_bytes()).unwrap();
         };
     }
 
     for &as_num in &transit_ases {
-        file.write_all(as_num.to_string().as_bytes())?;
+        file.write_all(as_num.to_string().as_bytes()).unwrap();
         let Some(aut_num) = query.aut_nums.get(&as_num) else {
             file.write_all(b",-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1\n");
             continue;
@@ -284,11 +284,9 @@ fn transit_as_rules(query: &QueryIr, db: &AsRelDb) -> Result<()> {
             write_comma_num!(export_peering_self);
             write_comma_num!(export_filter_self);
         }
-        file.write_all(b"\n")?;
+        file.write_all(b"\n").unwrap();
     }
 
-    file.flush()?;
+    file.flush().unwrap();
     drop(file);
-
-    Ok(())
 }

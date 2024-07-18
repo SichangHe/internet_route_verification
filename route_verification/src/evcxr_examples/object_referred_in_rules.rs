@@ -1,7 +1,7 @@
 use super::*;
 
 /// RPSL objects referred to in AutNum rules.
-/// Copy this after running code from [`parse_bgp_lines`].
+/// Copy the content after running code from [`parse_bgp_lines`].
 fn object_referred_in_rules(query: QueryIr) {
     use std::collections::HashMap;
     #[derive(Debug, Default)]

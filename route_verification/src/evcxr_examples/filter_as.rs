@@ -5,7 +5,7 @@ fn reports_for_paths_containing_certain_as(
     query: &QueryIr,
     bgp_lines: &[Line],
     db: &AsRelDb,
-) -> Result<()> {
+) {
     let mut filtered_bgp_lines: Vec<&Line> = bgp_lines
         .par_iter()
         .filter_map(|line| {
@@ -17,7 +17,7 @@ fn reports_for_paths_containing_certain_as(
         .collect();
     println!("{}", filtered_bgp_lines.len());
 
-    let mut target = File::create(format!("AS{an}_non_skip_reports.txt"))?;
+    let mut target = File::create(format!("AS{an}_non_skip_reports.txt")).unwrap();
 
     for chunk in filtered_bgp_lines.chunks(256) {
         let mut all_non_skip = chunk
@@ -56,6 +56,4 @@ fn reports_for_paths_containing_certain_as(
         all_non_skip.push('\n');
         target.write_all(all_non_skip.as_bytes());
     }
-
-    Ok(())
 }

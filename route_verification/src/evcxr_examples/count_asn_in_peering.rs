@@ -1,7 +1,7 @@
 use super::*;
 
 /// Generate statistics for AS neighbors vs rules.
-/// Copy this after running code from [`parse_bgp_lines`].
+/// Copy the content after running code from [`parse_bgp_lines`].
 fn asn_in_peerings(query: QueryIr) {
     let mut total_import = 0usize;
     let mut total_export = 0usize;

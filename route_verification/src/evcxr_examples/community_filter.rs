@@ -2,7 +2,7 @@ use super::*;
 
 /// Count `filter`s with `community`
 /// Copy the content after running code from [`parse_bgp_lines`],
-fn count_community_filter(query: QueryIr) -> Result<()> {
+fn count_community_filter(query: QueryIr) {
     let count = query
         .aut_nums
         .values()
@@ -10,6 +10,4 @@ fn count_community_filter(query: QueryIr) -> Result<()> {
         .flat_map(|port| port.entries_iter())
         .filter(|entry| matches!(entry.mp_filter, Filter::Community(_)))
         .count();
-
-    Ok(())
 }

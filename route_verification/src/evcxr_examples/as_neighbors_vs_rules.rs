@@ -1,8 +1,8 @@
 use super::*;
 
 /// Generate statistics for AS neighbors vs rules.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) {
     struct NeighborRuleStats {
         provider: i32,
         peer: i32,
@@ -58,8 +58,9 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         entry.export = an.exports.len() as i32;
     });
 
-    let mut file = BufWriter::new(File::create("as_neighbors_vs_rules5.csv")?);
-    file.write_all(b"aut_num,provider,peer,customer,import,export\n")?;
+    let mut file = BufWriter::new(File::create("as_neighbors_vs_rules5.csv").unwrap());
+    file.write_all(b"aut_num,provider,peer,customer,import,export\n")
+        .unwrap();
     for (
         an,
         NeighborRuleStats {
@@ -71,12 +72,9 @@ fn as_neighbors_vs_rules(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) 
         },
     ) in map.into_iter()
     {
-        file.write_all(
-            format!("{an},{provider},{peer},{customer},{import},{export}\n").as_bytes(),
-        )?;
+        file.write_all(format!("{an},{provider},{peer},{customer},{import},{export}\n").as_bytes())
+            .unwrap();
     }
-    file.flush()?;
+    file.flush().unwrap();
     drop(file);
-
-    Ok(())
 }

@@ -24,6 +24,12 @@ def main() -> None:
     res: FitResult = fit(zipf, df["n_nums"], [(1.0, 10.0)])
     print(f"Fitting Zipf distribution: Negative log-likelihood {res.nllf()}.")
     print(res)
+    n_only = len(df[df["n_nums"] == 1])
+    print(f"{n_only} ({(n_only * 100 / total):.1f}%) AS Sets contain only one AS Num.")
+    n_gt_10000 = len(df[df["n_nums"] > 10000])
+    print(
+        f"{n_gt_10000} ({(n_gt_10000 * 100 / total):.1f}%) AS Sets contain more than 10,000 AS Nums."
+    )
 
     print("\nAS Set nesting depths.")
     df = df_wo_hash

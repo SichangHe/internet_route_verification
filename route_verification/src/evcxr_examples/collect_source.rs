@@ -2,7 +2,7 @@ use super::*;
 
 /**
 Collect sources for all given ASes.
-Copy this whole function to run.
+Copy the content whole function to run.
 ```no_run rust
 let (not_found, no_source, sources) = collect_source(&query, &asns);
 ```
@@ -35,15 +35,14 @@ fn collect_source(
 }
 
 /// Generate sources for ASes with unrecorded AutNum.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn sources_for_as_w_unrec_aut_num(query: QueryIr) -> Result<()> {
-    let file_content = read_to_string("as_w_unrec_aut_num.csv")?;
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn sources_for_as_w_unrec_aut_num(query: QueryIr) {
+    let file_content = read_to_string("as_w_unrec_aut_num.csv").unwrap();
     let asns = file_content
         .lines()
         .skip(1)
         .map(|line| line.trim().parse::<u32>())
-        .collect::<Result<Vec<u32>, _>>()?;
+        .collect::<Result<Vec<u32>, _>>()
+        .unwrap();
     let (not_found, no_source, sources) = collect_source(&query, &asns);
-
-    Ok(())
 }

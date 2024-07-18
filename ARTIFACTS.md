@@ -225,12 +225,37 @@ follow the instructions in
 `./route_verification/src/evcxr_examples/as_compatible_w_bgpq3.rs`.
 [#64](https://github.com/SichangHe/internet_route_verification/issues/64).
 
+### Generating `*_appearances_in_rules`
+
+In Shell-Evcxr,
+follow the instructions in
+`./route_verification/src/evcxr_examples/object_referred_in_rules.rs`.
+This generates `as_num_appearances_in_rules`, `as_set_appearances_in_rules`,
+`filter_set_appearances_in_rules`, `peering_set_appearances_in_rules`,
+`route_set_appearances_in_rules`.
+[#123](https://github.com/SichangHe/internet_route_verification/issues/123).
+
+### Generating `route_objects_defined_multiple_times`
+
+At `./route_verification/stat_route_objects/`, run:
+
+```sh
+cargo r --release -- ../../data/irrs/backup ../../data/irrs/priority/
+```
+
+This script is sequential and thus slow,
+so just leave it there and do something else.
+It does not generate a CSV file but a JSON file.
+The results are written to `./route_verification/stat_route_objects/` and
+could be moved to `./scripts/` manually.
+[#138](https://github.com/SichangHe/internet_route_verification/issues/138)
+
 <!-- TODO: Other CSV. -->
 
 ## Results to reproduce
 
 > [!NOTE]\
-> After some reproduction steps,
+> After some of the instructions,
 > we attach the corresponding GitHub issue number for reference.
 
 - [x] INTRODUCTION:
@@ -307,7 +332,8 @@ follow the instructions in
     > 35.4% of aut-nums contain no rules, 10.9% define at least 10 rules,
     > and 0.13% (101 aut-nums) define over 1000 rules.
 
-    Run this script in Shell-IPython:
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
 
     ```python
     from scripts.csv_files import *
@@ -321,6 +347,8 @@ follow the instructions in
     n_over_1000 = len(df[df["rules"] >= 1000])
     print(f"{n_over_1000} aut-nums ({n_over_1000 * 100.0 / n_all:.2f}%) define over 1000 rules.")
     ```
+
+    </details>
 
     [#137](https://github.com/SichangHe/internet_route_verification/issues/137).
     <!-- FIXME: It now says 35.2%. -->
@@ -359,7 +387,8 @@ follow the instructions in
     > Most (95.0%)
     > ASes with rules only specify simple filters compatible with BGPq4.
 
-    Run this script in Shell-IPython:
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
 
     ```python
     from scripts.csv_files import *
@@ -376,27 +405,63 @@ follow the instructions in
     )
     ```
 
-    > [!NOTE]\
-    > ASes compatible with BGPq3 are also compatible with BGPq4.
+    </details>
 
+    Note that ASes compatible with BGPq3 are also compatible with BGPq4.
     [#64](https://github.com/SichangHe/internet_route_verification/issues/64).
     <!-- FIXME: It now says 94.5%. -->
 
-- [ ] sec 4:
-    Table 2 shows that 60.4% of aut-num and 31.7% of
-    as-set objects are referenced in filter definitions.
-    <https://github.com/SichangHe/internet_route_verification/issues/123>
-- [ ] sec 4: most filters are either an as-set (43.4%) or ASN (24.1%).
-    <https://github.com/SichangHe/internet_route_verification/issues/159>
-- [ ] sec 4: Our IRR dumps contain 3,904,352 route objects,
-    corresponding to 3,367,914 unique prefix-origin pairs and
-    2,817,344 unique prefixes.
-    697,269 (24.7%) have multiple route objects defined,
-    among which 404,901 (58.1%)
-    prefixes have route objects with different origins.
-    Furthermore, 469,003 (67.3%)
-    prefixes have route objects defined by multiple operators.
-    <https://github.com/SichangHe/internet_route_verification/issues/138>
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Table 2 shows that 60.4% of aut-num and 31.7% of
+    > as-set objects are referenced in filter definitions.
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.object_appearance_table import main
+    main()
+    ```
+
+    </details>
+
+    The results are in the `\%\filter` row.
+    [#123](https://github.com/SichangHe/internet_route_verification/issues/123).
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > most filters are either an as-set (43.4%) or ASN (24.1%).
+
+    The results are the percentages of `as_set` and `as_num`.
+    [#159](https://github.com/SichangHe/internet_route_verification/issues/159).
+
+- [ ] 4 RPSL USE IN THE WILD:
+
+    > Our IRR dumps contain 3,904,352 route objects,
+    > corresponding to 3,367,914 unique prefix-origin pairs and
+    > 2,817,344 unique prefixes.
+    > 697,269 (24.7%) have multiple route objects defined,
+    > among which 404,901 (58.1%)
+    > prefixes have route objects with different origins.
+    > Furthermore, 469,003 (67.3%)
+    > prefixes have route objects defined by multiple operators.
+
+    Half of the information is from the printout of
+    generating `route_objects_defined_multiple_times` (see above).
+
+    <details>
+    <summary>Run this script in Shell-IPython for the other half.</summary>
+
+    ```python
+    from scripts.stats.route_objects import main
+    main()
+    ```
+
+    </details>
+
+    [#138](https://github.com/SichangHe/internet_route_verification/issues/138)
+
 - [ ] sec 4: Among 53,268 as-set objects across all IRRs, 7754 (14.6%)
     have no members. 17,434 (32.7%) as-sets contain only one member AS.
     A few (772, 1.4%) extremely large as-sets have more than 10,000 members.
@@ -422,6 +487,12 @@ follow the instructions in
     <https://github.com/SichangHe/internet_route_verification/issues/157>
 - [ ] sec 5.1: More than half (6664, 64.4%)
     of transit ASes specify themselves as an export rule’s filter.
+
+    ```python
+    from scripts.stats.transit_as import main
+    main()
+    ```
+
     <https://github.com/SichangHe/internet_route_verification/issues/134>
 - [ ] sec 5.1: 3090 (29.8%)
     transit ASes specify a customer AS C in both an import rule’s peering and

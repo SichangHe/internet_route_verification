@@ -120,7 +120,8 @@ Inside the Shell-Evcxr,
 paste in two blocks of code from `./route_verification/src/evcxr_examples.rs`.
 The first block goes from `:opt 3` to the end of the block of `use`;
 it imports the dependencies.
-The second block is the content of `parse_bgp_lines`; it loads the data.
+The second block is the content of
+`parse_bgp_lines` excluding the `parse_mrts` line; it loads the data.
 This takes a while and does not need monitoring, so,
 just leave it there and do something else.
 
@@ -167,7 +168,6 @@ println!(
 );
 let query: QueryIr = QueryIr::from_ir_and_as_relationship(ir.clone(), &db);
 println!("{:#?}", query.aut_nums.iter().next());
-let mut bgp_lines: Vec<Line> = parse_mrt("data/mrts/rib.20230619.2200.bz2").unwrap();
 ```
 
 We do not need Polars.
@@ -669,6 +669,20 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > we find more ASes with verified (76.3%) or special-cased (62.5%)
     > routes than ASes with unverified routes (23.1%).
 
+    And Appendix D:
+
+    > the most common unrecorded case is 22,562 ASes not having an aut-num
+    > object.
+    > The second most common type is for 20,048 ASes that have zero import
+    > (or export) rules when verifying an import (or export).
+
+    And:
+
+    > Fewer ASes have rules that refer to ASes with
+    > no originating route objects (zero-route ASes, 2706),
+    > or set objects (as-set, route-set, peering-set, and filter-set)
+    > missing in the IRRs (414).
+
     <details>
     <summary>Run this script in Shell-IPython.</summary>
 
@@ -691,6 +705,18 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > most of the special cases are due to uphill propagation with
     > no matching rules (23,298 ASes) or missing route objects (5181 ASes).
 
+    And Appendix D:
+
+    > A small portion (325, 0.4%) of ASes use “import customer”,
+    > while more (994, 1.2%) use “export self”.
+
+    And:
+
+    > A significant portion (6.2%) of ASes have missing route objects.
+    > ASes that have uphill propagation with
+    > no matching RPSL rules occupy a large 28.1% of all ASes,
+    > much more than the 12.4% of ASes with unverified routes.
+
     <details>
     <summary>Run this script in Shell-IPython.</summary>
 
@@ -702,8 +728,8 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     </details>
 
     The information is in the `\d+ have spec_\w+` lines
-    ("export self" is called `export_customers`).
-    [#99](https://github.com/SichangHe/internet_route_verification/issues/99).
+    ("export self" is called `export_customers`). [#99
+    comment](https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2094205769).
 
 - [ ] 5.2 Verification Results:
 
@@ -785,7 +811,10 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     </details>
 
     The information is in the `all same status,` line and
-    the `\d+ all \w+,` lines. This script takes several minutes. [#99
+    the `\d+ all \w+,` lines.
+    This script is sequential and takes very long,
+    so you may want to open another shell and do other things in the mean time.
+    [#99
     comment](https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2085328442).
 
 - [ ] 5.2 Verification Results:
@@ -801,7 +830,15 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     [#141](https://github.com/SichangHe/internet_route_verification/issues/141).
 
 - [ ] Appendix B Nonstandard features:
-    two cases of non-standard but common syntax used by operators (4724 times…)
+
+    > two cases of non-standard but common syntax used by operators
+    > (4724 times…)
+
+    [#51](https://github.com/SichangHe/internet_route_verification/discussions/51).
+    <!-- TODO:
+    We currently cannot reproducing this because it relies on
+    previous-version parser's output. -->
+
 - [ ] Appendix B Limitations:
 
     > We leave the handling of
@@ -816,6 +853,8 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
 
     <!-- FIXME: This says 19 instead of 21. The text is outdated. -->
 
+- [ ] Appendix B Limitations:
+
     > or samepattern unary postfix operators (e.g., ~*, 39 rules)
     > as future work.
 
@@ -826,6 +865,8 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     rg --no-ignore -c '<.*~.*>'
     ```
 
+- [ ] Appendix B Limitations:
+
     > we ignore 54 rules with BGP community attributes in their filters.
 
     In Shell-Evcxr,
@@ -834,25 +875,36 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     then evaluate the variable `count`
     ([#158](https://github.com/SichangHe/internet_route_verification/issues/158)).
 
-- [ ] appendix C:
-    <https://github.com/SichangHe/internet_route_verification/issues/83>
-- [ ] appendix D: Figure 5.
-- [ ] appendix D:
-    the most common unrecorded case is 22,562 ASes not having an aut-num
-    object.
-    The second most common type is for 20,048 ASes that have zero import
-    (or export) rules when verifying an import (or export).
-- [ ] appendix D:
-    Fewer ASes have rules that refer to ASes with
-    no originating route objects (zero-route ASes, 2706),
-    or set objects (as-set, route-set, peering-set, and filter-set)
-    missing in the IRRs (414).
-- [ ] appendix D: Figure 6
-- [ ] appendix D: A small portion (325, 0.4%) of ASes use “import customer”,
-    while more (994, 1.2%) use “export self”.
-    <https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2094205769>.
-    A significant portion (6.2%) of ASes have missing route objects.
-    ASes that have uphill propagation with
-    no matching RPSL rules occupy a large 28.1% of all ASes,
-    much more than the 12.4% of ASes with unverified routes.
-    <https://github.com/SichangHe/internet_route_verification/issues/78>
+- [ ] Appendix C:
+
+    <details>
+    <summary>Run this script in Shell-Evcxr.</summary>
+
+    ```rust
+    let mut line: Line = Line::from_raw("TABLE_DUMP2|1687212014|B|89.149.178.10|3257|103.162.114.0/23|3257 1299 6939 6939 133840 56239 141893|IGP|89.149.178.10|0|10|3257:8794 3257:30052 3257:50001 3257:54900 3257:54901|NAG||".into()).unwrap();
+    line.compare.verbosity = Verbosity {
+        all_err: true,
+        ..Verbosity::minimum_all()
+    };
+    line.report = Some(line.compare.check_with_relationship(&query, &db));
+    line.display();
+    ```
+
+    </details>
+
+    [#83](https://github.com/SichangHe/internet_route_verification/issues/83).
+
+- [ ] Appendix D:
+
+    > Figure 5:
+    > Breakdown of route verification failures due to unrecorded RPSL objects.
+
+    Follow the instructions in
+    `./scripts/scripts/fig/as_unrec_all_stacked_area.py`.
+
+- [ ] Appendix D:
+
+    > Figure 6: Breakdown of special cases per AS.
+
+    Follow the instructions in
+    `./scripts/scripts/fig/as_spec_all_stacked_area.py`.

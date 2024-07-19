@@ -1,6 +1,8 @@
 # Artifacts
 
 Follow the instructions below to reproduce the artifacts.
+You may also want to check out `ALIASES.md` to help understand the names in
+the code output.
 
 ## Setup
 
@@ -635,49 +637,169 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > 0.34% that only use relaxed filters (blue),
     > and 6.9% with only safelisted relationships (red).
 
-    <https://github.com/SichangHe/internet_route_verification/issues/90>
-    <!-- TODO: The issue is stale, the script is `as_all_all_some`. -->
+    And:
 
-- [ ] sec 5.2: ASes with skipped verifications only constitute 0.03% of ASes.
-    <https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2085134606>
-- [ ] sec 5.2: Out of the 54.9% of ASes with unrecorded cases,
-    most can be explained by 27.2% of ASes missing aut-num objects and 24.2% of
-    aut-nums with no rules.
-    Excluding ASes with skipped or unrecorded cases,
-    we find more ASes with verified (76.3%) or special-cased (62.5%)
-    routes than ASes with unverified routes (23.1%).
-    <https://github.com/SichangHe/internet_route_verification/issues/154>
-- [ ] sec 5.2:
-    25,596 ASes with at least one special-cased import or export
-    (30.9% out of all ASes).
-    Among these ASes, more incorrectly allow customer route exports (994,
-    “export self”) than imports (325, “import customer”).
-    <https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2094205769>
-- [ ] sec 5.2:
-    most of the special cases are due to uphill propagation with
-    no matching rules (23,298 ASes) or missing route objects (5181 ASes).
-    <https://github.com/SichangHe/internet_route_verification/issues/78>
-- [ ] sec 5.2: Figure 3.
-- [ ] sec 5.2: For imports,
-    we find 96% of AS pairs have a single consistent status;
-    this number is 92% for exports.
-    <https://github.com/SichangHe/internet_route_verification/issues/96>
-- [ ] sec 5.2: over half of AS pairs have unverified routes (418,328, 63.0%).
-    <https://github.com/SichangHe/internet_route_verification/issues/94#issuecomment-1822005650>.
-    most of them (98.98%)
-    fail verification because the relationship is not declared in the RPSL.
-    <https://github.com/SichangHe/internet_route_verification/issues/117>
-- [ ] sec 5.2: Figure 4
-- [ ] sec 5.2: Only 6.6% of routes have the same status across all hops,
-    captured by having a bar of single color (1.6% verified, 3.0% unrecorded,
-    and 1.6% unverified).
-    <https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2085328442>.
-    <https://github.com/SichangHe/internet_route_verification/issues/88>.
-    <https://github.com/SichangHe/internet_route_verification/issues/38#issuecomment-1725626125>
-- [ ] sec 5.2:
-    We also assess the verification status of the first hop in ASpaths…
-    Unfortunately, the results are similar (not shown).
-    <https://github.com/SichangHe/internet_route_verification/issues/141>
+    > ASes with skipped verifications only constitute 0.03% of ASes.
+
+    And:
+
+    > 25,596 ASes with at least one special-cased import or export
+    > (30.9% out of all ASes).
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.as_all_all_some import main
+    main()
+    ```
+
+    </details>
+
+    The information is in the `\d+ all \w+,` and `\d+ have \w+,` lines.
+    [#99](https://github.com/SichangHe/internet_route_verification/issues/99).
+    <!-- FIXME: It now says 61747. -->
+
+- [ ] 5.2 Verification Results:
+
+    > Out of the 54.9% of ASes with unrecorded cases,
+    > most can be explained by 27.2% of ASes missing aut-num objects and
+    > 24.2% of aut-nums with no rules.
+    > Excluding ASes with skipped or unrecorded cases,
+    > we find more ASes with verified (76.3%) or special-cased (62.5%)
+    > routes than ASes with unverified routes (23.1%).
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.as_unrec_all_breakdown import main
+    main()
+    ```
+
+    </details>
+
+    [#154](https://github.com/SichangHe/internet_route_verification/issues/154).
+
+- [ ] 5.2 Verification Results:
+
+    > Among these ASes, more incorrectly allow customer route exports (994,
+    > “export self”) than imports (325, “import customer”).
+
+    And:
+
+    > most of the special cases are due to uphill propagation with
+    > no matching rules (23,298 ASes) or missing route objects (5181 ASes).
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.as_spec_all_all_some import main
+    main()
+    ```
+
+    </details>
+
+    The information is in the `\d+ have spec_\w+` lines
+    ("export self" is called `export_customers`).
+    [#99](https://github.com/SichangHe/internet_route_verification/issues/99).
+
+- [ ] 5.2 Verification Results:
+
+    > Figure 3: Route verification status for each AS pair.
+
+    Follow the instructions in
+    `./scripts/scripts/fig/as_pair_all_stacked_area.py`.
+
+- [ ] 5.2 Verification Results:
+
+    > For imports, we find 96% of AS pairs have a single consistent status;
+    > this number is 92% for exports.
+
+    [#96](https://github.com/SichangHe/internet_route_verification/issues/96).
+    <!-- TODO: I cannot find the script that gives this number.
+    This number might have been manually summed up using the numbers in #96,
+    but those are for a single RIB. -->
+
+- [ ] 5.2 Verification Results:
+
+    > over half of AS pairs have unverified routes (418,328, 63.0%).
+
+    And:
+
+    > most of them (98.98%)
+    > fail verification because the relationship is not declared in the RPSL.
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.fig.dataframes import as_pair_stats_all_df
+    PORTS = ("import", "export")
+    LEVELS = ("ok", "skip", "unrec", "meh", "err")
+    df = as_pair_stats_all_df(
+        ["from", "to"]
+        + [f"{port}_{tag}" for tag in LEVELS for port in PORTS]
+        + ["err_filter"]
+    )
+    n_as_pair = len(df)
+    n_have_err = df[(df["import_err"] > 0) | (df["export_err"] > 0)].__len__()
+    n_have_err_filter = df[df["err_filter"] > 0].__len__()
+    n_all_err_peering = n_have_err - n_have_err_filter
+    print(
+        f"{n_have_err} AS pairs have unverified routes {n_have_err * 100 / n_as_pair:.1f}."
+    )
+    print(
+        f"Among them, {n_all_err_peering} AS pairs fail verification because the relationship is not declared in the RPSL ({n_all_err_peering * 100 / n_have_err:.2f})."
+    )
+    ```
+
+    </details>
+
+    [#94
+    comment](https://github.com/SichangHe/internet_route_verification/issues/94#issuecomment-1822005650).
+    [#117](https://github.com/SichangHe/internet_route_verification/issues/117).
+
+- [ ] 5.2 Verification Results:
+
+    > Figure 4: Verification status for all hops in BGP routes.
+
+    Follow the instructions in
+    `./scripts/scripts/fig/route_all_stacked_area.py`.
+
+- [ ] 5.2 Verification Results:
+
+    > Only 6.6% of routes have the same status across all hops,
+    > captured by having a bar of single color (1.6% verified, 3.0% unrecorded,
+    > and 1.6% unverified).
+
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.route_all_all_some import main
+    main()
+    ```
+
+    </details>
+
+    The information is in the `all same status,` line and
+    the `\d+ all \w+,` lines. This script takes several minutes. [#99
+    comment](https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2085328442).
+
+- [ ] 5.2 Verification Results:
+
+    > We also assess the verification status of the first hop in ASpaths…
+    > Unfortunately, the results are similar (not shown).
+
+    Follow the instructions in
+    `./scripts/scripts/fig/route_first_hop_all_stacked_area.py`.
+    The information is in
+    the generated `route-first-hop-all-exchange-percentages-stacked-area.pdf`
+    file.
+    [#141](https://github.com/SichangHe/internet_route_verification/issues/141).
+
 - [ ] Appendix B Nonstandard features:
     two cases of non-standard but common syntax used by operators (4724 times…)
 - [ ] Appendix B Limitations:

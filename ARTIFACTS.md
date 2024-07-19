@@ -97,13 +97,17 @@ time cargo r --release -- parse_ordered \
     ../data/irrs/backup/tc.db \
     ../data/irrs/backup/reach.db \
     ../data/irrs/backup/altdb.db \
-    ../parsed_all/ | tee parse_out.txt
+    ../parsed_all/ |& tee parse_out.txt
 ```
 
 <!-- FIXME: Current data have slightly different ordering. -->
 
 The time taken, Time-IR, is the time to parse the IRR data into the IR.
-The parsing order, IRR-Order, is the order in Table 1.
+The parsing order, IRR-Order, is the order in Table 1. The log is Parse-Log.
+
+> [!NOTE]\
+> We use these hyphenated capitalized names to refer to values,
+> so that you can easily search for them when you encounter them below.
 
 ### Shell-Evcxr setup
 
@@ -220,12 +224,15 @@ please follow the instructions below.
 After generating files using Shell-Evcxr, the files are written to `./`,
 so you may need to Gzip and move the generated files to `./scripts/`.
 
+> [!NOTE]\
+> After some of the instructions,
+> we attach the corresponding GitHub issue number for reference.
+
 ### Generating `as_neighbors_vs_rules`
 
 In Shell-Evcxr,
 follow the instructions in
 `./route_verification/src/evcxr_examples/as_neighbors_vs_rules.rs`.
-
 [#60](https://github.com/SichangHe/internet_route_verification/issues/60).
 
 ### Generating `as_compatible_with_bgpq3`
@@ -258,7 +265,7 @@ so just leave it there and do something else.
 It does not generate a CSV file but a JSON file.
 The results are written to `./route_verification/stat_route_objects/` and
 could be moved to `./scripts/` manually.
-[#138](https://github.com/SichangHe/internet_route_verification/issues/138)
+[#138](https://github.com/SichangHe/internet_route_verification/issues/138).
 
 ### Generating `as_set_graph_stats`
 
@@ -271,17 +278,21 @@ follow the instructions in
 At `./route_verification/rib_stats`, run:
 
 ```sh
-cargo r --release
+time cargo r --release
 ```
 
 This generates `as_stats_all`, `as_pair_stats_all`, `route_stats_all`,
 and `route_first_hop_stats_all` at `./route_verification/rib_stats/`.
-This script is very computationally expensive, so you only want to run it once.
+[#157](https://github.com/SichangHe/internet_route_verification/issues/157).
 <!-- FIXME: This script generates `all4/`, but we are still using `all3/` CSV files. -->
+
+This script is very computationally expensive, so you only want to run it once.
+We call the time taken RIB-Stats-Time.
 
 <details>
 <summary>
-You may want to monitor the RAM usage of this to reproduce the result below.
+You may want to monitor the RAM usage of this, RIB-Stats-RAM,
+to reproduce some results below.
 </summary>
 
 After launching the script,
@@ -314,18 +325,12 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
 
 </details>
 
-[#157](https://github.com/SichangHe/internet_route_verification/issues/157).
-
 <!-- TODO: Other CSV. -->
 
 ## Results to reproduce
 
 > [!TIP]\
 > You can use the checkboxes in this file to track your progress.
-
-> [!NOTE]\
-> After some of the instructions,
-> we attach the corresponding GitHub issue number for reference.
 
 - [ ] INTRODUCTION:
 
@@ -362,12 +367,15 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > we observe a high fraction (29.3%) of strict matches.
     > We explain most mismatches (19.0%) by six common mistakes we identified
 
-    Run in Shell-IPython:
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
 
     ```python
     from scripts.stats.imports_exports import main
     main()
     ```
+
+    </details>
 
     The corresponding results are `total unrec`, `total ok`, and `total meh`.
 
@@ -383,10 +391,9 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
 
 - [ ] 4 RPSL USE IN THE WILD:
 
-    > Table 1
+    > Table 1: IRRs used, grouped and ordered by priority.
 
-    The order is the IRR-Order.
-    The total counts are in `./route_verification/parse_out.txt`.
+    The order is the IRR-Order. The total counts are in Parse-Log.
     The sizes are obtained by running the script at `./data/irrs/priority/` and
     `./data/irrs/backup/`:
 
@@ -397,6 +404,8 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     <!-- TODO: Find the script to count for each IRR. -->
 
     [#126](https://github.com/SichangHe/internet_route_verification/issues/126).
+
+- [ ] 4 RPSL USE IN THE WILD:
 
     > 35.4% of aut-nums contain no rules, 10.9% define at least 10 rules,
     > and 0.13% (101 aut-nums) define over 1000 rules.
@@ -428,12 +437,15 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > how many neighbors, customers, peers,
     > or providers it has in CAIDA’s AS-relationship database.
 
-    Run this script in Shell-IPython:
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
 
     ```python
     from scripts.stats.as_all_corr import main
     main()
     ```
+
+    </details>
 
     [#19](https://github.com/SichangHe/internet_route_verification/issues/19),
     [#95](https://github.com/SichangHe/internet_route_verification/issues/95),
@@ -561,8 +573,7 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > RPSLyzer found 663 syntax errors, 12 invalid as-set names,
     > and 17 invalid route-set names.
 
-    The information is from the log of
-    generating the Intermediate Representation (see above).
+    The information is from Parse-Log.
     [#57](https://github.com/SichangHe/internet_route_verification/issues/57).
 
 - [ ] 4 RPSL USE IN THE WILD:
@@ -571,7 +582,7 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > such as broken comma-separated lists, misplaced comments,
     > invalid RPSL keywords in import and export rules, or plain typos.
 
-    See
+    See Parse-Log and
     [#39](https://github.com/SichangHe/internet_route_verification/discussions/39).
 
 - [ ] 5 VERIFYING AS-PATHS:
@@ -591,7 +602,7 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > Verifying the 779.3 million routes in all 60 BGP dumps took 2 h 49 m and
     > less than 2 GiB of RAM.
 
-    The information is from generating `*_stats_all` (see above).
+    The information is from RIB-Stats-Time and RIB-Stats-RAM.
     [#157](https://github.com/SichangHe/internet_route_verification/issues/157).
 
 - [ ] 5.1 Special Cases:

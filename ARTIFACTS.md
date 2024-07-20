@@ -754,10 +754,20 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     > For imports, we find 96% of AS pairs have a single consistent status;
     > this number is 92% for exports.
 
-    [#96](https://github.com/SichangHe/internet_route_verification/issues/96).
-    <!-- TODO: I cannot find the script that gives this number.
-    This number might have been manually summed up using the numbers in #96,
-    but those are for a single RIB. -->
+    <details>
+    <summary>Run this script in Shell-IPython.</summary>
+
+    ```python
+    from scripts.stats.as_pair_all_all_some import main
+    main()
+    ```
+
+    </details>
+
+    [#99
+    comment](https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2240878965).
+    <!-- FIXME: The original numbers are for a single RIB.
+    The rewritten script gives 91.7 and 92.0. -->
 
 - [ ] 5.2 Verification Results:
 

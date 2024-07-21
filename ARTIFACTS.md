@@ -38,10 +38,9 @@ the code output.
 
 ### Downloading the source data
 
-Download the source data from [Raw data used, for
-reproducibility](https://github.com/SichangHe/internet_route_verification/releases/tag/raw-data)
-and follow the instruction there to unpack them to
-the correct directory structure.
+Download the source data from [this release](https://github.com/SichangHe/internet_route_verification/releases/tag/raw-data) on GitHub.
+This data ensures we can reproduce the results in the paper.
+Run the script in **TODO** to download and unpack the data into the `./data` directory.
 
 > [!NOTE]\
 > The source data contain three parts.
@@ -49,7 +48,7 @@ the correct directory structure.
 > are originally downloaded using `./download_ribs.py`.
 > The IRR (Internet Route Registry)
 > dumps are downloaded from the FTP servers listed in `./README.md`;
-> they are irreproducible because they are from the past and
+> they cannot be easily reobtained because
 > IRRs do not keep archives.
 > The AS-relationship Database is originally downloaded from
 > [CAIDA's AS-relationship

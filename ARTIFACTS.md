@@ -401,7 +401,10 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
     ls -l | awk 'BEGIN { printf "%-50s %10s MiB\n", "File", "Size" } NR>1 { size=$5/1024/1024; printf "%-50s %10.3f MiB\n", $9, size }'
     ```
 
-    <!-- TODO: Find the script to count for each IRR. -->
+    <!-- TODO: Find the script to count for each IRR.
+    The commit to the text is:
+    1a4ccc8e fully fill IRR table, 2023-11-20 16:02:24 +0800.
+    I cannot find the script, though. -->
 
     [#126](https://github.com/SichangHe/internet_route_verification/issues/126).
 

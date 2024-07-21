@@ -325,7 +325,13 @@ awk 'BEGIN { max = 0 } { if ($1 > max) max = $1 } END { print max }' ram.txt
 
 </details>
 
-<!-- TODO: Other CSV. -->
+### Generating `route_all_*_stats` and `route_first_hop_all_*_stats`
+
+After generating `*_stats_all` (above), at `./scripts/`, run:
+
+```sh
+cargo r --release
+```
 
 ## Results to reproduce
 

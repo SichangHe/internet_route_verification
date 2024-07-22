@@ -1,3 +1,8 @@
+"""Run at `scripts/` with `python3 -m scripts.download_src_data`.
+
+Downloads all the source data files used in the project to `data/`.
+"""
+
 import os
 
 from scripts import CsvFile, download_csv_files_if_missing
@@ -268,3 +273,6 @@ ribs = [
 def main():
     download_csv_files_if_missing(ribs + [as_rel, irrs, single_rib])
     assert os.system(f"tar --zstd -xf {irrs.path} -C ../data/") == 0
+
+
+main() if __name__ == "__main__" else None

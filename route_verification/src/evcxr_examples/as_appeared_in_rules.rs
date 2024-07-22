@@ -1,8 +1,8 @@
 use super::*;
 
 /// Generate statistics for AS neighbors vs rules.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn as_appeared_in_rules(query: QueryIr) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn as_appeared_in_rules(query: QueryIr) {
     use std::collections::HashSet;
     struct Appeared {
         an_list: HashSet<u32>,
@@ -86,32 +86,45 @@ fn as_appeared_in_rules(query: QueryIr) -> Result<()> {
     let mut df = DataFrame::new(vec![Series::new(
         "aut_nums",
         an_list.into_iter().collect::<Vec<_>>(),
-    )])?;
-    CsvWriter::new(File::create("aut_nums_appeared_in_rules.csv")?).finish(&mut df)?;
+    )])
+    .unwrap();
+    CsvWriter::new(File::create("aut_nums_appeared_in_rules.csv").unwrap())
+        .finish(&mut df)
+        .unwrap();
 
     let mut df = DataFrame::new(vec![Series::new(
         "as_sets",
         as_set_list.into_iter().collect::<Vec<_>>(),
-    )])?;
-    CsvWriter::new(File::create("as_sets_appeared_in_rules.csv")?).finish(&mut df)?;
+    )])
+    .unwrap();
+    CsvWriter::new(File::create("as_sets_appeared_in_rules.csv").unwrap())
+        .finish(&mut df)
+        .unwrap();
 
     let mut df = DataFrame::new(vec![Series::new(
         "route_sets",
         rs_list.into_iter().collect::<Vec<_>>(),
-    )])?;
-    CsvWriter::new(File::create("route_sets_appeared_in_rules.csv")?).finish(&mut df)?;
+    )])
+    .unwrap();
+    CsvWriter::new(File::create("route_sets_appeared_in_rules.csv").unwrap())
+        .finish(&mut df)
+        .unwrap();
 
     let mut df = DataFrame::new(vec![Series::new(
         "peering_sets",
         ps_list.into_iter().collect::<Vec<_>>(),
-    )])?;
-    CsvWriter::new(File::create("peering_sets_appeared_in_rules.csv")?).finish(&mut df)?;
+    )])
+    .unwrap();
+    CsvWriter::new(File::create("peering_sets_appeared_in_rules.csv").unwrap())
+        .finish(&mut df)
+        .unwrap();
 
     let mut df = DataFrame::new(vec![Series::new(
         "filter_sets",
         fs_list.into_iter().collect::<Vec<_>>(),
-    )])?;
-    CsvWriter::new(File::create("filter_sets_appeared_in_rules.csv")?).finish(&mut df)?;
-
-    Ok(())
+    )])
+    .unwrap();
+    CsvWriter::new(File::create("filter_sets_appeared_in_rules.csv").unwrap())
+        .finish(&mut df)
+        .unwrap();
 }

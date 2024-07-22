@@ -8,7 +8,7 @@ use std::{
 use anyhow::{bail, Result};
 use flate2::{write::GzEncoder, Compression};
 use hashbrown::HashMap;
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 use rayon::prelude::*;
 
 use route_verification::{
@@ -48,13 +48,13 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
     }
 
     let total_n_route = aggregated_routes.len();
-    debug!("Aggregated {total_n_route} routes.");
+    info!("Aggregated {total_n_route} routes.");
 
     let routes_defined_multiple_times: HashMap<_, _> = aggregated_routes
         .iter()
         .filter(|(_, routes)| routes.len() > 1)
         .collect();
-    debug!(
+    info!(
         "{} routes defined multiple times.",
         routes_defined_multiple_times.len()
     );
@@ -68,7 +68,7 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
                 .any(|route| route.origin != first_route.origin)
         })
         .count();
-    debug!(
+    info!(
         "{} routes with different origins.",
         n_route_w_different_origins
     );
@@ -82,7 +82,7 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
                 .any(|route| route.mnt_by != first_route.mnt_by)
         })
         .count();
-    debug!(
+    info!(
         "{} routes defined by different (not entirely the same) maintainers.",
         n_route_defined_by_different_mntners
     );
@@ -100,7 +100,7 @@ pub fn scan_dirs(input_dirs: &[String]) -> Result<()> {
                 .is_empty()
         })
         .count();
-    debug!(
+    info!(
         "{} routes defined without a common maintainer.",
         n_route_defined_wo_common_mntners
     );

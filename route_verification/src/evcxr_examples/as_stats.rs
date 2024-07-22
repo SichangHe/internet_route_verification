@@ -1,8 +1,8 @@
 use super::*;
 
 /// Generate statistics for AS pairs.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) {
     let start = Instant::now();
     let map: DashMap<(u32, u32), AsPairStats> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
@@ -14,7 +14,7 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
         start.elapsed().as_millis()
     );
 
-    let mut file = BufWriter::new(File::create("as_pair_stats.csv")?);
+    let mut file = BufWriter::new(File::create("as_pair_stats.csv").unwrap());
     file.write_all(b"from,to,");
     file.write_all(csv_header().as_bytes());
     file.write_all(b"relationship\n");
@@ -37,15 +37,13 @@ fn gen_as_pair_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> R
         });
         file.write_all(b"\n");
     }
-    file.flush()?;
+    file.flush().unwrap();
     drop(file);
-
-    Ok(())
 }
 
 /// Generate statistics for up/downhill.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn gen_up_down_hill_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn gen_up_down_hill_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) {
     let start = Instant::now();
     let up_down_hill_stats: UpDownHillStats = bgp_lines
         .par_iter_mut()
@@ -111,15 +109,16 @@ fn gen_up_down_hill_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb)
                 up_down_hill_stats.bad_other_export,
             ],
         ),
-    ])?;
-    CsvWriter::new(File::create("up_down_hill_stats.csv")?).finish(&mut up_down_hill_df)?;
-
-    Ok(())
+    ])
+    .unwrap();
+    CsvWriter::new(File::create("up_down_hill_stats.csv").unwrap())
+        .finish(&mut up_down_hill_df)
+        .unwrap();
 }
 
 /// Generate statistics for each AS.
-/// Copy this after running code from [`parse_bgp_lines`],
-fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`],
+fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) {
     let start = Instant::now();
     let map: DashMap<u32, RouteStats<u64>> = DashMap::new();
     bgp_lines.par_iter_mut().for_each(|l| {
@@ -131,7 +130,7 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
         start.elapsed().as_millis()
     );
 
-    let mut file = BufWriter::new(File::create("as_stats.csv")?);
+    let mut file = BufWriter::new(File::create("as_stats.csv").unwrap());
     file.write_all(b"aut_num,");
     file.write_all(csv_header().trim_end_matches(',').as_bytes());
     file.write_all(b"\n");
@@ -141,8 +140,6 @@ fn gen_as_stats(query: QueryIr, mut bgp_lines: Vec<Line>, db: AsRelDb) -> Result
         file.write_all(&s.as_csv_bytes());
         file.write_all(b"\n");
     }
-    file.flush()?;
+    file.flush().unwrap();
     drop(file);
-
-    Ok(())
 }

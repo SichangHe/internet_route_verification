@@ -2,17 +2,18 @@ use super::*;
 
 /// Write a CSV containing `last-modified` information for every object in
 /// `input_dir`.
-fn collect_last_modified(input_dirs: &[&str]) -> Result<()> {
+fn collect_last_modified(input_dirs: &[&str]) {
     let start = Instant::now();
-    let mut file = BufWriter::new(File::create("last_modified.csv")?);
+    let mut file = BufWriter::new(File::create("last_modified.csv").unwrap());
     // Pipe-separated because `name` might contain `,`.
-    file.write_all(b"class|name|source|last_modified\n")?;
+    file.write_all(b"class|name|source|last_modified\n")
+        .unwrap();
 
     for input_dir in input_dirs {
         println!("Starining to scan {input_dir}.");
-        for entry in read_dir(input_dir)? {
-            let path = entry?.path();
-            let reader = open_file_w_correct_encoding(&path)?;
+        for entry in read_dir(input_dir).unwrap() {
+            let path = entry.unwrap().path();
+            let reader = open_file_w_correct_encoding(&path).unwrap();
             print!("|Starting to scan {path:?}.");
 
             for obj in rpsl_objects(io_wrapper_lines(reader)) {
@@ -34,23 +35,22 @@ fn collect_last_modified(input_dirs: &[&str]) -> Result<()> {
                     None => b"null",
                 };
 
-                file.write_all(obj.class.as_bytes())?;
-                file.write_all(b"|")?;
-                file.write_all(obj.name.as_bytes())?;
-                file.write_all(b"|")?;
-                file.write_all(source_bytes)?;
-                file.write_all(b"|")?;
-                file.write_all(last_modified_bytes)?;
-                file.write_all(b"\n")?;
+                file.write_all(obj.class.as_bytes()).unwrap();
+                file.write_all(b"|").unwrap();
+                file.write_all(obj.name.as_bytes()).unwrap();
+                file.write_all(b"|").unwrap();
+                file.write_all(source_bytes).unwrap();
+                file.write_all(b"|").unwrap();
+                file.write_all(last_modified_bytes).unwrap();
+                file.write_all(b"\n").unwrap();
             }
             println!("|Scanned {path:?}.");
         }
     }
 
-    file.flush()?;
+    file.flush().unwrap();
     println!(
         "Scanned {input_dirs:?} in {}ms.",
         start.elapsed().as_millis()
     );
-    Ok(())
 }

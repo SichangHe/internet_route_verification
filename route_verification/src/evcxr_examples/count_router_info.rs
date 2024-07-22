@@ -1,8 +1,8 @@
 use super::*;
 
 /// Count how many rules have router information.
-/// Copy this after running code from [`parse_bgp_lines`].
-fn count_rules_w_router_info(query: QueryIr) -> Result<()> {
+/// Copy the content after running code from [`parse_bgp_lines`].
+fn count_rules_w_router_info(query: QueryIr) {
     let start = Instant::now();
     let count: usize = query
         .aut_nums
@@ -23,6 +23,4 @@ fn count_rules_w_router_info(query: QueryIr) -> Result<()> {
         "Found {count} rule entries in {}ms.",
         start.elapsed().as_millis()
     );
-
-    Ok(())
 }

@@ -1,7 +1,7 @@
 use super::*;
 
 /// Distribution of different types of <filter>s.
-/// Copy this after running code from [`parse_bgp_lines`].
+/// Copy the content after running code from [`parse_bgp_lines`].
 fn filter_persentages(query: QueryIr) {
     #[derive(Copy, Clone, Debug, Default)]
     struct Count {

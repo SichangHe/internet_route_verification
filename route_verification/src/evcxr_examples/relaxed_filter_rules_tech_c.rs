@@ -31,6 +31,7 @@ fn find_relaxed_filter_rules_n_tech_c(query: QueryIr) {
     #[derive(Debug, Default, Serialize)]
     struct AsInfo {
         export_peer_asns: Vec<u32>,
+        export_as_any: bool,
         import_customer_asns: Vec<u32>,
         tech_c: String,
         source: String,
@@ -77,6 +78,21 @@ fn find_relaxed_filter_rules_n_tech_c(query: QueryIr) {
                         Filter::AsNum(filter_asn, _),
                     ) if *filter_asn == *asn => {
                         info_entry.export_peer_asns.push(*peer);
+                    }
+                    // to AS-ANY announce <asn>.
+                    (
+                        1,
+                        Some(PeeringAction {
+                            mp_peering:
+                                Peering {
+                                    remote_as: AsExpr::Single(AsName::Any),
+                                    ..
+                                },
+                            ..
+                        }),
+                        Filter::AsNum(filter_asn, _),
+                    ) if *filter_asn == *asn => {
+                        info_entry.export_as_any = true;
                     }
                     _ => {}
                 }

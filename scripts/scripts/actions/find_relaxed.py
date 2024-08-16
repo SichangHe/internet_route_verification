@@ -32,7 +32,10 @@ def find_aut_nums_w_many_relaxed_filters():
 
 
 def main():
-    _ = find_aut_nums_w_many_relaxed_filters()
+    aut_nums = find_aut_nums_w_many_relaxed_filters()
+    for tag in CASES:
+        with open(f"many_{tag}0.csv", "w") as f:
+            f.write("\n".join(f"{aut_num}" for aut_num in aut_nums[tag]) + "\n")
 
 
 main() if __name__ == "__main__" else None

@@ -1112,3 +1112,8 @@ many_spec_import_customer = CsvFile(
     "https://github.com/user-attachments/files/16634525/many_spec_import_customer0.csv",
 )
 """From <https://github.com/SichangHe/internet_route_verification/discussions/183>."""
+relaxed_filter_as_info = CsvFile(
+    "relaxed_filter_as_info.json",
+    "https://github.com/user-attachments/files/16639309/relaxed_filter_as_info.json",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/discussions/183>."""

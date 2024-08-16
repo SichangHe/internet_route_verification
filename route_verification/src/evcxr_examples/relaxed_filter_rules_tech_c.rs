@@ -1,8 +1,9 @@
 use super::*;
 
-/// For ASes with many relaxed filter, find those simple rules and `tech-c`.
+/// For ASes with many relaxed filter, find the peer/customer corresponding to
+/// those simple rules, and their `source` and `tech-c`.
 /// Copy this after running code from [`parse_bgp_lines`].
-fn find_relaxed_filter_rules_n_tech_c(query: QueryIr) {
+fn find_relaxed_filter_as_info(query: QueryIr) {
     // Read the CSVs.
     #[derive(Debug, Default)]
     struct Feature {
@@ -37,7 +38,7 @@ fn find_relaxed_filter_rules_n_tech_c(query: QueryIr) {
         source: String,
     }
 
-    let mut as_infos = HashMap::<u32, AsInfo>::new();
+    let mut as_infos = BTreeMap::<u32, AsInfo>::new();
     for (
         asn,
         Feature {
@@ -126,4 +127,9 @@ fn find_relaxed_filter_rules_n_tech_c(query: QueryIr) {
             }
         }
     }
+
+    let mut file = BufWriter::new(File::create("scripts/relaxed_filter_as_info.json").unwrap());
+    serde_json::to_writer(&mut file, &as_infos).unwrap();
+    file.flush().unwrap();
+    drop(file);
 }

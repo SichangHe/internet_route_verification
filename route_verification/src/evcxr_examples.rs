@@ -26,6 +26,7 @@ mod filter_as;
 mod filter_percentages;
 mod last_modified;
 mod object_referred_in_rules;
+mod relaxed_filter_rules_tech_c;
 mod route_stats;
 mod specific_line;
 mod transit_as_rules;
@@ -46,6 +47,7 @@ before running Evcxr is also needed.
 :dep route_verification = { path = "route_verification" }
 :dep rayon
 :dep itertools
+:dep serde = { version = "1", features = ["derive"] }
 :dep serde_json
 // */
 use anyhow::Result;
@@ -62,6 +64,7 @@ use route_verification::irr::split_commas;
 use route_verification::lex::{
     expressions, io_wrapper_lines, lines_continued, rpsl_objects, RpslExpr,
 };
+use serde::{Deserialize, Serialize};
 use std::{
     env,
     fs::{read_dir, read_to_string, File},

@@ -98,14 +98,17 @@ impl<'a> CheckFilter<'a> {
             && self.cmp.verbosity.check_customer
             && num == self.self_num
             && op.permits(&self.cmp.prefix)
-            && self.is_accepting_customer()
+            && self.is_prev_as_customer()
     }
 
-    /// Check if the accepted ASN is in our customer set.
-    fn is_accepting_customer(&self) -> bool {
-        match self.query.as_sets.get(&customer_set(self.self_num)) {
-            None => false, // We don't have a customer set.
-            Some(customer_as_set) => customer_as_set.contains(&self.accept_num),
+    /// Check if the previous ASN on the AS path is in our customer set.
+    fn is_prev_as_customer(&self) -> bool {
+        match self.last_on_path() {
+            None => false, // Not a "received" route.
+            Some(prev_num) => match self.query.as_sets.get(&customer_set(self.self_num)) {
+                None => false, // No customer set.
+                Some(customer_as_set) => customer_as_set.contains(&prev_num),
+            },
         }
     }
 

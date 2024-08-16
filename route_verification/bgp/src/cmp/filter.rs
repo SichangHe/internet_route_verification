@@ -91,13 +91,22 @@ impl<'a> CheckFilter<'a> {
 
     /// Check for this case:
     /// - The AS number itself is the `<filter>`.
-    /// - Exporting customers routes.
+    /// - Exporting routes received from customers.
     #[inline]
     pub fn is_filter_export_customer(&self, num: u32, op: RangeOperator) -> bool {
         self.export
             && self.cmp.verbosity.check_customer
             && num == self.self_num
-            && self.filter_as_set(&customer_set(num), op).is_none()
+            && op.permits(&self.cmp.prefix)
+            && self.is_accepting_customer()
+    }
+
+    /// Check if the accepted ASN is in our customer set.
+    fn is_accepting_customer(&self) -> bool {
+        match self.query.as_sets.get(&customer_set(self.self_num)) {
+            None => false, // We don't have a customer set.
+            Some(customer_as_set) => customer_as_set.contains(&self.accept_num),
+        }
     }
 
     /// Check for this case:

@@ -1101,3 +1101,14 @@ bgpq3_compatible_rules = CsvFile(
     "https://github.com/SichangHe/internet_route_verification/files/15190015/bgpq3_compatible_rules.csv.gz",
 )
 """From <https://github.com/SichangHe/internet_route_verification/issues/137#issuecomment-2090699322>."""
+
+many_spec_export_customers = CsvFile(
+    "many_spec_export_customers0.csv",
+    "https://github.com/user-attachments/files/16634524/many_spec_export_customers0.csv",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/discussions/183>."""
+many_spec_import_customer = CsvFile(
+    "many_spec_import_customer0.csv",
+    "https://github.com/user-attachments/files/16634525/many_spec_import_customer0.csv",
+)
+"""From <https://github.com/SichangHe/internet_route_verification/discussions/183>."""

@@ -1,6 +1,7 @@
 """Run at `scripts/` as `python3 -m scripts.actions.email_mntner`.
 
 Email maintainers of ASes with many `spec_import_customer` or `spec_export_customers`.
+Will ask you to input the email address for each `tech-c` if no cache is found.
 """
 
 import json
@@ -40,9 +41,27 @@ def query_whois(tech_c: str, source: str):
     address = SPECIAL_WHOIS_ADDRESS.get(source)
     if address is None:
         address = f"whois.{source.lower()}.net"
-    return subprocess.check_output(
-        ["whois", "-h", address, tech_c], text=True
-    )
+    return subprocess.check_output(["whois", "-h", address, tech_c], text=True)
+
+
+def read_y_n(prompt: str):
+    while True:
+        match input(f"{prompt} [Y/n]").strip().lower():
+            case "", "y", "yes":
+                return True
+            case "n", "no":
+                return False
+
+
+def input_email():
+    while True:
+        email = input("What is their email? (Leave blank to skip.)").strip()
+        if email == "":
+            if read_y_n("Skipping this one email?"):
+                return None
+        else:
+            if read_y_n(f"Your input is `{email}`. Correct?"):
+                return email
 
 
 def main():
@@ -59,6 +78,14 @@ def main():
             tech_c_outputs[tech_c] = output
 
         tech_c_emails: dict[str, str] = {}
+        tech_c_wo_email: set[str] = set()
+        for tech_c, output in tech_c_outputs.items():
+            print(f"{tech_c} from {tech_c_map[tech_c][0][1].source}:\n{output}")
+            if (email := input_email()) is not None:
+                tech_c_emails[tech_c] = email
+            else:
+                tech_c_wo_email.add(tech_c)
+
         # TODO: Convert whois output to email.
         with open(relaxed_filter_tech_c_emails_path, "a") as f:
             f.write(

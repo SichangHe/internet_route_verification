@@ -9,6 +9,8 @@ import subprocess
 from dataclasses import dataclass
 from typing import DefaultDict
 
+from rpsl_lexer.lines import expressions, lines_continued, rpsl_objects
+
 from scripts.csv_files import relaxed_filter_as_info
 
 relaxed_filter_tech_c_emails_path = "relaxed_filter_tech_c_emails.csv"
@@ -43,6 +45,18 @@ def query_whois(tech_c: str, source: str):
     return subprocess.check_output(["whois", "-h", address, tech_c], text=True)
 
 
+def extract_emails(whois_output: str):
+    emails: list[str] = []
+    non_skipped_lines = (
+        line for line in whois_output.splitlines() if not line.startswith("%")
+    )
+    for obj in rpsl_objects(lines_continued(non_skipped_lines)):
+        for key, expr in expressions(obj.body.splitlines()):
+            if key == "e-mail":
+                emails.append(expr.strip())
+    return emails
+
+
 def main():
     relaxed_filter_as_info.download_if_missing()
     as_infos = deserialize_json(relaxed_filter_as_info.path)
@@ -57,7 +71,19 @@ def main():
             tech_c_outputs[tech_c] = output
 
         tech_c_emails: dict[str, str] = {}
-        # TODO: Convert whois output to email.
+        tech_c_w_multi_emails: dict[str, list[str]] = {}
+        tech_c_wo_email: set[str] = set()
+        for tech_c, output in tech_c_outputs.items():
+            emails = extract_emails(output)
+            match len(emails):
+                case 0:
+                    tech_c_wo_email.add(tech_c)
+                case 1:
+                    tech_c_emails[tech_c] = emails[0]
+                case _:
+                    print(f"Multiple emails found for {tech_c}: {emails}")
+                    tech_c_w_multi_emails[tech_c] = emails
+
         with open(relaxed_filter_tech_c_emails_path, "a") as f:
             f.write(
                 "tech_c,email\n"

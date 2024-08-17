@@ -67,7 +67,7 @@ HEADER = """<p>Hi teams, in the (simplified) RPSL below:</p>
 
 """
 FOOTER = """
-<p>We are a team developing a tool to analyze routing policies expressed in the RPSL <sup><a href="fn1">[1]</a></sup>, and this feedback would allow us to better understand the intended semantics in generating reports.</p>
+<p>We are a team developing a tool to analyze routing policies expressed in the RPSL,<sup><a href="fn1">[1]</a></sup> and this feedback would allow us to better understand the intended semantics in generating reports.</p>
 
 <ol>
 <li id="fn1"><a href="https://github.com/SichangHe/internet_route_verification">Internet route verification</a>.</li>
@@ -186,11 +186,13 @@ def send_gmails(
             msg = MIMEMultipart()
             msg["From"] = from_email
             msg["To"] = to_email
-            msg["Cc"] = cc_email
+            msg["Cc"] = f"{from_email},{cc_email}"
             msg["Subject"] = SUBJECT
             msg.attach(MIMEText(msg_body, "html"))
 
-            server.sendmail(from_email, [to_email, cc_email], msg.as_string())
+            server.sendmail(
+                from_email, [to_email, from_email, cc_email], msg.as_string()
+            )
             print(f"Sent Gmail to {to_email}.")
 
 

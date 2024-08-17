@@ -5,8 +5,11 @@ Email maintainers of ASes with many `spec_import_customer` or `spec_export_custo
 
 import json
 import os
+import smtplib
 import subprocess
 from dataclasses import dataclass
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import DefaultDict
 
 from dotenv import load_dotenv
@@ -67,7 +70,7 @@ FOOTER = """
 <p>We are a team developing a tool to analyze routing policies expressed in the RPSL <sup><a href="fn1">[1]</a></sup>, and this feedback would allow us to better understand the intended semantics in generating reports.</p>
 
 <ol>
-<li id="fn1"><a href="https://github.com/SichangHe/internet_route_verification">https://github.com/SichangHe/internet_route_verification</a></li>
+<li id="fn1"><a href="https://github.com/SichangHe/internet_route_verification">Internet route verification</a>.</li>
 </ol>
 """
 
@@ -125,7 +128,7 @@ tech-c: {tech_c}
         export_self_body += "\n# Omitting similar aut-nums...\n"
     if export_self_body != "":
         assert export_asn != 0
-        export_self_body = f"""<pre>{export_self_body}</pre>
+        export_self_body = f"""<pre><code>{export_self_body}</code></pre>
 
 <p>Do you mean that over the BGP session with (e.g.) AS{peer}:</p>
 
@@ -141,7 +144,7 @@ tech-c: {tech_c}
         import_customer_body += "\n# Omitting similar aut-nums...\n"
     if import_customer_body != "":
         assert import_asn != 0
-        import_customer_body = f"""<pre>{import_customer_body}</pre>
+        import_customer_body = f"""<pre><code>{import_customer_body}</code></pre>
 
 <p>Do you mean that when processing routes received from (e.g.) AS{customer}:</p>
 
@@ -163,11 +166,32 @@ tech-c: {tech_c}
     return f"""{HEADER}{export_self_body}{separation}{import_customer_body}{FOOTER}"""
 
 
-def send_emails(
-    msg: str, from_email: str, cc_email: str, email_msgs: list[tuple[str, str]]
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SUBJECT = "Inquiry: What do you mean by these RPSL lines in your aut-num?"
+
+
+def send_gmails(
+    smtp_user: str,
+    smtp_password: str,
+    from_email: str,
+    cc_email: str,
+    email_msgs: list[tuple[str, str]],
 ):
-    # TODO: Implement.
-    pass
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+
+        for to_email, msg_body in email_msgs:
+            msg = MIMEMultipart()
+            msg["From"] = from_email
+            msg["To"] = to_email
+            msg["Cc"] = cc_email
+            msg["Subject"] = SUBJECT
+            msg.attach(MIMEText(msg_body, "html"))
+
+            server.sendmail(from_email, [to_email, cc_email], msg.as_string())
+            print(f"Sent Gmail to {to_email}.")
 
 
 def main():
@@ -221,11 +245,15 @@ def main():
         email_msgs.append((email, msg))
 
     load_dotenv()
+    smtp_user = os.getenv("SMTP_USER")
+    assert smtp_user is not None
+    smtp_password = os.getenv("SMTP_PASSWD")
+    assert smtp_password is not None
     from_email = os.getenv("FROM_EMAIL")
     assert from_email is not None
     cc_email = os.getenv("CC_EMAIL")
     assert cc_email is not None
-    send_emails(msg, from_email, cc_email, email_msgs)
+    send_gmails(smtp_user, smtp_password, from_email, cc_email, email_msgs)
 
 
 main() if __name__ == "__main__" else None

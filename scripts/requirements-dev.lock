@@ -88,6 +88,8 @@ pyparsing==3.1.2
 python-dateutil==2.9.0.post0
     # via matplotlib
     # via pandas
+python-dotenv==1.0.1
+    # via scripts
 pytz==2024.1
     # via pandas
 requests==2.32.3

@@ -9,6 +9,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import DefaultDict
 
+from dotenv import load_dotenv
 from rpsl_lexer.lines import expressions, lines_continued, rpsl_objects
 
 from scripts.csv_files import relaxed_filter_as_info
@@ -57,6 +58,118 @@ def extract_emails(whois_output: str):
     return emails
 
 
+A_FEW = 3
+ONE = 1
+HEADER = """<p>Hi teams, in the (simplified) RPSL below:</p>
+
+"""
+FOOTER = """
+<p>We are a team developing a tool to analyze routing policies expressed in the RPSL <sup><a href="fn1">[1]</a></sup>, and this feedback would allow us to better understand the intended semantics in generating reports.</p>
+
+<ol>
+<li id="fn1"><a href="https://github.com/SichangHe/internet_route_verification">https://github.com/SichangHe/internet_route_verification</a></li>
+</ol>
+"""
+
+
+def compose_email(tech_c: str, as_infos: list[tuple[int, AsInfo]]):
+    export_self_cases: list[str] = []
+    import_customer_cases: list[str] = []
+    peer = ""
+    customer = ""
+    export_asn = 0
+    import_asn = 0
+    for asn, info in as_infos:
+        if info.export_as_any:
+            export_self_cases.append(f"""aut-num: AS{asn}
+export: to AS-ANY announce AS{asn}
+tech-c: {tech_c}
+""")
+            peer = "-ANY"
+            export_asn = asn
+
+        elif len(info.export_peer_asns) > 0:
+            export_lines = "\n".join(
+                f"export: to AS{peer} announce AS{asn}"
+                for peer in info.export_peer_asns[:A_FEW]
+            )
+            if peer == "":
+                peer = f"{info.export_peer_asns[0]}"
+            if export_asn == 0:
+                export_asn = asn
+            if len(info.export_peer_asns) > A_FEW:
+                export_lines += "\n# Omitting similar lines..."
+            export_self_cases.append(f"""aut-num: AS{asn}
+{export_lines}
+tech-c: {tech_c}
+""")
+
+        if len(info.import_customer_asns) > 0:
+            import_lines = "\n".join(
+                f"import: from AS{customer} accept AS{customer}"
+                for customer in info.import_customer_asns[:A_FEW]
+            )
+            if customer == "":
+                customer = f"{info.import_customer_asns[0]}"
+            if import_asn == 0:
+                import_asn = asn
+            if len(info.import_customer_asns) > A_FEW:
+                import_lines += "\n# Omitting similar lines..."
+            import_customer_cases.append(f"""aut-num: AS{asn}
+{import_lines}
+tech-c: {tech_c}
+""")
+
+    export_self_body = "\n".join(export_self_cases[:ONE])
+    if len(export_self_cases) > ONE:
+        export_self_body += "\n# Omitting similar aut-nums...\n"
+    if export_self_body != "":
+        assert export_asn != 0
+        export_self_body = f"""<pre>{export_self_body}</pre>
+
+<p>Do you mean that over the BGP session with (e.g.) AS{peer}:</p>
+
+<ol>
+<li>AS{export_asn} will export any routes originated by AS{export_asn} or its customers; or</li>
+<li>AS{export_asn} will export only routes originated by AS{export_asn} itself; or</li>
+<li>Something else?</li>
+</ol>
+"""
+
+    import_customer_body = "\n".join(import_customer_cases[:ONE])
+    if len(import_customer_cases) > ONE:
+        import_customer_body += "\n# Omitting similar aut-nums...\n"
+    if import_customer_body != "":
+        assert import_asn != 0
+        import_customer_body = f"""<pre>{import_customer_body}</pre>
+
+<p>Do you mean that when processing routes received from (e.g.) AS{customer}:</p>
+
+<ol>
+<li>AS{import_asn} will import any route received from AS{customer} (including AS{customer}'s customers); or</li>
+<li>AS{import_asn} will only import routes originated by AS{customer} itself; or</li>
+<li>Something else?</li>
+</ol>
+"""
+
+    separation = ""
+    if export_self_body != "" and import_customer_body != "":
+        separation = """
+<hr>
+<p>Similarly, in:</p>
+
+        """
+
+    return f"""{HEADER}{export_self_body}{separation}{import_customer_body}{FOOTER}"""
+
+
+def send_emails(
+    msg: str, from_email: str, cc_email: str, email_msgs: list[tuple[str, str]]
+):
+    # TODO: Implement.
+    pass
+
+
 def main():
     relaxed_filter_as_info.download_if_missing()
     as_infos = deserialize_json(relaxed_filter_as_info.path)
@@ -91,6 +204,28 @@ def main():
                     f"{tech_c},{email}\n" for tech_c, email in tech_c_emails.items()
                 )
             )
+    else:
+        with open(relaxed_filter_tech_c_emails_path, "r") as f:
+            tech_c_emails = {
+                line.split(",")[0]: line.split(",")[1].strip()
+                for line in f.read().splitlines()[1:]
+            }
+
+    source_email_counts: DefaultDict[str, int] = DefaultDict(lambda: 0)
+    for tech_c in tech_c_emails:
+        source_email_counts[tech_c_map[tech_c][0][1].source] += 1
+
+    email_msgs: list[tuple[str, str]] = []
+    for tech_c, email in tech_c_emails.items():
+        msg = compose_email(tech_c, tech_c_map[tech_c])
+        email_msgs.append((email, msg))
+
+    load_dotenv()
+    from_email = os.getenv("FROM_EMAIL")
+    assert from_email is not None
+    cc_email = os.getenv("CC_EMAIL")
+    assert cc_email is not None
+    send_emails(msg, from_email, cc_email, email_msgs)
 
 
 main() if __name__ == "__main__" else None

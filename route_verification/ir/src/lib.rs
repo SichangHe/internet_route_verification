@@ -18,6 +18,7 @@ pub mod set;
 #[cfg(test)]
 mod tests;
 
+#[doc(inline)]
 pub use {
     address_prefix::{match_ips, AddrPfxRange, RangeOperator},
     aut_num::AutNum,

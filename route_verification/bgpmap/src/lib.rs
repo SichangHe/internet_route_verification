@@ -1,3 +1,5 @@
+//! Representations of BGP routes from BGP table dumps (RIBs).
+//!
 //! This is originally copied from
 //! <https://github.com/cunha/measurements/blob/9a14123b4c9d47297fa4c284ff8dd0834ba73936/bgp/bgpmap/src/lib.rs>.
 use std::{fmt::Display, net::IpAddr, str::FromStr};

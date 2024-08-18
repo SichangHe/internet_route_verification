@@ -1,3 +1,5 @@
+//! The intermediate representation ([`Ir`]) for
+//! the Routing Policy Specification Language (RPSL).
 use std::collections::BTreeMap;
 
 use anyhow::{bail, Context, Error, Result};

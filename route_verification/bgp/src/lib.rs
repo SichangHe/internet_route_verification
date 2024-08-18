@@ -1,3 +1,4 @@
+//! Parse BGP routes and verify them against the RPSL [`Ir`].
 use std::{collections::BTreeMap, mem};
 
 use anyhow::Result;

@@ -1,3 +1,5 @@
+//! Parsing multiple Internet Routing Registries (IRR) databases and
+//! merge them into a single [`Ir`].
 use std::{
     collections::BTreeMap,
     fmt::Display,

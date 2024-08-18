@@ -42,7 +42,7 @@ please see [#164][issue164].
     especially `mp-import`, `mp-export`,
     and the `<peering>` and `<filter>` portions they contain.
     We primarily call this library via UNIX pipes from the Rust library that
-    parses the RPSL (`route_verification_parse`).
+    lexes the RPSL (`route_verification_lex`).
 
     We chose to tokenize with PyParsing to leverage the power of
     parsing expression grammar (PEG) for recursively-defined expressions.
@@ -57,8 +57,11 @@ please see [#164][issue164].
     their path names. Among these crates:
 
     - `route_verification_ir` defines the IR and the relevant procedures.
+    - `route_verification_lex` lexes the RPSL source code into the AST.
+        It requires setting up `rpsl-lexer` for lexing (see above).
     - `route_verification_parse` parses the RPSL source code into the IR.
-        It requires setting up `rpsl-lexer` for tokenization (see above).
+        It leverages `route_verification_lex` for lexing,
+        then parses the AST into the IR.
     - `route_verification_irr` parses the RPSL source code from IRRs and
         merges them into a single IR.
     - `route_verification_as_rel` parses Center for

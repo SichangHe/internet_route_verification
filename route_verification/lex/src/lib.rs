@@ -1,3 +1,5 @@
+//! Tokenizing (lexing) the RPSL from plain text to the [`Ast`]
+//! abstract syntax tree.
 use std::{collections::BTreeMap, mem};
 
 use log::{debug, error};

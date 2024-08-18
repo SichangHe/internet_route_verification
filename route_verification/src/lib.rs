@@ -1,3 +1,4 @@
+#![doc = include_str!("../../README.md")]
 use anyhow::{bail, Result};
 use log::debug;
 

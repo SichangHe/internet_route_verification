@@ -1,3 +1,4 @@
+//! The RPSL `as-set` and `as-num` directed graph.
 use hashbrown::HashMap;
 use petgraph::{
     algo::{dijkstra, is_cyclic_directed},

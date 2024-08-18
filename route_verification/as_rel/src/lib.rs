@@ -1,3 +1,5 @@
+//! Representations of CAIDA's AS relationship databases.
+//!
 //! This module is originally ported from
 //! <https://github.com/cunha/measurements/blob/main/metadata/as-relationships/asrel.py>:
 //! > AS relationships

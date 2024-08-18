@@ -1,3 +1,4 @@
+//! Parsing the RPSL from plain text to the [`Ir`] intermediate representation.
 use std::collections::BTreeMap;
 
 use anyhow::{bail, Context, Result};

@@ -23,8 +23,6 @@ and use [the `route_verification` Rust package][docs_route_verification]
 directly.
 Please refer to `./ARTIFACTS.md` for the our data acquisition, parsing,
 verification, and analysis workflow.
-Note: `./ARTIFACTS.md` is a work in progress (WIP);
-please see [#164][issue164].
 
 ## Repository structure
 
@@ -95,7 +93,6 @@ please see [#164][issue164].
 
 - `./ARTIFACTS.md` and `./ALIASES.md` explain how to run the scripts and
     the meanings of common variable names.
-    These are still a WIP; please see [#164][issue164].
 
 In addition to the code and short documentation,
 this repository's

@@ -1,6 +1,7 @@
 use anyhow::{bail, Result};
 use log::debug;
 
+#[doc(inline)]
 pub use {as_rel, bgp, common_regex, io, ir, irr, lex, parse};
 
 pub mod fs;

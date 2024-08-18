@@ -16,6 +16,7 @@ mod tests;
 pub mod verbosity;
 pub mod wrapper;
 
+#[doc(inline)]
 pub use {
     bgpmap::{self as map, AsPathEntry},
     cmp::Compare,

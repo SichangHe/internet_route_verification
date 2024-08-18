@@ -18,6 +18,7 @@ pub mod router_expr;
 #[cfg(test)]
 mod tests;
 
+#[doc(inline)]
 pub use {
     self::lex::parse_lexed,
     action::parse_actions,

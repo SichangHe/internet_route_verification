@@ -27,6 +27,7 @@ mod relationship;
 #[cfg(test)]
 mod tests;
 
+#[doc(inline)]
 pub use relationship::*;
 
 use Relationship::*;

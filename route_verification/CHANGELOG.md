@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.6.0...route_verification-v0.7.0) - 2024-08-18
+
+### Other
+- explain every crate
+- link main README to each crate for [#194](https://github.com/SichangHe/internet_route_verification/pull/194)
+- inline pub use for [#194](https://github.com/SichangHe/internet_route_verification/pull/194)
+- Align "Export Self" (`spec_export_customers`) implementation w/ text ([#193](https://github.com/SichangHe/internet_route_verification/pull/193))
+- do not track Cargo.lock to make Release-Plz happy
+- inline `ir` re-exports
+- explain the project
+- make clippy happy on indentation;separate rust checks
+- route-verification use pypy from rye
+
 ## [0.6.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.5.0...route_verification-v0.6.0) - 2024-05-14
 
 ### Other

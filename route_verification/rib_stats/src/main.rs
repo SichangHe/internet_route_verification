@@ -47,7 +47,7 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    _ = create_dir("all4");
+    _ = create_dir("all5");
 
     let mut failed = vec![];
     for rib_file in &rib_files {
@@ -86,10 +86,10 @@ fn process_rib_file(query: &QueryIr, db: &AsRelDb, rib_file: &Path) -> Result<()
         .next()
         .expect("First split always succeeds.");
 
-    let route_stats_filename = format!("all4/{collector}--route_stats4.csv.gz");
-    let route_first_hop_stats_filename = format!("all4/{collector}--route_first_hop_stats4.csv.gz");
-    let as_stats_filename = format!("all4/{collector}--as_stats4.csv.gz");
-    let as_pair_stats_filename = format!("all4/{collector}--as_pair_stats4.csv.gz");
+    let route_stats_filename = format!("all5/{collector}--route_stats4.csv.gz");
+    let route_first_hop_stats_filename = format!("all5/{collector}--route_first_hop_stats4.csv.gz");
+    let as_stats_filename = format!("all5/{collector}--as_stats4.csv.gz");
+    let as_pair_stats_filename = format!("all5/{collector}--as_pair_stats4.csv.gz");
     if [
         &route_stats_filename,
         &route_first_hop_stats_filename,

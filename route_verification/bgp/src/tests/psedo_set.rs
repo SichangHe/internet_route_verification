@@ -17,7 +17,7 @@ fn export_customers() -> Result<()> {
     };
     let cmp = Compare {
         prefix: "103.2.88.0/24".parse()?,
-        as_path: vec![Seq(139609), Seq(45891)],
+        as_path: vec![Seq(139609), Seq(45891), Seq(134525)],
         recursion_limit: 1,
         verbosity,
     };
@@ -28,6 +28,16 @@ fn export_customers() -> Result<()> {
 
 fn expected_reports_with_customers() -> Vec<Report> {
     vec![
+        UnrecExport {
+            from: 134525,
+            to: 45891,
+            items: vec![UnrecordedAutNum(134525)],
+        },
+        UnrecImport {
+            from: 134525,
+            to: 45891,
+            items: vec![UnrecordedAsSet("AS45891:AS-CUSTOMERS".into())],
+        },
         MehExport {
             from: 45891,
             to: 139609,

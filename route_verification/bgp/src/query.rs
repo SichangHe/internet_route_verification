@@ -9,7 +9,10 @@ pub use pseudo_set::*;
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct QueryAsSet {
     pub body: String,
+    /// Member ASNs.
     pub members: HashSet<u32>,
+    /// as-set members whose ASNs we don't know.
+    /// Empty if this is a customer pseudo set, since they have no set members.
     pub unrecorded_members: Vec<String>,
     pub is_any: bool,
 }
@@ -27,8 +30,8 @@ impl QueryAsSet {
 
 pub fn clean_vec<T: Ord>(v: &mut Vec<T>) {
     v.sort();
-    v.shrink_to_fit();
     v.dedup();
+    v.shrink_to_fit();
 }
 
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]

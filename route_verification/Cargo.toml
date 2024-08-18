@@ -61,6 +61,7 @@ route_verification = { package = "route_verification", path = ".", version = "0.
 [workspace.package]
 description = "Parse RPSL in the IRR to verify observed BGP routes"
 license = "MIT"
+readme = "../README.md"
 repository = "https://github.com/SichangHe/internet_route_verification"
 
 [package]
@@ -70,6 +71,7 @@ edition = "2021"
 
 description.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 
 [dependencies]

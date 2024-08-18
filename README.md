@@ -77,7 +77,7 @@ please see [#164][issue164].
     to parse IRRs and to test run verification.
     The REPL scripts are in
     the module at `./route_verification/src/evcxr_examples.rs`.
-    `rib_stats` is a main script to generate statistics for
+    `route_verification_rib_stats` is a main script to generate statistics for
     all BGP table dumps at a directory, on the AS, AS-pair, and route levels.
 
     We chose Rust for the IR, parser,

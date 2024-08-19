@@ -95,14 +95,16 @@ tech-c: {tech_c}
         elif len(info.export_peer_asns) > 0:
             export_lines = "\n".join(
                 f"export: to AS{peer} announce AS{asn}"
-                for peer in info.export_peer_asns[:A_FEW]
+                for peer in info.export_peer_asns[:ONE]
             )
             if peer == "":
                 peer = f"{info.export_peer_asns[0]}"
             if export_asn == 0:
                 export_asn = asn
-            if len(info.export_peer_asns) > A_FEW:
-                export_lines += "\n# Omitting similar lines..."
+            if len(info.export_peer_asns) > ONE:
+                export_lines += (
+                    f"\n# export: to AS{info.export_peer_asns[1]} announce AS{asn}..."
+                )
             export_self_cases.append(f"""aut-num: AS{asn}
 {export_lines}
 tech-c: {tech_c}
@@ -111,14 +113,14 @@ tech-c: {tech_c}
         if len(info.import_customer_asns) > 0:
             import_lines = "\n".join(
                 f"import: from AS{customer} accept AS{customer}"
-                for customer in info.import_customer_asns[:A_FEW]
+                for customer in info.import_customer_asns[:ONE]
             )
             if customer == "":
                 customer = f"{info.import_customer_asns[0]}"
             if import_asn == 0:
                 import_asn = asn
-            if len(info.import_customer_asns) > A_FEW:
-                import_lines += "\n# Omitting similar lines..."
+            if len(info.import_customer_asns) > ONE:
+                import_lines += f"\n# import: from AS{info.import_customer_asns[1]} accept AS{info.import_customer_asns[1]}..."
             import_customer_cases.append(f"""aut-num: AS{asn}
 {import_lines}
 tech-c: {tech_c}
@@ -126,7 +128,7 @@ tech-c: {tech_c}
 
     export_self_body = "\n".join(export_self_cases[:ONE])
     if len(export_self_cases) > ONE:
-        export_self_body += "\n# Omitting similar aut-nums...\n"
+        export_self_body += "\n# aut-num...\n"
     if export_self_body != "":
         assert export_asn != 0
         export_self_body = f"""<pre><code>{export_self_body}</code></pre>
@@ -150,7 +152,7 @@ tech-c: {tech_c}
 <p>Do you mean that when processing routes received from (e.g.) AS{customer}:</p>
 
 <ol>
-<li>AS{import_asn} will import any route received from AS{customer} (including AS{customer}'s customers); or</li>
+<li>AS{import_asn} will import any route received from AS{customer} (including routes originated by AS{customer}'s customers); or</li>
 <li>AS{import_asn} will only import routes originated by AS{customer} itself; or</li>
 <li>Something else?</li>
 </ol>

@@ -54,8 +54,6 @@ into `./data`. These data ensure we can reproduce the results in the paper.
 > [CAIDA's AS-relationship
 > dataset](https://data.caida.org/datasets/2013-asrank-data-supplement/).
 
-<!-- TODO: Comply with CAIDA's AUA. -->
-
 > [!TIP]\
 > If your editor is sufficiently Vim-like,
 > you can open directories in this document by pressing <kbd>gf</kbd> on
@@ -283,7 +281,6 @@ time cargo r --release
 This generates `as_stats_all`, `as_pair_stats_all`, `route_stats_all`,
 and `route_first_hop_stats_all` at `./route_verification/rib_stats/`.
 [#157](https://github.com/SichangHe/internet_route_verification/issues/157).
-<!-- FIXME: This script generates `all4/`, but we are still using `all3/` CSV files. -->
 
 This script is very computationally expensive, so you only want to run it once.
 We call the time taken RIB-Stats-Time.
@@ -388,11 +385,10 @@ cargo r --release
 
 - [ ] 3 PARSING THE RPSL:
 
-    > RPSLyzer parses the 13 IRRs listed in Table 1, totaling 7.1 GiB of data,
+    > RPSLyzer parses the 13 IRRs listed in Table 1, totaling 6.9 GiB of data,
     > and exports the IR, all in under five minutes on an Apple M1.
 
     This size is the size of `./data/irrs/`. The parsing time is Time-IR.
-    <!-- FIXME: The size is 6.9 GiB after we deduplicated backups. -->
 
 - [ ] 4 RPSL USE IN THE WILD:
 
@@ -430,6 +426,8 @@ cargo r --release
     n_all = len(df)
     n_wo_rule = len(df[df["rules"] == 0])
     print(f"{n_wo_rule} aut-nums ({n_wo_rule * 100.0 / n_all:.1f}%) contain no rules.")
+    n_at_least_10 = len(df[df["rules"] >= 10])
+    print(f"{n_at_least_10} aut-nums ({n_at_least_10 * 100.0 / n_all:.1f}%) define at least 10 rules.")
     n_over_1000 = len(df[df["rules"] >= 1000])
     print(f"{n_over_1000} aut-nums ({n_over_1000 * 100.0 / n_all:.2f}%) define over 1000 rules.")
     ```
@@ -437,7 +435,6 @@ cargo r --release
     </details>
 
     [#137](https://github.com/SichangHe/internet_route_verification/issues/137).
-    <!-- FIXME: It now says 35.2%. -->
 
 - [ ] 4 RPSL USE IN THE WILD:
 
@@ -462,18 +459,17 @@ cargo r --release
 
 - [ ] 4 RPSL USE IN THE WILD:
 
-    > Almost all (98.1%) peering definitions comprise a single ASN or ANY.
+    > Almost all (98.4%) peering definitions comprise a single ASN or ANY.
 
     In Shell-Evcxr,
     follow the instructions in
     `./route_verification/src/evcxr_examples/count_asn_in_peering.rs`.
-    <!-- FIXME: It now says 98.4%. -->
 
     [#107](https://github.com/SichangHe/internet_route_verification/issues/107).
 
 - [ ] 4 RPSL USE IN THE WILD:
 
-    > Most (95.0%)
+    > Most (94.5%)
     > ASes with rules only specify simple filters compatible with BGPq4.
 
     <details>
@@ -498,7 +494,6 @@ cargo r --release
 
     Note that ASes compatible with BGPq3 are also compatible with BGPq4.
     [#64](https://github.com/SichangHe/internet_route_verification/issues/64).
-    <!-- FIXME: It now says 94.5%. -->
 
 - [ ] 4 RPSL USE IN THE WILD:
 
@@ -553,8 +548,8 @@ cargo r --release
 
 - [ ] 4 RPSL USE IN THE WILD:
 
-    > Among 53,268 as-set objects across all IRRs, 7754 (14.6%)
-    > have no members. 17,434 (32.7%) as-sets contain only one member AS.
+    > Among 53,268 as-set objects across all IRRs, 7746 (14.5%)
+    > have no members. 17,430 (32.7%) as-sets contain only one member AS.
     > A few (772, 1.4%) extremely large as-sets have more than 10,000 members.
 
     And:
@@ -574,7 +569,6 @@ cargo r --release
     </details>
 
     [#114](https://github.com/SichangHe/internet_route_verification/issues/114).
-    <!-- FIXME: It says 59596 as-sets now, the results might shift. -->
 
 - [ ] 4 RPSL USE IN THE WILD:
 
@@ -649,7 +643,7 @@ cargo r --release
 
 - [ ] 5.2 Verification Results:
 
-    > The majority (61,725, 74.4%)
+    > The majority (61,746, 74.4%)
     > of ASes have all imports and exports with identical statuses.
     > We identified 14.2% of ASes with 100% of propagation verified (yellow),
     > 51.6% lacking RPSL information (“unrecorded”, green),
@@ -677,7 +671,6 @@ cargo r --release
 
     The information is in the `\d+ all \w+,` and `\d+ have \w+,` lines.
     [#99](https://github.com/SichangHe/internet_route_verification/issues/99).
-    <!-- FIXME: It now says 61747. -->
 
 - [ ] 5.2 Verification Results:
 
@@ -759,7 +752,7 @@ cargo r --release
 
 - [ ] 5.2 Verification Results:
 
-    > For imports, we find 96% of AS pairs have a single consistent status;
+    > For imports, we find 91.7% of AS pairs have a single consistent status;
     > this number is 92% for exports.
 
     <details>
@@ -774,8 +767,6 @@ cargo r --release
 
     [#99
     comment](https://github.com/SichangHe/internet_route_verification/issues/99#issuecomment-2240878965).
-    <!-- FIXME: The original numbers are for a single RIB.
-    The rewritten script gives 91.7 and 92.0. -->
 
 - [ ] 5.2 Verification Results:
 
@@ -871,7 +862,7 @@ cargo r --release
 - [ ] Appendix B Limitations:
 
     > We leave the handling of
-    > 60 rules whose filters contain AS-path regex with ASN ranges (21 rules)
+    > 58 rules whose filters contain AS-path regex with ASN ranges (19 rules)
 
     Run at `./data/irrs/`
     ([#106](https://github.com/SichangHe/internet_route_verification/issues/106)):
@@ -879,8 +870,6 @@ cargo r --release
     ```sh
     rg --no-ignore -c '<.*\[\s*AS\d+\s*-\s*AS\d+\s*\].*>'
     ```
-
-    <!-- FIXME: This says 19 instead of 21. The text is outdated. -->
 
 - [ ] Appendix B Limitations:
 

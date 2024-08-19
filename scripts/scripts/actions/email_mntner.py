@@ -18,6 +18,7 @@ from rpsl_lexer.lines import expressions, lines_continued, rpsl_objects
 from scripts.csv_files import relaxed_filter_as_info
 
 relaxed_filter_tech_c_emails_path = "relaxed_filter_tech_c_emails.csv"
+relaxed_filter_tech_c_wo_emails_path = "relaxed_filter_tech_c_wo_emails.json"
 SPECIAL_WHOIS_ADDRESS = {
     "ARIN": "rr.arin.net",
     "LEVEL3": "rr.Level3.net",
@@ -230,6 +231,13 @@ def main():
                     f"{tech_c},{email}\n" for tech_c, email in tech_c_emails.items()
                 )
             )
+        tech_c_wo_emails_map = {
+            tech_c: {"asns": [n for n, _ in infos], "source": infos[0][1].source}
+            for tech_c, infos in tech_c_map.items()
+            if tech_c in tech_c_wo_email
+        }
+        with open(relaxed_filter_tech_c_wo_emails_path, "w") as f:
+            json.dump(tech_c_wo_emails_map, f, indent=2)
     else:
         with open(relaxed_filter_tech_c_emails_path, "r") as f:
             tech_c_emails = {

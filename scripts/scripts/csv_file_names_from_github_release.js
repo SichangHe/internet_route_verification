@@ -10,8 +10,8 @@ function csvAnchorsWith(pattern, filePrefix) {
     return formattedOutput;
 }
 
-const version = 3;
-const docstring = "From <https://github.com/SichangHe/internet_route_verification/releases/tag/data-142-follow-up>."
+const version = 5;
+const docstring = "From <https://github.com/SichangHe/internet_route_verification/releases/tag/data-193>."
 const stats_names = ["as_stats", "as_pair_stats", "route_stats", "route_first_hop_stats"];
 
 const csv_files = stats_names.map(stats_name => {

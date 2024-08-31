@@ -76,16 +76,18 @@ please see [#164][issue164].
         and apply special cases based on
         these relationships during verification.
 
-    Additionally, `route_verification` provides a command-line interface (CLI)
-    to parse IRRs and to test run verification.
-    The REPL scripts are in
-    the module at `./route_verification/src/evcxr_examples.rs`.
-    `route_verification_rib_stats` is a main script to generate statistics for
-    all BGP table dumps at a directory, on the AS, AS-pair, and route levels.
+        Additionally,
+        `route_verification` provides a command-line interface (CLI)
+        to parse IRRs and to test run verification.
+        The REPL scripts are in
+        the module at `./route_verification/src/evcxr_examples.rs`.
+        `route_verification_rib_stats` is a main script to
+        generate statistics for all BGP table dumps at a directory, on the AS,
+        AS-pair, and route levels.
 
-    We chose Rust for the IR, parser,
-    and verification logic for its strongly-typed `enum`eration and
-    satisfactory performance at CPU-bound tasks.
+        We chose Rust for the IR, parser,
+        and verification logic for its strongly-typed `enum`eration and
+        satisfactory performance at CPU-bound tasks.
 
 - The scripts we use to analyze and
     visualize the results at `./scripts/` serve as examples for these tasks.
@@ -134,6 +136,15 @@ Please see the GitHub Actions at `.github/workflows/` for up-to-date tests.
 Maintenance mode. We are not actively developing this project.
 Only bug-fix contributions will be considered.
 Please fork and modify as needed.
+
+## Related projects
+
+[Internet Route Verification
+Server](https://github.com/SichangHe/internet_route_verification_server)
+is an abandoned attempt to store the IR and the verification results in
+a PostgreSQL database and serve predefined queries via REST APIs.
+We abandoned it due to its limited utility and the tebibytes of
+disk space needed.
 
 ## Paper
 

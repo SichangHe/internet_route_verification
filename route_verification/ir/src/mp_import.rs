@@ -2,6 +2,7 @@ use itertools::chain;
 
 use super::*;
 
+/// Clustered by their IP versions, a collection of rule entries.
 #[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(default)]
 pub struct Versions {
@@ -48,6 +49,8 @@ impl std::fmt::Debug for Versions {
     }
 }
 
+/// Clustered by their cast types (unicast vs. multicast),
+/// a collection of rule entries.
 #[derive(Clone, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(default)]
 pub struct Casts {
@@ -90,6 +93,8 @@ impl Casts {
     }
 }
 
+/// Representation of an RPSL rule entry, consisting of one or
+/// more `<mp-peering> [<actions>]` and a `<mp-filter>`.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Entry {
     #[serde(default)]

@@ -16,6 +16,7 @@ pub fn parse_single_as_expr(single: String) -> AsExpr {
     }
 }
 
+/// > ```ignore
 /// >  The syntax of a peering specification is:
 /// >
 /// >  <as-expression> [<router-expression-1>] [at <router-expression-2>]
@@ -37,6 +38,7 @@ pub fn parse_single_as_expr(single: String) -> AsExpr {
 /// >  local AS that peer with ASes in <as-expression>.  If <router-
 /// >  expression-1> is not specified, it defaults to all routers of the
 /// >  peer ASes in <as-expression> that peer with the local AS.
+/// > ```
 ///
 /// <https://www.rfc-editor.org/rfc/rfc2622#section-5.6>
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -66,6 +68,7 @@ impl std::fmt::Debug for Peering {
     }
 }
 
+/// Representation of `<mp-peering> [<actions>]` in an RPSL rule.
 #[derive(Clone, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PeeringAction {
     pub mp_peering: Peering,

@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/SichangHe/internet_route_verification/compare/route_verification_graph-v0.1.1...route_verification_graph-v0.1.2) - 2024-09-13
+
+### Other
+
+- rm WIP notice for ARTIFACTS.md
+- mention irv server
+
 ## [0.1.1](https://github.com/SichangHe/internet_route_verification/compare/route_verification_graph-v0.1.0...route_verification_graph-v0.1.1) - 2024-08-18
 
 ### Other

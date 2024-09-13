@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.7.0...route_verification-v0.7.1) - 2024-09-13
+
+### Other
+
+- rm WIP notice for ARTIFACTS.md
+- sec5.1
+- up to sec5 begin;let reproducer use checkboxes
+- AS Set stats
+- filter&route stats
+- simplify Evcxr scripts copying w/ `unwrap`
+- figure out ASes compatible w/ BGPq3
+- half way through sec4
+- mention irv server
+
 ## [0.7.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.6.0...route_verification-v0.7.0) - 2024-08-18
 
 ### Other

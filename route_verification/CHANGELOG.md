@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.7.0...route_verification-v0.7.1) - 2024-09-15
+
+### Other
+
+- bump versions
+
 ## [0.7.0](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.6.0...route_verification-v0.7.0) - 2024-08-18
 
 ### Other

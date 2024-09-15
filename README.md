@@ -148,7 +148,8 @@ disk space needed.
 This is the code and Issue repository corresponding to the paper: *RPSLyzer:
 Characterization and Verification of Policies in Internet Routing Registries*.
 This paper was accepted at ACM IMC'24.
-We are working on a camera-ready version, and will link a preprint here.
+Please find the camera-ready version [among the GitHub
+Releases](https://github.com/SichangHe/internet_route_verification/releases/tag/imc-camera-ready).
 
 [docs_route_verification]: https://docs.rs/route_verification/latest/route_verification/
 [issue164]: https://github.com/SichangHe/internet_route_verification/pull/164

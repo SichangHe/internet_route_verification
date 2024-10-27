@@ -90,7 +90,7 @@ def main():
             indexes,
             values,
             colors=[
-                color if label in highlight_labels else color + (0.5,)
+                color if label in highlight_labels else color + (0.25,)
                 for color, label in zip(COLORS6, labels)
             ],
             labels=labels,
@@ -110,6 +110,7 @@ def main():
     write_highlighted(("Unrecorded",))
     write_highlighted(("Safelisted",))
     write_highlighted(("Unrecorded", "Safelisted"))
+    write_highlighted(("Relaxed",))
     write_highlighted(("Relaxed", "Unverified"))
     write_highlighted(("Unverified",))
     write_highlighted(("Unrecorded", "Relaxed", "Safelisted", "Unverified"))

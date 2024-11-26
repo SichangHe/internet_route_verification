@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.7.1...route_verification-v0.7.2) - 2024-11-26
+
+### Other
+
+- reserve rpslyzer crate name
+
 ## [0.7.1](https://github.com/SichangHe/internet_route_verification/compare/route_verification-v0.7.0...route_verification-v0.7.1) - 2024-09-15
 
 ### Other

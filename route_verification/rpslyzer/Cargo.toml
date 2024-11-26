@@ -1,0 +1,8 @@
+[package]
+name = "rpslyzer"
+version = "0.0.0"
+edition = "2021"
+description = "Placeholder redirecting to the route_verification crate."
+license.workspace = true
+readme = "README.md"
+repository.workspace = true
